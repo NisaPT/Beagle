@@ -902,7 +902,7 @@ export class Quinta3D {
   }
 
   /* ------------------------------------------------ estado do mundo */
-  atualiza(itens, novo){
+  atualiza(itens, novo, visitantes){
     this.itens = itens || {};
     for(const def of EDIFICIOS){
       const e = this.edif[def.id], tem = !!this.itens[def.id];
@@ -939,7 +939,7 @@ export class Quinta3D {
       }
     }
     if(novo && this.edif[novo] && !this.atual) this.mostraEdificio(novo);
-    this.amigos.sincroniza(this.itens, novo);       /* o menino e a menina, se já são teus */
+    this.amigos.sincroniza(this.itens, novo, visitantes);       /* o menino e a menina, se já são teus */
   }
 
   fantasma(e, on){
@@ -1061,7 +1061,11 @@ export class Quinta3D {
   toca(x, y){
     if(this.estado === 'fora'){
       const am = this.acerta(x, y, this.amigos.alvos());
-      if(am && am.amigo){ am.amigo.toque(); this.cb.amigo && this.cb.amigo(am.amigo.id); return; }
+      if(am && am.amigo){
+        am.amigo.toque();
+        if(am.amigo.codigo) this.cb.visita && this.cb.visita(am.amigo.codigo); else this.cb.amigo && this.cb.amigo(am.amigo.id);
+        return;
+      }
       const alvos = Object.values(this.edif).map(e => e.root);
       const u = this.acerta(x, y, alvos);
       if(u){ const id = u.ed || (u.animal && Object.values(this.edif).find(e => e.animais.includes(u.animal)).id); if(id) this.cb.toque && this.cb.toque(id); }

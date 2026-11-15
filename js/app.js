@@ -62,10 +62,13 @@ function amigoDeCodigo(codigo){
   return {
     codigo: codigo.toUpperCase(),
     animal: ANIMAIS[h % ANIMAIS.length],
-    cor: CORES_AMIGO[(h >> 3) % CORES_AMIGO.length],
-    nivel: 1 + (h >> 7) % TOTAL_NIVEIS,
+    cor: CORES_AMIGO[(h >>> 3) % CORES_AMIGO.length],
+    nivel: 1 + (h >>> 7) % TOTAL_NIVEIS,
   };
 }
+
+/* os três amigos de demonstração antigos eram inventados: já não existem */
+const AMIGOS_FALSOS = ['MARU-2841', 'PIPO-5513', 'LUAS-7702'];
 
 /* 'Criança 1' era um rótulo por defeito: não conta como nome escolhido */
 const nomeReal = n => (n && n !== 'Criança 1' && n !== 'Criança') ? n : '';
@@ -102,7 +105,10 @@ const Estado = {
         perguntouNome: !!g.perguntouNome || !!nomeReal(g.nome),
         codigo: g.codigo || null,
         idade: [3,4,5,6,7].includes(g.idade) ? g.idade : null,
-        amigos: g.amigos || null,
+        /* refaz os amigos a partir do código: corrige os que ficaram com cor/nível inválidos */
+        amigos: Array.isArray(g.amigos) ? g.amigos.filter(x => x && typeof x.codigo === 'string' && !AMIGOS_FALSOS.includes(x.codigo))
+                                       .map(x => ({ ...amigoDeCodigo(x.codigo), resumo: x.resumo || null })) : null,
+        removidos: Array.isArray(g.removidos) ? g.removidos : [],
         missaoDia: g.missaoDia || null,
         aprendizagem:g.aprendizagem || this.aprendizagem,
         limiteMinutos:Number.isFinite(g.limiteMinutos)?g.limiteMinutos:30,
@@ -110,13 +116,13 @@ const Estado = {
       });
     }catch(e){ console.warn('Não foi possível carregar os perfis', e); }
     if(!this.codigo) this.codigo = codigoNovo();
-    if(!this.amigos) this.amigos = ['MARU-2841', 'PIPO-5513', 'LUAS-7702'].map(amigoDeCodigo);
+    if(!this.amigos) this.amigos = [];
     this.guarda();
   },
   guarda(){
     const dados = {
       nivel:this.nivel, estrelas:this.estrelas, quinta:this.quinta, companheiro:this.companheiro,
-      codigo:this.codigo, amigos:this.amigos, nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
+      codigo:this.codigo, amigos:this.amigos, removidos:this.removidos || [], nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
       tempoHoje:this.tempoHoje, diaUso:chaveDia(), t:Date.now(),
     };
@@ -290,6 +296,57 @@ $('#lista-mundos').onclick = e => {
   abreMapa(false, +b.dataset.mundo);
 };
 
+/* ================================================= AMIGOS (cloud) ========= */
+function resumoMeu(){
+  const it = Estado.quinta.itens, nq = nivelQuinta(it);
+  return {
+    codigo: Estado.codigo, nome: Estado.nome || 'Criança',
+    estrelas: Estado.totalEstrelas(), nivel: Estado.nivel,
+    nqNivel: nq.nivel, nqNome: nq.nome, pontos: nq.pontos,
+    edificios: contaEdificios(it), bichos: contaBichos(it),
+    personagens: PERSONAGENS.filter(p => it[p.id]).map(p => p.id),
+  };
+}
+Nuvem.resumo = resumoMeu;
+let amigosAtualizadoEm = 0, aAtualizarAmigos = false;
+async function atualizaAmigos(forca){
+  if(!Nuvem.ligada || aAtualizarAmigos) return;
+  if(!forca && Date.now() - amigosAtualizadoEm < 45000) return;
+  aAtualizarAmigos = true; amigosAtualizadoEm = Date.now();
+  try{
+    await Nuvem.publica();
+    /* quem me adicionou passa a ser meu amigo também */
+    for(const c of await Nuvem.quemMeSegue(Estado.codigo)){
+      const cod = String(c).toUpperCase();
+      if(/^[A-Z]{3,4}-\d{4}$/.test(cod) && cod !== Estado.codigo && !(Estado.removidos || []).includes(cod)
+         && !Estado.amigos.some(a => a.codigo === cod)) Estado.amigos.push({ ...amigoDeCodigo(cod), resumo: null });
+    }
+    const dados = await Nuvem.lerResumos(Estado.amigos.map(a => a.codigo));
+    let mudou = false;
+    for(const a of Estado.amigos){
+      const r = dados[a.codigo];
+      if(r && JSON.stringify(r) !== JSON.stringify(a.resumo)){ a.resumo = r; mudou = true; }
+    }
+    if(mudou || Estado.amigos.length) Estado.guarda();
+    const e = document.body.dataset.ecra;
+    if(e === 'ranking') desenhaRanking();
+    else if(e === 'quinta') redesenhaQuinta();
+  }catch(err){ console.warn('Amigos: não foi possível atualizar', err); }
+  finally{ aAtualizarAmigos = false; }
+}
+Nuvem.aposSync = () => atualizaAmigos(true);
+/* só os amigos de quem já se conhece o nível aparecem no mapa */
+const amigosNoMapa = () => Estado.amigos.filter(a => a.resumo).map(a => ({ ...a, nivel: Math.max(1, Math.min(TOTAL_NIVEIS, a.resumo.nivel || 1)) }));
+/* os que passeiam pela quinta (no máximo 3, para não pesar) */
+function visitantesQuinta(){
+  return Estado.amigos.filter(a => a.resumo && a.resumo.nome).slice(0, 3).map(a => ({
+    codigo: a.codigo, nome: a.resumo.nome,
+    modelo: (a.resumo.personagens || []).includes('menina') ? 'menina' : (a.resumo.personagens || []).includes('menino') ? 'menino'
+            : (a.codigo.charCodeAt(0) % 2 ? 'menino' : 'menina'),
+    resumo: a.resumo,
+  }));
+}
+
 /* ============================================== RANKING (neste aparelho) ==== */
 const esc = t => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 let abaRanking = 'estrelas';
@@ -307,7 +364,12 @@ function dadosRanking(){
       edificios: contaEdificios(itens), bichos: contaBichos(itens),
       eu: p.id === Estado.perfilId,
     };
-  }).filter(Boolean);
+  }).filter(Boolean).concat(Estado.amigos.filter(a => a.resumo).map(a => {
+    const r = a.resumo;
+    return { id: a.codigo, amigo: true, nome: r.nome || 'Amigo', estrelas: r.estrelas || 0, nivel: r.nivel || 1,
+      nq: { nivel: r.nqNivel || 1, nome: r.nqNome || '', pontos: r.pontos || 0 },
+      edificios: r.edificios || 0, bichos: r.bichos || 0, eu: false };
+  }));
 }
 function desenhaRanking(){
   const lista = dadosRanking();
@@ -320,16 +382,19 @@ function desenhaRanking(){
     <li class="rk-linha${x.eu ? ' rk-eu' : ''}">
       <span class="rk-pos">${medalha[i] || (i + 1) + 'º'}</span>
       <span class="rk-av" style="--c:${CORES_AMIGO[[...x.nome].reduce((h, c) => h + c.charCodeAt(0), 0) % CORES_AMIGO.length]}">${esc([...x.nome][0].toUpperCase())}</span>
-      <span class="rk-txt"><b>${esc(x.nome)}${x.eu ? ' (tu)' : ''}</b>
+      <span class="rk-txt"><b>${esc(x.nome)}${x.eu ? ' (tu)' : ''}${x.amigo ? ' 👫' : ''}</b>
         <small>${porEstrelas ? `Nível ${x.nivel} de ${TOTAL_NIVEIS}` : `🏠 ${x.edificios} · 🐾 ${x.bichos} · ${esc(x.nq.nome)}`}</small></span>
       <span class="rk-val">${porEstrelas ? `⭐ ${x.estrelas}` : `🌳 Nível ${x.nq.nivel}`}</span>
     </li>`).join('');
-  $('#rk-nota').textContent = lista.length > 1
-    ? 'Ranking entre os perfis deste aparelho.'
-    : 'Para pais: crie outro perfil na Área dos Pais para os irmãos e amigos competirem no mesmo aparelho.';
+  const comAmigos = lista.some(x => x.amigo);
+  $('#rk-nota').textContent = comAmigos
+    ? 'Ranking com os perfis deste aparelho e os teus amigos 👫.'
+    : lista.length > 1 ? 'Ranking entre os perfis deste aparelho.'
+    : 'Para pais: na Área dos Pais pode trocar códigos de amigo e criar outros perfis para competirem.';
   document.querySelectorAll('#ecra-ranking .aba').forEach(b => b.classList.toggle('on', b.dataset.rk === abaRanking));
 }
 function abreRanking(){
+  atualizaAmigos();
   Voz.cala(); Fala.esconde(); jogo.para();
   $('#tabuleiro').innerHTML = '';
   desenhaRanking();
@@ -358,7 +423,7 @@ function atualizaMissao(){
 
 function abreMapa(suave, mundo){
   mundoVisto = mundo !== undefined ? mundo : mundoDoNivel(Estado.nivel);
-  desenhaMapa(telaMapa, Estado, Estado.amigos, mundoVisto);
+  desenhaMapa(telaMapa, Estado, amigosNoMapa(), mundoVisto);
   $('#faixa-mundo').textContent = MUNDOS[mundoVisto].nome;
   atualizaMissao();
   mostra('#ecra-mapa');
@@ -599,8 +664,8 @@ function desenhaPais(){
       <div class="amigo-linha">
         ${avatar(a.animal, a.cor, 44)}
         <div class="amigo-dados">
-          <strong>${a.codigo}</strong>
-          <span>Nível ${a.nivel}</span>
+          <strong>${a.resumo ? esc(a.resumo.nome || 'Amigo') + ' · ' : ''}${a.codigo}</strong>
+          <span>${a.resumo ? `⭐ ${a.resumo.estrelas || 0} · Quinta nível ${a.resumo.nqNivel || 1}` : 'À espera dos dados (precisa da conta dos pais ligada)'}</span>
         </div>
         <button class="mini discreto" data-tira="${a.codigo}" aria-label="Remover amigo">✕</button>
       </div>`).join('');
@@ -766,6 +831,7 @@ $('#btn-testar-voz').onclick = () => { Som.arranca(); Som.fala(fraseTeste()); };
 $('#lista-amigos').onclick = e => {
   const b = e.target.closest('[data-tira]'); if(!b) return;
   Estado.amigos = Estado.amigos.filter(a => a.codigo !== b.dataset.tira);
+  Estado.removidos = [...new Set([...(Estado.removidos || []), b.dataset.tira])];   /* não volta por 'seguidores' */
   Estado.guarda(); desenhaPais();
 };
 
@@ -780,8 +846,10 @@ $('#form-amigo').onsubmit = e => {
   }
   if(cod === Estado.codigo){ aviso.textContent = 'Esse é o seu próprio código.'; return; }
   if(Estado.amigos.some(a => a.codigo === cod)){ aviso.textContent = 'Esse amigo já está na lista.'; return; }
-  Estado.amigos.push(amigoDeCodigo(cod));
+  Estado.amigos.push({ ...amigoDeCodigo(cod), resumo: null });
+  Estado.removidos = (Estado.removidos || []).filter(c => c !== cod);
   Estado.guarda();
+  Nuvem.avisaSeguir(Estado.codigo, cod).then(() => atualizaAmigos(true));
   campo.value = ''; aviso.textContent = '';
   desenhaPais();
 };
@@ -947,6 +1015,11 @@ async function iniciaQ3D(){
       toque: id => { Som.arranca(); Som.efeito('toque'); $('#q3d-dica').hidden = true; Q3D.entra(id); },
       vazio: id => { Som.efeito('toque'); abreLoja('edificios', id); },
       amigo: () => { Som.arranca(); Som.efeito('toque'); Voz.diz(pick(['Olá!', 'Muito bem!'])); },
+      visita: cod => {
+        const a = Estado.amigos.find(x => x.codigo === cod); if(!a || !a.resumo) return;
+        Som.arranca(); Som.efeito('toque');
+        avisaAmigo(a.resumo);
+      },
       entrou: def => {
         Voz.cala(); Som.fala(`${Cap(def.art)} ${def.nome}.`);
         ecra.classList.add('dentro'); $('#q3d-dica').hidden = true;
@@ -973,7 +1046,7 @@ async function iniciaQ3D(){
 
 function redesenhaQuinta(){
   const it = Estado.quinta.itens;
-  if(Q3D) Q3D.atualiza(it, novoEd);
+  if(Q3D) Q3D.atualiza(it, novoEd, visitantesQuinta());
   desenhaQuinta($('#quinta-grelha'), it, novoEd);
   $('#quinta-resumo').innerHTML =
     `<span>🏠 ${contaEdificios(it)}</span><span>🐾 ${contaBichos(it)}</span><span>⭐ ${Estado.saldo()}</span>` +
@@ -981,6 +1054,7 @@ function redesenhaQuinta(){
   $('#conta-estrelas').textContent = Estado.saldo();
 }
 function abreQuinta(novo){
+  atualizaAmigos();
   Voz.cala(); Fala.esconde(); jogo.para();
   $('#tabuleiro').innerHTML = '';
   novoEd = novo || null;
@@ -1012,6 +1086,15 @@ function abreLoja(aba, destaque, casa){
   }
 }
 function fechaLoja(){ $('#loja').hidden = true; $('#loja-fundo').hidden = true; }
+
+/* toque num amigo que passeia: resumo curto */
+function avisaAmigo(r){
+  let el = $('#aviso-nivel-quinta');
+  if(!el){ el = document.createElement('div'); el.id = 'aviso-nivel-quinta'; el.className = 'aviso-nivel'; el.setAttribute('role', 'status'); document.body.append(el); }
+  el.innerHTML = `<span class="an-em">👫</span><b>${esc(r.nome || 'Amigo')}</b><span>⭐ ${r.estrelas || 0} · Quinta nível ${r.nqNivel || 1}</span>`;
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  clearTimeout(avisaNivelQuinta.t); avisaNivelQuinta.t = setTimeout(() => el.classList.remove('on'), 3200);
+}
 
 /* a quinta subiu de nível: aviso com festa */
 function avisaNivelQuinta(nq){

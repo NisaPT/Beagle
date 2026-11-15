@@ -17,17 +17,42 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
 /* [pose, segundos] */
+/* nome por cima do boneco */
+function etiquetaNome(texto){
+  const c = document.createElement('canvas'); c.width = 360; c.height = 104;
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  const mat = new THREE.SpriteMaterial({ map: t, transparent: true, depthTest: false, depthWrite: false });
+  const s = new THREE.Sprite(mat); s.renderOrder = 12;
+  s.userData.pinta = nome => {
+    const g = c.getContext('2d'); g.clearRect(0, 0, c.width, c.height);
+    g.fillStyle = 'rgba(255,255,255,.96)'; g.strokeStyle = '#1B4D8F'; g.lineWidth = 7;
+    g.beginPath(); g.roundRect(8, 8, c.width - 16, c.height - 24, 30); g.fill(); g.stroke();
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#4A2E14';
+    let px = 52;
+    do{ g.font = `700 ${px}px Fredoka, "Arial Rounded MT Bold", system-ui, sans-serif`; px -= 2; }while(g.measureText(nome).width > c.width - 56 && px > 22);
+    g.fillText(nome, c.width / 2, (c.height - 16) / 2 + 6);
+    t.needsUpdate = true;
+  };
+  s.userData.pinta(texto);
+  s.scale.set(1.5, 1.5 * c.height / c.width, 1);
+  return s;
+}
+
 const BRINCADEIRAS = calmo
   ? [['acenar', 2.4], ['palmas', 2.6], ['pensar', 2.6]]
   : [['acenar', 2.4], ['dancar', 4.4], ['saltar', 3.2], ['palmas', 3], ['festejar', 3], ['pensar', 2.6], ['dancar', 3.6]];
 
 class Amigo {
-  constructor(id, gltf, mundo){
-    this.id = id; this.mundo = mundo;
+  constructor(id, gltf, mundo, opcoes = {}){
+    this.id = id; this.mundo = mundo; this.codigo = opcoes.codigo || null;
     this.g = new THREE.Group();
     this.rig = new Rig(this.g, gltf, { esqueleto: true, limpaPesos: true, local: true });
     this.g.scale.setScalar(.001);
     this.g.userData.amigo = this;
+    if(opcoes.nome){          /* um amigo de visita: leva o nome por cima */
+      this.nome = opcoes.nome;
+      this.rotulo = etiquetaNome(opcoes.nome); this.rotulo.position.set(0, 1.3, 0); this.g.add(this.rotulo);
+    }
     mundo.q.cena.add(this.g);
     this.dono = true; this.pop = 0; this.estado = 'espera'; this.tempo = rnd(.3, 1.5);
     this.rumo = rnd(0, 6.28); this.g.rotation.y = this.rumo;
@@ -141,7 +166,29 @@ export class Amigos {
   outroDe(a){ return Object.values(this.lista).find(o => o !== a) || null; }
 
   /* ---- que personagens há ---- */
-  sincroniza(itens, novo){
+  /* visitantes: [{ codigo, nome, modelo }] — os amigos do jogador, a passear pela quinta */
+  sincronizaVisitantes(visitantes){
+    const querem = new Set((visitantes || []).map(v => 'v:' + v.codigo));
+    this.querem = querem;
+    for(const [k, a] of Object.entries(this.lista)){
+      if(k.startsWith('v:') && !querem.has(k)){ this.q.cena.remove(a.g); delete this.lista[k]; }
+    }
+    for(const v of visitantes || []){
+      const k = 'v:' + v.codigo, a = this.lista[k];
+      if(a){
+        if(a.nome !== v.nome){ a.nome = v.nome; a.rotulo.userData.pinta(v.nome); }
+        a.dono = true; continue;
+      }
+      if(this.carregando[k] || !FICHEIRO[v.modelo]) continue;
+      this.carregando[k] = new Promise((ok, erro) => this.loader.load(FICHEIRO[v.modelo], ok, undefined, erro))
+        .then(gltf => { if(this.querem && this.querem.has(k)) this.lista[k] = new Amigo(k, gltf, this, { nome: v.nome, codigo: v.codigo }); })
+        .catch(e => console.warn('Amigo 3D indisponível', v.nome, e))
+        .finally(() => { this.carregando[k] = null; });
+    }
+  }
+
+  sincroniza(itens, novo, visitantes){
+    this.sincronizaVisitantes(visitantes);
     for(const id of Object.keys(FICHEIRO)){
       const tem = !!(itens && itens[id]);
       if(tem && !this.lista[id] && !this.carregando[id]){

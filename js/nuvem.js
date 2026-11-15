@@ -71,6 +71,8 @@ export const Nuvem = {
   ultimaSync: null,
   aMudar: () => {},          /* a interface redesenha-se */
   aoTrazerDados: () => {},   /* chegou progresso novo da cloud */
+  resumo: null,              /* a app dá aqui o resumo público do perfil ativo */
+  aposSync: () => {},        /* a app atualiza os amigos depois de sincronizar */
 
   async inicia(){
     if(!this.configurada) return;
@@ -122,11 +124,58 @@ export const Nuvem = {
       this.erro = '';
       this.aMudar();
       if(mudouLocal) this.aoTrazerDados();
+      this.publica().finally(() => this.aposSync());
     }catch(e){
       console.warn('Sincronização falhou', e);
       this.erro = 'Não foi possível guardar na cloud agora. Vai tentar outra vez.';
       this.aMudar();
     }finally{ aSincronizar = false; }
+  },
+
+  /* ------------------------------------------------ amigos (ranking) ----
+     Cada perfil publica um resumo pequeno em ranking/{código}: alcunha, estrelas,
+     níveis e que personagens tem. Só isto — nada mais da criança. Os amigos leem
+     o resumo pelo código. Ver as regras em NUVEM-FIREBASE.md. */
+  get ligada(){ return !!(this.utilizador && db && navigator.onLine); },
+
+  async publica(){
+    try{
+      if(!this.ligada || !this.resumo) return false;
+      const r = this.resumo();
+      if(!r || !r.codigo) return false;
+      await fb.setDoc(fb.doc(db, 'ranking', r.codigo), limpa({ ...r, uid: this.utilizador.uid, atualizado: Date.now() }));
+      return true;
+    }catch(e){ console.warn('Não foi possível publicar o resumo', e); return false; }
+  },
+
+  /* devolve { CODIGO: resumo } só dos que existem */
+  async lerResumos(codigos){
+    const r = {};
+    if(!this.ligada) return r;
+    await Promise.all(codigos.map(async c => {
+      try{ const s = await fb.getDoc(fb.doc(db, 'ranking', c)); if(s.exists()) r[c] = s.data(); }
+      catch(e){ console.warn('Resumo indisponível', c, e); }
+    }));
+    return r;
+  },
+
+  /* quem me adicionou: para a amizade ser dos dois lados */
+  async quemMeSegue(meuCodigo){
+    try{
+      if(!this.ligada) return [];
+      const s = await fb.getDoc(fb.doc(db, 'seguidores', meuCodigo));
+      return s.exists() ? (s.data().codigos || []).filter(c => typeof c === 'string') : [];
+    }catch(e){ return []; }
+  },
+  async avisaSeguir(meuCodigo, codigoAmigo){
+    try{
+      if(!this.ligada) return false;
+      const ref = fb.doc(db, 'seguidores', codigoAmigo);
+      const s = await fb.getDoc(ref);
+      const codigos = s.exists() ? (s.data().codigos || []) : [];
+      if(!codigos.includes(meuCodigo)) await fb.setDoc(ref, { codigos: [...codigos, meuCodigo].slice(-100) });
+      return true;
+    }catch(e){ console.warn('Não foi possível avisar o amigo', e); return false; }
   },
 
   /* mensagens em português, sem culpar ninguém */

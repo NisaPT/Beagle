@@ -29,6 +29,26 @@ service cloud.firestore {
 
 Cada conta só consegue ler e escrever o seu próprio documento.
 
+### Regras para o ranking e os amigos (acrescentar, dentro de `match /documents`)
+Cada perfil publica um resumo pequeno (alcunha, estrelas, níveis e personagens) em `ranking/{código}`. Os amigos leem-no pelo código. Não se pode listar a coleção: só ler um código que se conhece.
+
+```
+    match /ranking/{codigo} {
+      allow get: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+    }
+    match /seguidores/{codigo} {
+      allow get: if request.auth != null;
+      allow create, update: if request.auth != null
+                            && request.resource.data.keys().hasOnly(['codigos'])
+                            && request.resource.data.codigos.size() <= 100;
+    }
+```
+
+`seguidores/{código}` serve para a amizade ser dos dois lados: quem adiciona um código deixa lá o seu, e o dono desse código passa a ver o outro.
+
 ## 4. Obter a configuração
 1. **Project settings** (roda dentada) → **Your apps** → ícone **</>** (Web).
 2. Nome da app: `Escola dos Avós Beagle`. Não ative o Firebase Hosting.
