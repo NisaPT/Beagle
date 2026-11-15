@@ -175,3 +175,7 @@ V4.8.0
 
 V4.9.0
 - Primeira compra de cada animal: mini-filme animado (3 cenas com voz: quem é, o que come, curiosidade). Botão Saltar.
+
+V4.10.0
+- 3 e 4 anos: memória passa a 'Encontra o igual' (modelo + 2 ou 3 objetos); sem somas (guarda extra); contar com só 3 números para escolher.
+- Memória de cartas só a partir dos 5 anos: 5 anos 3 pares, 6 anos 4 pares, 7 anos 5 pares.

@@ -776,6 +776,12 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 .mf-ponto i{width:.9rem;height:.9rem;border-radius:50%;background:#fff;border:3px solid #1B4D8F;opacity:.6}.mf-ponto i.on{background:#F7C21B;opacity:1}
 .mf-saltar{position:absolute;top:max(.6rem,env(safe-area-inset-top));right:.7rem;z-index:5;background:#fff;color:#1B4D8F;border:3px solid #1B4D8F;font-weight:800;padding:.3rem .9rem;border-radius:99px}
 @media (prefers-reduced-motion:reduce){.mf-nuvens i,.mf-sol,.mf-fx span{animation:none}.mf-fx span{opacity:1}}
+/* ---- v4.10: memória "encontra o igual" (3 e 4 anos) ---- */
+.igual{display:flex;flex-direction:column;align-items:center;gap:.7rem;padding:.6rem}
+.igual-modelo{font-size:clamp(4rem,22vmin,8rem);line-height:1;background:#fff;border:5px solid #8E6BC8;border-radius:2rem;padding:.4rem 1.2rem;box-shadow:0 6px 0 rgba(142,107,200,.4);animation:igual-bate 1.8s ease-in-out infinite}
+@keyframes igual-bate{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.igual-opcoes{display:flex;gap:.9rem;justify-content:center;flex-wrap:nowrap}
+.igual-op{font-size:clamp(2.6rem,13vmin,4.6rem);line-height:1;padding:.5rem .9rem;min-width:4.2rem}
 #btn-ir-quinta{display:inline-block}
 .quinta-atalho{display:none;width:auto;padding:0 12px;gap:6px;font-weight:800;font-size:15px;background:#CFEBC3;color:#1B4D8F;border-radius:22px}
 .quinta-atalho span{font-size:14px}
@@ -1009,7 +1015,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.9.0"></script>
+<script type="module" src="./js/app.js?v=4.10.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

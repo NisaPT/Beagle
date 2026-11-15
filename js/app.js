@@ -356,7 +356,7 @@ function comecaNivel(n){
   info.maxConta = Math.max(3, Math.min(P.maxConta, (info.maxConta||5) + ajuste));
   info.formas   = Math.min(info.formas || 2, P.formas);
   info.paleta   = Math.min(info.paleta || 4, P.paleta);
-  info.pares = P.pares; info.paresMax = P.pares; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
+  info.pares = P.pares; info.paresMax = P.pares; info.numOpcoes = P.numOpcoes; info.memoriaIgual = P.memoriaIgual; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
   info.somaMax = P.somaMax ? P.somaMax + (ajuste > 0 ? 5 : 0) : 0;
   info.imagens = P.imagens;
   info.nat = P.nat;
