@@ -164,3 +164,14 @@ V4.7.0
 - 3 e 4 anos: nunca saem jogos de letras; pares da memória no máximo 3 (3 anos: 2).
 - Avô: escolhe uma voz masculina PT-PT do aparelho (Duarte, Cristiano...), mais grave e pausada; se só houver voz feminina, baixa o tom.
 - Botão 🏡 Quinta sempre visível na barra de cima (Avós, Mapa, fim de nível).
+
+V4.7.1
+- Voz mais suave e calma (tom e volume moderados).
+- Música e voz param ao fechar/sair da app ou bloquear o ecrã.
+
+V4.8.0
+- Quinta: zonas maiores (as que tens ficam primeiro), animais a andar e a comer junto da comida da sua zona.
+- Cada zona mostra 🐾 n/limite e botão ＋ Animal que abre a loja só com os animais dessa zona; ao atingir o limite aparece Cheio.
+
+V4.9.0
+- Primeira compra de cada animal: mini-filme animado (3 cenas com voz: quem é, o que come, curiosidade). Botão Saltar.

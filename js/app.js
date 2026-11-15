@@ -9,6 +9,7 @@ import { Som } from './som.js';
 import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
+import { miniFilme } from './curiosidades.js';
 import { EDIFICIOS, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
 
 const $ = s => document.querySelector(s);
@@ -174,7 +175,11 @@ function redimensiona(){
   camara.fov = w / h < .78 ? 32 : 28;
   camara.updateProjectionMatrix();
 }
-document.addEventListener('visibilitychange', () => { if(!document.hidden) Som.retoma(); });
+/* ao sair da app, fechar o separador ou bloquear o ecrã: silêncio total */
+const silencio = () => { try{ Som.paraVoz(); if(Som.ctx && Som.ctx.state === 'running') Som.ctx.suspend(); }catch(e){} };
+document.addEventListener('visibilitychange', () => { if(document.hidden) silencio(); else Som.retoma(); });
+addEventListener('pagehide', silencio);
+document.addEventListener('freeze', silencio);
 addEventListener('resize', redimensiona);
 addEventListener('orientationchange', () => setTimeout(redimensiona, 160));
 
@@ -815,10 +820,12 @@ function abreQuinta(novo){
     if(l) l.scrollIntoView({ behavior:'smooth', block:'center' });
   }, 160);
 }
-function abreLoja(aba, destaque){
+let casaLoja = null;
+function abreLoja(aba, destaque, casa){
+  casaLoja = casa || null;
   const it = Estado.quinta.itens;
   abaLoja = aba || (EDIFICIOS.every(e => it[e.id]) ? 'bichos' : 'edificios');
-  desenhaLoja($('#loja-lista'), it, Estado.saldo(), abaLoja);
+  desenhaLoja($('#loja-lista'), it, Estado.saldo(), abaLoja, casaLoja);
   document.querySelectorAll('#loja .aba').forEach(b => b.classList.toggle('on', b.dataset.aba === abaLoja));
   $('#loja-saldo').textContent = Estado.saldo();
   $('#loja').hidden = false; $('#loja-fundo').hidden = false;
@@ -837,6 +844,7 @@ function compra(id, botao){
   if(Estado.saldo() < item.preco) return;
   if(eEdificio){ if(it[id]) return; }
   else{ if(!it[item.casa] || (it[id] || 0) >= item.max) return; }
+  const primeiro = !eEdificio && !(it[id] || 0);   /* primeiro animal desta espécie */
   it[id] = (it[id] || 0) + 1;
   Estado.guarda();
   Som.efeito('certo');
@@ -844,7 +852,7 @@ function compra(id, botao){
     const r = botao.getBoundingClientRect();
     confete(document.body, r.left + r.width / 2, r.top, ['#F7C21B', '#E0162B', '#2C6FD6', '#3DA35D', '#fff']);
   }
-  Som.fala(eEdificio ? `Já tens ${item.art} ${item.nome}!` : `${item.nome}! Bem-vind${item.art}!`);
+  if(!primeiro) Som.fala(eEdificio ? `Já tens ${item.art} ${item.nome}!` : `${item.nome}! Bem-vind${item.art}!`);
   if(eEdificio){
     fechaLoja();
     novoEd = id;
@@ -853,9 +861,13 @@ function compra(id, botao){
       const l = document.querySelector(`#quinta-grelha .lote[data-ed="${id}"]`);
       if(l) l.scrollIntoView({ behavior:'smooth', block:'center' });
     }, 120);
+  }else if(primeiro){
+    fechaLoja();
+    redesenhaQuinta();
+    setTimeout(() => miniFilme(item, Som, () => { redesenhaQuinta(); abreLoja(abaLoja, null, casaLoja); }), 350);
   }else{
     redesenhaQuinta();
-    abreLoja(abaLoja);
+    abreLoja(abaLoja, null, casaLoja);
   }
 }
 
@@ -881,6 +893,8 @@ $('#quinta-grelha').addEventListener('click', e => {
   }
   const ed = e.target.closest('[data-edificio]');
   if(ed){ Som.efeito('toque'); const x = achaItem(ed.dataset.edificio); Som.fala(`${Cap(x.art)} ${x.nome}.`); return; }
+  const mais = e.target.closest('[data-mais]');
+  if(mais){ Som.efeito('toque'); abreLoja('bichos', null, mais.dataset.mais); return; }
   const vazio = e.target.closest('.lote.vazio');
   if(vazio){ Som.efeito('toque'); abreLoja('edificios', vazio.dataset.ed); }
 });

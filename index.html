@@ -699,6 +699,83 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 .item-loja .comprar{width:100%;margin-top:.2rem;font-size:.95rem;padding:.5em .6em}
 .item-loja .comprar:not(:disabled){background:linear-gradient(180deg,#6BC27A,#3E9B52);color:#fff;border:0;box-shadow:0 5px 0 #2C7A3C}
 .item-loja .comprar:disabled{opacity:.6;background:#fff;color:var(--azul-tinta);border:3px solid var(--barro-esc);box-shadow:none;cursor:default}
+
+/* ---- v4.8: zonas maiores, animais a comer ---- */
+#quinta-grelha .bicho{height:auto;overflow:visible}
+.lote:not(.vazio){grid-column:span 2;aspect-ratio:4/3;background:none}
+@media (min-width:640px){.lote:not(.vazio){grid-column:span 1;aspect-ratio:1/1}}
+.lote:not(.vazio)::before{content:"";position:absolute;inset:32% 0 0 0;border-radius:1.3rem;border:3px solid rgba(70,120,50,.45);
+  background:repeating-linear-gradient(90deg,transparent 0 11px,rgba(255,255,255,.07) 11px 12px),linear-gradient(180deg,#A9D78F,#7DBA68);z-index:-1}
+.lote-nome{top:.4rem;left:.5rem;bottom:auto;transform:none;z-index:300}
+.lote-acoes{position:absolute;top:.35rem;right:.4rem;display:flex;gap:.3rem;align-items:center;z-index:300}
+.lote-cap,.lote-cheio{font-size:.8rem;font-weight:800;background:rgba(255,255,255,.88);border-radius:99px;padding:.1rem .6rem;color:#1B4D8F}
+.lote-cheio{background:#CFEBC3}
+.lote-mais{font:inherit;font-size:.85rem;font-weight:800;color:#fff;background:#3DA35D;border:2px solid #2B7A44;border-radius:99px;padding:.15rem .7rem;box-shadow:0 3px 0 #2B7A44;cursor:pointer;min-height:2.2rem}
+.lote-mais:active{transform:translateY(2px);box-shadow:0 1px 0 #2B7A44}
+.comida{position:absolute;transform:translate(-50%,-70%);font-size:.85rem;z-index:var(--z,40);pointer-events:none;opacity:.95}
+.bicho img{animation:come var(--d,9s) ease-in-out var(--a,0s) infinite;transform-origin:50% 100%}
+.bicho.dir img{animation-name:come-d}
+.bicho::after{content:var(--co);position:absolute;left:0;width:100%;top:-12%;text-align:center;font-size:.8rem;opacity:0;pointer-events:none;
+  animation:nham var(--d,9s) linear var(--a,0s) infinite}
+@keyframes come{
+  0%{transform:translateX(-12%) scaleX(1) rotate(0)}4%{transform:translateX(-12%) scaleX(1) rotate(-11deg)}8%{transform:translateX(-12%) scaleX(1) rotate(0)}
+  12%{transform:translateX(-12%) scaleX(1) rotate(-11deg)}16%{transform:translateX(-12%) scaleX(1) rotate(0)}20%{transform:translateX(-12%) scaleX(1) rotate(-11deg)}24%{transform:translateX(-12%) scaleX(1) rotate(0)}
+  25%{transform:translateX(-12%) scaleX(-1) rotate(0)}42%{transform:translateX(12%) scaleX(-1) rotate(0)}
+  46%{transform:translateX(12%) scaleX(-1) rotate(-11deg)}50%{transform:translateX(12%) scaleX(-1) rotate(0)}54%{transform:translateX(12%) scaleX(-1) rotate(-11deg)}
+  58%{transform:translateX(12%) scaleX(-1) rotate(0)}62%{transform:translateX(12%) scaleX(-1) rotate(-11deg)}66%{transform:translateX(12%) scaleX(-1) rotate(0)}
+  67%{transform:translateX(12%) scaleX(1) rotate(0)}84%{transform:translateX(-12%) scaleX(1) rotate(0)}100%{transform:translateX(-12%) scaleX(1) rotate(0)}}
+@keyframes come-d{
+  0%{transform:translateX(-12%) scaleX(-1) rotate(0)}4%{transform:translateX(-12%) scaleX(-1) rotate(-11deg)}8%{transform:translateX(-12%) scaleX(-1) rotate(0)}
+  12%{transform:translateX(-12%) scaleX(-1) rotate(-11deg)}16%{transform:translateX(-12%) scaleX(-1) rotate(0)}20%{transform:translateX(-12%) scaleX(-1) rotate(-11deg)}24%{transform:translateX(-12%) scaleX(-1) rotate(0)}
+  25%{transform:translateX(-12%) scaleX(1) rotate(0)}42%{transform:translateX(12%) scaleX(1) rotate(0)}
+  46%{transform:translateX(12%) scaleX(1) rotate(-11deg)}50%{transform:translateX(12%) scaleX(1) rotate(0)}54%{transform:translateX(12%) scaleX(1) rotate(-11deg)}
+  58%{transform:translateX(12%) scaleX(1) rotate(0)}62%{transform:translateX(12%) scaleX(1) rotate(-11deg)}66%{transform:translateX(12%) scaleX(1) rotate(0)}
+  67%{transform:translateX(12%) scaleX(-1) rotate(0)}84%{transform:translateX(-12%) scaleX(-1) rotate(0)}100%{transform:translateX(-12%) scaleX(-1) rotate(0)}}
+@keyframes nham{
+  0%{transform:translate(-12%,0);opacity:0}4%{transform:translate(-12%,-40%);opacity:1}8%{transform:translate(-12%,-10%);opacity:0}
+  12%{transform:translate(-12%,-40%);opacity:1}16%{transform:translate(-12%,-10%);opacity:0}20%{transform:translate(-12%,-40%);opacity:1}24%{transform:translate(-12%,-10%);opacity:0}
+  25%{transform:translate(12%,0);opacity:0}46%{transform:translate(12%,-40%);opacity:1}50%{transform:translate(12%,-10%);opacity:0}
+  54%{transform:translate(12%,-40%);opacity:1}58%{transform:translate(12%,-10%);opacity:0}62%{transform:translate(12%,-40%);opacity:1}66%{transform:translate(12%,-10%);opacity:0}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.bicho::after{animation:none}}
+
+/* ---- v4.9: mini-filme do animal ---- */
+.mini-filme{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;overflow:hidden;
+  background:linear-gradient(180deg,var(--c1) 0%,#EAF7FF 62%);animation:mf-entra .4s ease-out}
+.mini-filme.sai{animation:mf-sai .35s ease-in forwards}
+@keyframes mf-entra{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
+@keyframes mf-sai{to{opacity:0}}
+.mf-sol{position:absolute;top:13%;right:9%;width:16vmin;height:16vmin;border-radius:50%;background:radial-gradient(#FFF6B0,#FFD94A 70%);box-shadow:0 0 0 2.2vmin #FFE98A55,0 0 0 4.5vmin #FFE98A33;animation:mf-sol 6s ease-in-out infinite alternate}
+@keyframes mf-sol{to{transform:scale(1.08)}}
+.mf-nuvens i{position:absolute;top:14%;left:-30%;width:26vmin;height:9vmin;border-radius:9vmin;background:#fff;opacity:.9;animation:mf-nuvem 26s linear infinite}
+.mf-nuvens i:nth-child(2){top:26%;width:20vmin;animation-duration:34s;animation-delay:-12s}
+.mf-nuvens i:nth-child(3){top:6%;width:18vmin;animation-duration:40s;animation-delay:-24s}
+@keyframes mf-nuvem{to{transform:translateX(160vw)}}
+.mf-relva{position:absolute;left:-10%;right:-10%;bottom:0;height:46%;border-radius:50% 50% 0 0/22% 22% 0 0;background:linear-gradient(180deg,#9AD67F,var(--c2))}
+.mf-titulo{position:absolute;top:max(4%,env(safe-area-inset-top));left:0;right:0;text-align:center;font-size:clamp(2rem,9vmin,4rem);font-weight:900;color:#fff;
+  -webkit-text-stroke:2px #1B4D8F;paint-order:stroke fill;text-shadow:0 4px 0 #1B4D8F;letter-spacing:.02em}
+.mf-palco{position:relative;width:min(66vw,40vh);aspect-ratio:1/1;margin-bottom:1.5vh;z-index:2}
+.mf-bicho{position:absolute;left:50%;bottom:0;width:78%;transform:translateX(-50%);transform-origin:50% 100%;filter:drop-shadow(0 1.2vmin 0 rgba(0,0,0,.12))}
+.mf-bicho.pop{animation:mf-pop .8s var(--mola,cubic-bezier(.3,1.6,.5,1))}
+@keyframes mf-pop{0%{transform:translateX(-50%) scale(.2) rotate(-12deg);opacity:0}100%{transform:translateX(-50%) scale(1);opacity:1}}
+.mini-filme[data-cena=fala] .mf-bicho{animation:mf-pop .8s var(--mola,cubic-bezier(.3,1.6,.5,1)),mf-fala 1.1s ease-in-out .8s infinite alternate}
+@keyframes mf-fala{from{transform:translateX(-50%) rotate(-4deg) translateY(0)}to{transform:translateX(-50%) rotate(4deg) translateY(-4%)}}
+.mini-filme[data-cena=come] .mf-bicho{animation:mf-pop .8s var(--mola,cubic-bezier(.3,1.6,.5,1)),mf-come 1.2s ease-in-out .8s infinite}
+@keyframes mf-come{0%,100%{transform:translateX(-50%) rotate(0)}30%,70%{transform:translateX(-50%) rotate(-9deg) translateY(2%)}50%{transform:translateX(-50%) rotate(0)}}
+.mini-filme[data-cena=curio] .mf-bicho{animation:mf-pop .8s var(--mola,cubic-bezier(.3,1.6,.5,1)),mf-curio 1.6s ease-in-out .8s infinite}
+@keyframes mf-curio{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.07) translateY(-3%)}}
+.mf-fx{position:absolute;inset:0;pointer-events:none}
+.mf-fx span{position:absolute;font-size:clamp(1.6rem,7vmin,3rem);left:calc(8% + var(--k)*14%);top:78%;animation:mf-voa 2.4s ease-in calc(var(--k)*.3s) infinite;opacity:0}
+.mf-fx span.est{top:calc(10% + (var(--k)*37%) - (var(--k)*37%)/1);animation:mf-brilha 1.8s ease-in-out calc(var(--k)*.22s) infinite}
+.mf-fx span.est:nth-child(odd){top:8%}.mf-fx span.est:nth-child(even){top:40%}
+@keyframes mf-voa{0%{transform:translate(0,0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translate(40%,-90%) scale(1);opacity:0}}
+@keyframes mf-brilha{0%,100%{transform:scale(.4) rotate(0);opacity:0}50%{transform:scale(1.2) rotate(25deg);opacity:1}}
+.mf-legenda{position:relative;z-index:3;width:min(92vw,40rem);margin:0 0 .7rem;display:flex;gap:.7rem;align-items:center;background:rgba(255,253,240,.96);border:4px solid #1B4D8F;border-radius:1.5rem;padding:.8rem 1rem;box-shadow:0 6px 0 rgba(27,77,143,.35)}
+.mf-selo{font-size:clamp(2rem,9vmin,3.4rem);line-height:1;flex:none}
+.mf-legenda p{margin:0;font-weight:800;color:#1B4D8F;font-size:clamp(1.05rem,4.3vmin,1.7rem);line-height:1.25}
+.mf-ponto{position:relative;z-index:3;display:flex;gap:.5rem;margin-bottom:max(1rem,env(safe-area-inset-bottom))}
+.mf-ponto i{width:.9rem;height:.9rem;border-radius:50%;background:#fff;border:3px solid #1B4D8F;opacity:.6}.mf-ponto i.on{background:#F7C21B;opacity:1}
+.mf-saltar{position:absolute;top:max(.6rem,env(safe-area-inset-top));right:.7rem;z-index:5;background:#fff;color:#1B4D8F;border:3px solid #1B4D8F;font-weight:800;padding:.3rem .9rem;border-radius:99px}
+@media (prefers-reduced-motion:reduce){.mf-nuvens i,.mf-sol,.mf-fx span{animation:none}.mf-fx span{opacity:1}}
 #btn-ir-quinta{display:inline-block}
 .quinta-atalho{display:none;width:auto;padding:0 12px;gap:6px;font-weight:800;font-size:15px;background:#CFEBC3;color:#1B4D8F;border-radius:22px}
 .quinta-atalho span{font-size:14px}
@@ -932,7 +1009,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.7.0"></script>
+<script type="module" src="./js/app.js?v=4.9.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

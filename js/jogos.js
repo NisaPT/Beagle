@@ -65,6 +65,7 @@ export class Jogo {
     if(this.ronda >= RONDAS) return this.acaba();
     this.ronda++;
     this.aEsperar = false;
+    if(this.tipo === 'letras' && !(this.info.letraOpcoes > 0)) this.tipo = 'cores';   /* 3 e 4 anos: sem letras */
     if(this.tipo === 'cores')  this.rondaCores();
     if(this.tipo === 'contar') this.rondaContar();
     if(this.tipo === 'formas') this.rondaFormas();
@@ -295,7 +296,7 @@ export class Jogo {
   }
 
   rondaMemoria(){
-    const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,Math.max(2,Math.min(6,this.info.pares||4))), seq=baralha([...icons,...icons]);
+    const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,Math.max(2,Math.min(this.info.paresMax||6,this.info.pares||4))), seq=baralha([...icons,...icons]);
     this.ctx.raiz.innerHTML=`<div class="memoria-grelha">${seq.map((v,i)=>`<button class="carta-memoria" data-i="${i}" data-v="${v}" aria-label="Carta ${i+1}">❔</button>`).join('')}</div><p class="instrucao-memoria">Encontra os pares iguais.</p>`;
     let aberto=null, bloqueado=false, paresFeitos=0, falhas=0;
     /* margem justa: cada par pode falhar uma vez (e mais uma de folga) sem perder estrelas */
