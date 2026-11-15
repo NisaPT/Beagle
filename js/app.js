@@ -11,7 +11,7 @@ import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { miniFilme } from './curiosidades.js';
 import { Festa } from './festa.js';
-import { EDIFICIOS, BICHOS as BICHOS_LOJA, PERSONAGENS, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
+import { EDIFICIOS, BICHOS as BICHOS_LOJA, PERSONAGENS, nivelQuinta, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -220,7 +220,7 @@ function mostra(id){
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
   pausado = id === '#ecra-carregar' || id === '#ecra-quinta';   /* nos outros menus o avô/avó faz companhia num canto */
   if(id === '#ecra-inicio' || id === '#ecra-nome' || id === '#ecra-idade') vista = VISTAS.dois;      /* os dois avós */
-  else if(id === '#ecra-mundos' || id === '#ecra-mapa') vista = VISTAS.um;                           /* o que foi escolhido */
+  else if(id === '#ecra-mundos' || id === '#ecra-mapa' || id === '#ecra-ranking') vista = VISTAS.um;                           /* o que foi escolhido */
   if(Q3D) Q3D.ativa(id === '#ecra-quinta');
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   setTimeout(aplicaPendentes, 0);
@@ -228,6 +228,7 @@ function mostra(id){
   if(t) t.textContent = id === '#ecra-mundos' ? 'Avós'
                       : id === '#ecra-mapa'   ? 'Quinta'
                       : id === '#ecra-quinta' ? 'Brincar'
+                      : id === '#ecra-ranking' ? 'Avós'
                       : 'Mapa';
 }
 
@@ -253,7 +254,13 @@ function abreMundos(){
       <span class="texto"><span class="titulo">A Minha Quinta</span>
         <span class="sub">${contaEdificios(Estado.quinta.itens)} edifícios · ${contaBichos(Estado.quinta.itens)} animais · ⭐ ${Estado.saldo()}</span></span>
     </button>`;
-  $('#lista-mundos').innerHTML = cartaoQuinta + MUNDOS.map((m, i) => {
+  const nq = nivelQuinta(Estado.quinta.itens);
+  const cartaoRanking = `<button class="mundo ranking" data-ranking="1">
+      <span class="selo" style="--c:#FBE29A"><span class="selo-emoji">🏆</span></span>
+      <span class="texto"><span class="titulo">Ranking</span>
+        <span class="sub">Quem tem mais ⭐ · Quinta nível ${nq.nivel}</span></span>
+    </button>`;
+  $('#lista-mundos').innerHTML = cartaoQuinta + cartaoRanking + MUNDOS.map((m, i) => {
     const inicio = primeiroDoMundo(i);
     const aberto = maior >= inicio;
     const feitos = Math.max(0, Math.min(POR_MUNDO, maior - inicio));
@@ -279,8 +286,61 @@ $('#lista-mundos').onclick = e => {
   if(!b || b.disabled) return;
   Som.efeito('toque');
   if(b.dataset.quinta) return abreQuinta();
+  if(b.dataset.ranking) return abreRanking();
   abreMapa(false, +b.dataset.mundo);
 };
+
+/* ============================================== RANKING (neste aparelho) ==== */
+const esc = t => String(t).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+let abaRanking = 'estrelas';
+function dadosRanking(){
+  return Estado.listaPerfis().map(p => {
+    let d = null;
+    if(p.id === Estado.perfilId) d = { estrelas: Estado.estrelas, quinta: Estado.quinta, nivel: Estado.nivel, nome: Estado.nome };
+    else{ try{ d = JSON.parse(localStorage.getItem('eab-perfil-' + p.id) || 'null'); }catch(e){} }
+    if(!d) return null;
+    const itens = (d.quinta && d.quinta.itens) || {};
+    return {
+      id: p.id, nome: nomeReal(d.nome) || nomeReal(p.nome) || 'Criança',
+      estrelas: Object.values(d.estrelas || {}).reduce((x, y) => x + y, 0),
+      nivel: d.nivel || 1, nq: nivelQuinta(itens),
+      edificios: contaEdificios(itens), bichos: contaBichos(itens),
+      eu: p.id === Estado.perfilId,
+    };
+  }).filter(Boolean);
+}
+function desenhaRanking(){
+  const lista = dadosRanking();
+  const porEstrelas = abaRanking === 'estrelas';
+  lista.sort((a, b) => porEstrelas
+    ? (b.estrelas - a.estrelas) || (b.nivel - a.nivel)
+    : (b.nq.pontos - a.nq.pontos) || (b.estrelas - a.estrelas));
+  const medalha = ['🥇', '🥈', '🥉'];
+  $('#rk-lista').innerHTML = lista.map((x, i) => `
+    <li class="rk-linha${x.eu ? ' rk-eu' : ''}">
+      <span class="rk-pos">${medalha[i] || (i + 1) + 'º'}</span>
+      <span class="rk-av" style="--c:${CORES_AMIGO[[...x.nome].reduce((h, c) => h + c.charCodeAt(0), 0) % CORES_AMIGO.length]}">${esc([...x.nome][0].toUpperCase())}</span>
+      <span class="rk-txt"><b>${esc(x.nome)}${x.eu ? ' (tu)' : ''}</b>
+        <small>${porEstrelas ? `Nível ${x.nivel} de ${TOTAL_NIVEIS}` : `🏠 ${x.edificios} · 🐾 ${x.bichos} · ${esc(x.nq.nome)}`}</small></span>
+      <span class="rk-val">${porEstrelas ? `⭐ ${x.estrelas}` : `🌳 Nível ${x.nq.nivel}`}</span>
+    </li>`).join('');
+  $('#rk-nota').textContent = lista.length > 1
+    ? 'Ranking entre os perfis deste aparelho.'
+    : 'Para pais: crie outro perfil na Área dos Pais para os irmãos e amigos competirem no mesmo aparelho.';
+  document.querySelectorAll('#ecra-ranking .aba').forEach(b => b.classList.toggle('on', b.dataset.rk === abaRanking));
+}
+function abreRanking(){
+  Voz.cala(); Fala.esconde(); jogo.para();
+  $('#tabuleiro').innerHTML = '';
+  desenhaRanking();
+  mostra('#ecra-ranking');
+  $('#barra').hidden = false;
+  Som.fala('Quem tem mais estrelas?');
+}
+$('#ecra-ranking').addEventListener('click', e => {
+  const b = e.target.closest('.aba'); if(!b) return;
+  Som.efeito('toque'); abaRanking = b.dataset.rk; desenhaRanking();
+});
 
 function chaveDia(){
   const d = new Date();
@@ -443,6 +503,7 @@ $('#btn-voltar').onclick = () => {
   Som.efeito('toque');
   const onde = document.body.dataset.ecra;
   if(onde === 'quinta'){ if(!$('#loja').hidden) fechaLoja(); else if(Q3D && Q3D.dentro) Q3D.sai(); else abreMundos(); }   /* quinta -> mundos */
+  else if(onde === 'ranking') abreMundos();          /* ranking -> mundos */
   else if(onde === 'mundos') abreEscolha();        /* mundos -> escolher avô */
   else if(onde === 'mapa') abreMundos();      /* mapa   -> mundos      */
   else voltaAoMapa();                         /* jogo   -> mapa        */
@@ -491,7 +552,7 @@ function gesto(rig, pose){
   if(!document.hidden){
     if(ecra === 'inicio' || ecra === 'nome' || ecra === 'idade'){
       gesto(avo, pick(GESTOS_MENU)); setTimeout(() => gesto(ava, pick(GESTOS_MENU)), 900);
-    }else if(ecra === 'mundos' || ecra === 'mapa') gesto(activo, pick(GESTOS_MENU));
+    }else if(ecra === 'mundos' || ecra === 'mapa' || ecra === 'ranking') gesto(activo, pick(GESTOS_MENU));
     else if(ecra === 'jogo' && Math.random() < .5) gesto(activo, pick(GESTOS_JOGO));
   }
   setTimeout(gestosSozinhos, 4200 + Math.random() * 3200);
@@ -915,7 +976,8 @@ function redesenhaQuinta(){
   if(Q3D) Q3D.atualiza(it, novoEd);
   desenhaQuinta($('#quinta-grelha'), it, novoEd);
   $('#quinta-resumo').innerHTML =
-    `<span>🏠 ${contaEdificios(it)}</span><span>🐾 ${contaBichos(it)}</span><span>⭐ ${Estado.saldo()}</span>`;
+    `<span>🏠 ${contaEdificios(it)}</span><span>🐾 ${contaBichos(it)}</span><span>⭐ ${Estado.saldo()}</span>` +
+    `<span title="${nivelQuinta(it).nome}">🌳 Nível ${nivelQuinta(it).nivel}</span>`;
   $('#conta-estrelas').textContent = Estado.saldo();
 }
 function abreQuinta(novo){
@@ -951,6 +1013,18 @@ function abreLoja(aba, destaque, casa){
 }
 function fechaLoja(){ $('#loja').hidden = true; $('#loja-fundo').hidden = true; }
 
+/* a quinta subiu de nível: aviso com festa */
+function avisaNivelQuinta(nq){
+  let el = $('#aviso-nivel-quinta');
+  if(!el){ el = document.createElement('div'); el.id = 'aviso-nivel-quinta'; el.className = 'aviso-nivel'; el.setAttribute('role', 'status'); document.body.append(el); }
+  el.innerHTML = `<span class="an-em">🌳</span><b>A tua quinta subiu!</b><span>Nível ${nq.nivel} · ${nq.nome}</span>`;
+  el.classList.remove('on'); void el.offsetWidth; el.classList.add('on');
+  Som.efeito('nivel');
+  Som.fala('Muito bem! A tua quinta subiu de nível!');
+  confete(document.body, innerWidth / 2, innerHeight * .25, ['#F7C21B', '#E0162B', '#2C6FD6', '#3DA35D', '#fff']);
+  clearTimeout(avisaNivelQuinta.t); avisaNivelQuinta.t = setTimeout(() => el.classList.remove('on'), 4200);
+}
+
 function compra(id, botao){
   const item = achaItem(id), it = Estado.quinta.itens;
   if(!item) return;
@@ -960,6 +1034,7 @@ function compra(id, botao){
   if(eEdificio || ePers){ if(it[id]) return; }
   else{ if(!it[item.casa] || (it[id] || 0) >= item.max) return; }
   const primeiro = !eEdificio && !(it[id] || 0);   /* primeiro animal desta espécie */
+  const nivelAntes = nivelQuinta(it).nivel;
   it[id] = (it[id] || 0) + 1;
   Estado.guarda();
   Som.efeito('certo');
@@ -967,6 +1042,8 @@ function compra(id, botao){
     const r = botao.getBoundingClientRect();
     confete(document.body, r.left + r.width / 2, r.top, ['#F7C21B', '#E0162B', '#2C6FD6', '#3DA35D', '#fff']);
   }
+  const nq = nivelQuinta(it);
+  if(nq.nivel > nivelAntes) setTimeout(() => avisaNivelQuinta(nq), ePers ? 1200 : 700);
   if(ePers){
     /* personagem nova: festa logo ali, e volta à loja ao fechar */
     fechaLoja(); redesenhaQuinta();

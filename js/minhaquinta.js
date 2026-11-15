@@ -57,6 +57,23 @@ export function gastoTotal(itens){
   for(const [id, n] of Object.entries(itens || {})) t += precoDe(id) * (n || 0);
   return t;
 }
+/* Nível da quinta: sobe com o que já foi comprado (edifícios, animais e amigos).
+   Os pontos são o valor das compras, por isso acompanham sempre o catálogo. */
+export const NIVEIS_QUINTA = [
+  { de:0,   nome:'Semente' },       { de:10,  nome:'Rebento' },      { de:30,  nome:'Hortinha' },
+  { de:60,  nome:'Quintalinho' },   { de:100, nome:'Quinta Feliz' }, { de:160, nome:'Quinta Grande' },
+  { de:250, nome:'Quinta Linda' },  { de:380, nome:'Quinta de Sonho' }, { de:550, nome:'Super Quinta' },
+  { de:780, nome:'Quinta Mestra' },
+];
+export function nivelQuinta(itens){
+  const pontos = gastoTotal(itens);
+  let i = 0;
+  while(i < NIVEIS_QUINTA.length - 1 && pontos >= NIVEIS_QUINTA[i + 1].de) i++;
+  const atual = NIVEIS_QUINTA[i], prox = NIVEIS_QUINTA[i + 1] || null;
+  return { nivel: i + 1, nome: atual.nome, pontos, proximo: prox ? prox.de : null,
+           proximoNome: prox ? prox.nome : null,
+           pct: prox ? (pontos - atual.de) / (prox.de - atual.de) : 1 };
+}
 export const contaEdificios = itens => EDIFICIOS.filter(e => (itens || {})[e.id]).length;
 export const contaBichos = itens => BICHOS.reduce((a, b) => a + ((itens || {})[b.id] || 0), 0);
 

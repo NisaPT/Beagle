@@ -636,31 +636,54 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 
 
 
+
+/* ---- v4.15: ranking e nível da quinta ---- */
+.mundo.ranking .selo{background:#FBE29A}
+.selo-emoji{font-size:2.1rem;line-height:1}
+.rk-abas{display:flex;gap:.5rem;width:min(100%,28rem)}
+.rk-lista{list-style:none;margin:0;padding:0;width:min(100%,28rem);display:flex;flex-direction:column;gap:.55rem}
+.rk-linha{display:flex;align-items:center;gap:.7rem;background:#fff;border:3px solid var(--azul-tinta);border-radius:1.2rem;padding:.55rem .8rem;text-align:left;
+  box-shadow:0 3px 0 rgba(90,60,32,.18)}
+.rk-linha.rk-eu{background:#FFF3C4;border-color:#C98F1B}
+.rk-pos{min-width:2.4rem;text-align:center;font-weight:800;font-size:1.5rem}
+.rk-av{flex:none;width:2.5rem;height:2.5rem;border-radius:50%;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:800;font-size:1.2rem}
+.rk-txt{flex:1;min-width:0;display:flex;flex-direction:column}
+.rk-txt b{font-size:1.1rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-txt small{opacity:.75;font-size:.85rem}
+.rk-val{font-weight:800;font-size:1.15rem;white-space:nowrap}
+.aviso-nivel{position:fixed;left:50%;top:max(4.5rem,env(safe-area-inset-top));z-index:9999;transform:translate(-50%,-30px) scale(.8);opacity:0;pointer-events:none;
+  display:flex;flex-direction:column;align-items:center;gap:.1rem;padding:.7rem 1.3rem;background:#FFF3C4;border:4px solid #C98F1B;border-radius:1.6rem;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:center;font-size:1.05rem;color:var(--azul-tinta)}
+.aviso-nivel .an-em{font-size:2rem}
+.aviso-nivel.on{animation:aviso-nivel 4.2s var(--mola) forwards}
+@keyframes aviso-nivel{0%{opacity:0;transform:translate(-50%,-30px) scale(.8)}12%{opacity:1;transform:translate(-50%,0) scale(1.05)}18%{transform:translate(-50%,0) scale(1)}88%{opacity:1;transform:translate(-50%,0) scale(1)}100%{opacity:0;transform:translate(-50%,-20px) scale(.9)}}
+@media (prefers-reduced-motion:reduce){.aviso-nivel.on{animation:none;opacity:1;transform:translate(-50%,0)}}
+
 /* ---- v4.14: o avô e a avó fazem companhia nos menus, num canto ---- */
 /* os ecrãs são filhos do body, por isso o #app sobe acima deles (sem apanhar toques) */
 body[data-ecra="inicio"] #app,body[data-ecra="nome"] #app,body[data-ecra="idade"] #app,
-body[data-ecra="mundos"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
+body[data-ecra="mundos"] #app,body[data-ecra="ranking"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
 body[data-ecra="inicio"] .tabuleiro,body[data-ecra="nome"] .tabuleiro,body[data-ecra="idade"] .tabuleiro,
-body[data-ecra="mundos"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
-body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage{pointer-events:auto}
+body[data-ecra="mundos"] .tabuleiro,body[data-ecra="ranking"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage{pointer-events:auto}
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,
-body[data-ecra="mundos"] .stage,body[data-ecra="mapa"] .stage{
+body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage,body[data-ecra="mapa"] .stage{
   position:fixed;z-index:7;flex:none;overflow:visible;background:transparent;
   left:0;bottom:0;width:min(44vw,17rem);height:min(30vh,15rem);
 }
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage{
   left:50%;transform:translateX(-50%);width:min(94vw,24rem);height:min(26vh,13rem);bottom:max(.4rem,env(safe-area-inset-bottom));
 }
-body[data-ecra="mundos"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
+body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
 body[data-ecra="mapa"] .stage{height:min(17vh,9rem);width:min(24vw,8rem);left:auto;right:0;bottom:3.6rem;pointer-events:none}
 body[data-ecra="inicio"] .stage .cenario,body[data-ecra="nome"] .stage .cenario,body[data-ecra="idade"] .stage .cenario,
-body[data-ecra="mundos"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
+body[data-ecra="mundos"] .stage .cenario,body[data-ecra="ranking"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
 body[data-ecra="inicio"] .stage .fala,body[data-ecra="nome"] .stage .fala,body[data-ecra="idade"] .stage .fala,
-body[data-ecra="mundos"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
+body[data-ecra="mundos"] .stage .fala,body[data-ecra="ranking"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
 body[data-ecra="inicio"] .stage::after,body[data-ecra="nome"] .stage::after,body[data-ecra="idade"] .stage::after,
-body[data-ecra="mundos"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
+body[data-ecra="mundos"] .stage::after,body[data-ecra="ranking"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
 body[data-ecra="inicio"] .ecra.on,body[data-ecra="nome"] .ecra.on,body[data-ecra="idade"] .ecra.on{padding-bottom:calc(min(26vh,13rem) + 1rem)}
-body[data-ecra="mundos"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
+body[data-ecra="mundos"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
 
 /* ---- v4.13: festa dos meninos Beagle ---- */
 .festa{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(24,61,53,.6);padding:1rem;animation:festa-fundo .25s ease-out}
@@ -922,6 +945,16 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   <div class="mundos" id="lista-mundos"></div>
 </section>
 
+<section class="ecra cobre" id="ecra-ranking">
+  <h1>🏆 Ranking</h1>
+  <div class="rk-abas">
+    <button class="aba on" data-rk="estrelas" type="button">⭐ Estrelas</button>
+    <button class="aba" data-rk="quinta" type="button">🏡 Quinta</button>
+  </div>
+  <ol class="rk-lista" id="rk-lista"></ol>
+  <p class="aviso" id="rk-nota"></p>
+</section>
+
 <section class="ecra" id="ecra-quinta">
   <div class="q3d" id="q3d" hidden>
     <canvas id="q3d-canvas" aria-label="A quinta em 3D. Toca num edifício para entrar."></canvas>
@@ -1082,7 +1115,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.14.0"></script>
+<script type="module" src="./js/app.js?v=4.15.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));
