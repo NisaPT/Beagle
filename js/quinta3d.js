@@ -9,6 +9,7 @@
 
 import * as THREE from 'three';
 import { EDIFICIOS, BICHOS } from './minhaquinta.js';
+import { Amigos } from './amigos3d.js';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -739,6 +740,7 @@ export class Quinta3D {
     this.fazCeu(); this.fazLuz(); this.fazMundo();
     for(const def of EDIFICIOS) this.fazEdificio(def);
     this.layout(true);
+    this.amigos = new Amigos(this);
     this.liga();
     this.redimensiona();
     if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { for(const k in this.edif){ const s = this.edif[k].rotulo; if(s) s.userData.pinta(); } });
@@ -937,6 +939,7 @@ export class Quinta3D {
       }
     }
     if(novo && this.edif[novo] && !this.atual) this.mostraEdificio(novo);
+    this.amigos.sincroniza(this.itens, novo);       /* o menino e a menina, se já são teus */
   }
 
   fantasma(e, on){
@@ -1051,12 +1054,14 @@ export class Quinta3D {
     this.pt.set((x - r.left) / r.width * 2 - 1, -((y - r.top) / r.height * 2 - 1));
     this.ray.setFromCamera(this.pt, this.cam);
     const hits = this.ray.intersectObjects(alvos, true);
-    for(const h of hits){ let o = h.object; while(o){ if(o.userData && (o.userData.animal || o.userData.ed)) return o.userData; o = o.parent; } }
+    for(const h of hits){ let o = h.object; while(o){ if(o.userData && (o.userData.animal || o.userData.ed || o.userData.amigo)) return o.userData; o = o.parent; } }
     return null;
   }
 
   toca(x, y){
     if(this.estado === 'fora'){
+      const am = this.acerta(x, y, this.amigos.alvos());
+      if(am && am.amigo){ am.amigo.toque(); this.cb.amigo && this.cb.amigo(am.amigo.id); return; }
       const alvos = Object.values(this.edif).map(e => e.root);
       const u = this.acerta(x, y, alvos);
       if(u){ const id = u.ed || (u.animal && Object.values(this.edif).find(e => e.animais.includes(u.animal)).id); if(id) this.cb.toque && this.cb.toque(id); }
@@ -1121,6 +1126,7 @@ export class Quinta3D {
       e.rotulo.position.y += Math.sin(t * 1.6 + e.root.position.x) * .003;
       e.rotulo.visible = this.estado === 'fora';
     }
+    this.amigos.passo(dt, t);
     for(const n of this.nuvens){ n.position.x += n.userData.v * dt * 1.4; if(n.position.x > 130) n.position.x = -130; }
   }
 

@@ -43,6 +43,16 @@ export const POSES = {
     Head:         {X:-8},
   },
 
+  /* dançar e saltar: o resto do movimento é procedural (rig.js) */
+  dancar: {
+    RightArm:     {Z:-45}, LeftArm:     {Z:45},
+    RightForeArm: {X:-35}, LeftForeArm: {X:-35},
+    Head:         {X:-4},
+  },
+  saltar: {
+    RightArm:     {Z:-30}, LeftArm:     {Z:30},
+  },
+
   pensar: {                                     /* mão junto ao focinho */
     RightArm:     {X:-82, Y:45, Z:6},
     RightForeArm: {X:-42, Y:23, Z:3},

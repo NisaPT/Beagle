@@ -40,7 +40,6 @@ button{font-family:inherit}
 
 /* ======================================================== palco 3D ====== */
 #app{position:fixed;inset:0;display:flex;flex-direction:column}
-body[data-ecra="mapa"] #app,
 body[data-ecra="carregar"] #app{visibility:hidden}
 
 .stage{
@@ -636,6 +635,33 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 
 
 
+
+/* ---- v4.14: o avô e a avó fazem companhia nos menus, num canto ---- */
+/* os ecrãs são filhos do body, por isso o #app sobe acima deles (sem apanhar toques) */
+body[data-ecra="inicio"] #app,body[data-ecra="nome"] #app,body[data-ecra="idade"] #app,
+body[data-ecra="mundos"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
+body[data-ecra="inicio"] .tabuleiro,body[data-ecra="nome"] .tabuleiro,body[data-ecra="idade"] .tabuleiro,
+body[data-ecra="mundos"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage{pointer-events:auto}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,
+body[data-ecra="mundos"] .stage,body[data-ecra="mapa"] .stage{
+  position:fixed;z-index:7;flex:none;overflow:visible;background:transparent;
+  left:0;bottom:0;width:min(44vw,17rem);height:min(30vh,15rem);
+}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage{
+  left:50%;transform:translateX(-50%);width:min(94vw,24rem);height:min(26vh,13rem);bottom:max(.4rem,env(safe-area-inset-bottom));
+}
+body[data-ecra="mundos"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
+body[data-ecra="mapa"] .stage{height:min(17vh,9rem);width:min(24vw,8rem);left:auto;right:0;bottom:3.6rem;pointer-events:none}
+body[data-ecra="inicio"] .stage .cenario,body[data-ecra="nome"] .stage .cenario,body[data-ecra="idade"] .stage .cenario,
+body[data-ecra="mundos"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
+body[data-ecra="inicio"] .stage .fala,body[data-ecra="nome"] .stage .fala,body[data-ecra="idade"] .stage .fala,
+body[data-ecra="mundos"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
+body[data-ecra="inicio"] .stage::after,body[data-ecra="nome"] .stage::after,body[data-ecra="idade"] .stage::after,
+body[data-ecra="mundos"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
+body[data-ecra="inicio"] .ecra.on,body[data-ecra="nome"] .ecra.on,body[data-ecra="idade"] .ecra.on{padding-bottom:calc(min(26vh,13rem) + 1rem)}
+body[data-ecra="mundos"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
+
 /* ---- v4.13: festa dos meninos Beagle ---- */
 .festa{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(24,61,53,.6);padding:1rem;animation:festa-fundo .25s ease-out}
 .festa[hidden]{display:none}
@@ -1056,7 +1082,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.13.0"></script>
+<script type="module" src="./js/app.js?v=4.14.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

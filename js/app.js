@@ -218,7 +218,9 @@ function mostra(id){
   document.querySelectorAll('.ecra').forEach(s => s.classList.remove('on'));
   if(id) $(id).classList.add('on');
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
-  pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar' || id === '#ecra-quinta';
+  pausado = id === '#ecra-carregar' || id === '#ecra-quinta';   /* nos outros menus o avô/avó faz companhia num canto */
+  if(id === '#ecra-inicio' || id === '#ecra-nome' || id === '#ecra-idade') vista = VISTAS.dois;      /* os dois avós */
+  else if(id === '#ecra-mundos' || id === '#ecra-mapa') vista = VISTAS.um;                           /* o que foi escolhido */
   if(Q3D) Q3D.ativa(id === '#ecra-quinta');
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   setTimeout(aplicaPendentes, 0);
@@ -469,9 +471,31 @@ $('#app').addEventListener('pointerdown', e => {
 
 $('#stage').addEventListener('click', () => {
   if(!activo || jogo.aDecorrer) return;
-  activo.faz('acenar');
-  Voz.diz(pick(['Olá!', 'Estou aqui!', 'Vamos jogar?']), () => activo.faz('repouso'));
+  const pose = pick(calmoMov ? ['acenar', 'palmas'] : ['acenar', 'dancar', 'palmas', 'festejar', 'saltar']);
+  activo.faz(pose);
+  Voz.diz(pick(['Olá!', 'Estou aqui!', 'Vamos jogar?', 'Que giro!']), () => activo.faz('repouso'));
 });
+
+/* gestos sozinhos: o avô e a avó nunca ficam especados — nos menus e, de vez em quando, nos jogos */
+const calmoMov = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const GESTOS_MENU = calmoMov ? ['acenar', 'palmas', 'pensar'] : ['acenar', 'dancar', 'palmas', 'pensar', 'festejar', 'saltar', 'apontar', 'encorajar'];
+const GESTOS_JOGO = ['pensar', 'apontar', 'encorajar', 'acenar'];
+const DURACAO = { dancar:4600, festejar:3000, saltar:3200, palmas:3000 };
+function gesto(rig, pose){
+  if(!rig || rig.acao !== 'repouso') return;
+  rig.faz(pose);
+  setTimeout(() => { if(rig.acao === pose) rig.faz('repouso'); }, DURACAO[pose] || 2600);
+}
+(function gestosSozinhos(){
+  const ecra = document.body.dataset.ecra;
+  if(!document.hidden){
+    if(ecra === 'inicio' || ecra === 'nome' || ecra === 'idade'){
+      gesto(avo, pick(GESTOS_MENU)); setTimeout(() => gesto(ava, pick(GESTOS_MENU)), 900);
+    }else if(ecra === 'mundos' || ecra === 'mapa') gesto(activo, pick(GESTOS_MENU));
+    else if(ecra === 'jogo' && Math.random() < .5) gesto(activo, pick(GESTOS_JOGO));
+  }
+  setTimeout(gestosSozinhos, 4200 + Math.random() * 3200);
+})();
 
 /* ============================================== ÁREA DOS PAIS ============ */
 let contaPorta = null, digitos = '';
@@ -861,6 +885,7 @@ async function iniciaQ3D(){
     Q3D = new Quinta3D($('#q3d-canvas'), {
       toque: id => { Som.arranca(); Som.efeito('toque'); $('#q3d-dica').hidden = true; Q3D.entra(id); },
       vazio: id => { Som.efeito('toque'); abreLoja('edificios', id); },
+      amigo: () => { Som.arranca(); Som.efeito('toque'); Voz.diz(pick(['Olá!', 'Muito bem!'])); },
       entrou: def => {
         Voz.cala(); Som.fala(`${Cap(def.art)} ${def.nome}.`);
         ecra.classList.add('dentro'); $('#q3d-dica').hidden = true;
@@ -1015,8 +1040,8 @@ $('#btn-ir-quinta').onclick = () => { Som.efeito('toque'); Voz.cala(); Fala.esco
   try{
     const [mAvo, mAva] = await Promise.all([import('../modelos/avo.js'), import('../modelos/ava.js')]);
     const [g1, g2] = await Promise.all([carrega(mAvo.default), carrega(mAva.default)]);
-    avo = new Rig(cena, g1);
-    ava = new Rig(cena, g2);
+    avo = new Rig(cena, g1, { esqueleto: true });   /* o GLTFLoader tira os ':' dos nomes dos ossos */
+    ava = new Rig(cena, g2, { esqueleto: true });
     avo.grupo.position.x -= .52; ava.grupo.position.x += .52;
     avo.grupo.rotation.y += 14 * Math.PI / 180;
     ava.grupo.rotation.y -= 14 * Math.PI / 180;

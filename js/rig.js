@@ -9,6 +9,7 @@ const _qPai = new THREE.Quaternion(), _qPaiInv = new THREE.Quaternion();
 const _qDelta = new THREE.Quaternion(), _qTmp = new THREE.Quaternion();
 const _pos = new THREE.Vector3(), _esc = new THREE.Vector3();
 const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+const _qG = new THREE.Quaternion(), _qGi = new THREE.Quaternion(), _qRB = new THREE.Quaternion(), _qD2 = new THREE.Quaternion();
 
 const profundidade = o => { let d = 0, p = o; while(p){ d++; p = p.parent; } return d; };
 
@@ -94,6 +95,7 @@ export class Rig {
     for(const n of this.ordem){ this.atual[n] = {X:0,Y:0,Z:0}; this.alvo[n] = {X:0,Y:0,Z:0}; }
 
     this.acao = 'repouso';
+    this.anda = 0; this.andarAlvo = false; this.velAndar = 1; this.passoFase = 0;   /* a passear */
     this.olhar = {x:0, y:0};
     this.olharAlvo = {x:0, y:0};
     this.fase = Math.random() * 10;
@@ -154,6 +156,9 @@ export class Rig {
       this.alvo[n].Z = s.Z || 0;
     }
   }
+
+  /* passear: pernas e braços andam sozinhos; 'vel' regula o ritmo */
+  caminha(on, vel = 1){ this.andarAlvo = !!on; this.velAndar = vel; }
 
   /* a mascote fala: gesticula durante 'ms' milissegundos (0 = parou) */
   fala(ms){ this.falaAte = ms > 0 ? performance.now() + ms : 0; }
@@ -259,7 +264,33 @@ export class Rig {
       soma('RightForeArm', 0, o, 0);
       soma('LeftForeArm', 0, -o, 0);
     }
-    if(this.acao === 'festejar' || this.acao === 'festa'){
+    /* a andar: o passo de cada perna e o balanço contrário dos braços */
+    this.anda += ((this.andarAlvo ? 1 : 0) - this.anda) * (1 - Math.exp(-6 * dt));
+    if(this.anda > .01){
+      this.passoFase += dt * 7.5 * this.velAndar;
+      const p = Math.sin(this.passoFase), q = Math.cos(this.passoFase), w = this.anda;
+      soma('LeftUpLeg',  -p * 27 * w, 0, 0);   soma('RightUpLeg',  p * 27 * w, 0, 0);
+      soma('LeftLeg',  Math.max(0,  q) * 32 * w, 0, 0);  soma('RightLeg', Math.max(0, -q) * 32 * w, 0, 0);
+      soma('LeftFoot', -Math.max(0, -q) * 8 * w, 0, 0);  soma('RightFoot', -Math.max(0, q) * 8 * w, 0, 0);
+      soma('LeftArm',   p * 26 * w, 0, 0);     soma('RightArm', -p * 26 * w, 0, 0);
+      soma('LeftForeArm', -14 * w, 0, 0);      soma('RightForeArm', -14 * w, 0, 0);
+      soma('Spine1', 0, -p * 5 * w, 0);        soma('Hips', 0, p * 5 * w, 0);
+      this.salto = Math.abs(p) * .02 * w;
+    }
+    if(this.acao === 'dancar'){
+      const s = Math.sin(f * 5.2), c = Math.cos(f * 5.2), b = Math.abs(s);
+      soma('Hips', 0, s * 10, s * 9);   soma('Spine', 0, -s * 6, -s * 5);   soma('Head', 0, s * 9, -s * 7);
+      soma('RightArm', 0, 0, -s * 28);  soma('LeftArm', 0, 0, -s * 28);       /* um braço sobe, o outro desce */
+      soma('RightForeArm', -c * 14, 0, 0); soma('LeftForeArm', c * 14, 0, 0);
+      soma('LeftLeg', b * 16, 0, 0);    soma('RightLeg', b * 16, 0, 0);
+      soma('LeftUpLeg', -b * 6, 0, 0);  soma('RightUpLeg', -b * 6, 0, 0);
+      this.salto = calmo ? 0 : b * .03;
+    }else if(this.acao === 'saltar'){
+      const b = Math.abs(Math.sin(f * 4.4));
+      soma('LeftLeg', b * 20, 0, 0); soma('RightLeg', b * 20, 0, 0);
+      soma('LeftArm', 0, 0, b * 16); soma('RightArm', 0, 0, -b * 16);
+      this.salto = calmo ? 0 : b * .11;
+    }else if(this.acao === 'festejar' || this.acao === 'festa'){
       const o = Math.sin(f * 7) * 9;
       soma('RightForeArm', 0, 0, o);
       soma('LeftForeArm', 0, 0, -o);
@@ -269,6 +300,13 @@ export class Rig {
     }
     this.grupo.position.y = this.baseY + this.salto + (calmo ? 0 : Math.sin(f * 3.8) * .0035);
 
+    /* a andar pela quinta: os eixos das poses acompanham o rumo da personagem */
+    let giroE = null;
+    if(this.opcoes.local){
+      this.grupo.updateMatrixWorld(true);
+      this.grupo.getWorldQuaternion(_qG).multiply(_qRB.setFromAxisAngle(EIXO.Y, -this.rotBase));
+      _qGi.copy(_qG).invert(); giroE = _qG;
+    }
     for(const n of this.ordem){
       const osso = this.ossos[n];
       const a = this.atual[n], al = this.alvo[n];
@@ -290,6 +328,7 @@ export class Rig {
         if(gz) _qDelta.premultiply(_qTmp.setFromAxisAngle(EIXO.Z, gz));
         if(gx) _qDelta.premultiply(_qTmp.setFromAxisAngle(EIXO.X, gx));
         if(gy) _qDelta.premultiply(_qTmp.setFromAxisAngle(EIXO.Y, gy));
+        if(giroE) _qDelta.premultiply(giroE).multiply(_qGi);       /* delta no referencial da personagem */
         osso.parent.matrixWorld.decompose(_pos, _qPai, _esc);
         _qPaiInv.copy(_qPai).invert();
         osso.quaternion.copy(_qPaiInv).multiply(_qDelta).multiply(_qPai).multiply(this.repouso[n]);
