@@ -397,7 +397,7 @@ body[data-jogo="contar"]{--stage-h:50%}
 #ecra-escolher,#ecra-recompensa{top:var(--stage-h);background:var(--creme);box-shadow:0 -2px 14px rgba(18,49,79,.1)}
 .cara svg{width:100%;height:100%}
 body[data-ecra="inicio"] #barra,body[data-ecra="escolher"] #barra,
-body[data-ecra="nome"] #barra{display:none}
+body[data-ecra="nome"] #barra,body[data-ecra="idade"] #barra{display:none}
 /* na escolha há duas mascotes lado a lado: o balão vai para o meio, no topo */
 body[data-ecra="escolher"] .fala{right:auto;left:50%;top:1.5%;transform:translateX(-50%) scale(.9);max-width:84%}
 body[data-ecra="escolher"] .fala.on{transform:translateX(-50%) scale(1)}
@@ -552,6 +552,16 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   .tabuleiro{flex:1 1 0;padding-top:3.8rem}
   .fala{max-width:min(92%,24rem);font-size:clamp(.95rem,2.6vw,1.3rem);padding:.55rem .9rem}
 }
+
+/* ---- idade e jogo das somas (v4.1.0) ---- */
+.idades{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem 1rem;width:min(92%,24rem)}
+.idades .idade{display:flex;flex-direction:column;align-items:center;gap:.15rem;padding:.55em .3em;border-radius:1.6rem}
+.idade .num{font-size:clamp(2rem,10vw,3rem);line-height:1}
+.idade .pts{font-size:.6rem;letter-spacing:.05em;opacity:.85}
+.emoji-palavra{display:inline-block;margin-right:.45em;font-size:1.25em;vertical-align:-.1em}
+.soma-objetos{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.2rem .7rem;font-size:clamp(1.4rem,6vw,2.1rem);line-height:1.4}
+.soma-objetos b{font-size:1.4em;color:var(--azul-tinta)}
+.soma-conta{font-size:clamp(1.6rem,8vw,2.6rem)!important;font-weight:700;color:var(--azul-tinta);margin:.3rem 0 0}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -602,6 +612,18 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   <p class="aviso">Para os pais: o nome fica só neste aparelho e serve para o avô cumprimentar a criança. Pode ser só o primeiro nome ou uma alcunha.</p>
 </section>
 
+<section class="ecra cobre" id="ecra-idade">
+  <h1>Quantos anos tens?</h1>
+  <div class="idades" id="lista-idades">
+    <button class="botao idade" data-idade="3" aria-label="3 anos"><span class="num">3</span><span class="pts" aria-hidden="true">●●●</span></button>
+    <button class="botao idade" data-idade="4" aria-label="4 anos"><span class="num">4</span><span class="pts" aria-hidden="true">●●●●</span></button>
+    <button class="botao idade" data-idade="5" aria-label="5 anos"><span class="num">5</span><span class="pts" aria-hidden="true">●●●●●</span></button>
+    <button class="botao idade" data-idade="6" aria-label="6 anos"><span class="num">6</span><span class="pts" aria-hidden="true">●●●●●●</span></button>
+    <button class="botao idade" data-idade="7" aria-label="7 anos ou mais"><span class="num">7+</span><span class="pts" aria-hidden="true">●●●●●●●</span></button>
+  </div>
+  <p class="aviso">Para os pais: a idade serve só para ajustar os jogos (por exemplo, sem letras aos 3 anos e com somas a partir dos 6). Pode mudá-la mais tarde na Área dos Pais.</p>
+</section>
+
 <section class="ecra" id="ecra-escolher">
   <div class="avos">
     <button class="avo-escolha" id="esc-avo"><span class="cara" id="cara-avo"></span><span class="nome">Avô</span><span class="papel">Beagle</span></button>
@@ -648,6 +670,13 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
       <button type="submit">Adicionar perfil</button>
     </form>
     <p class="aviso-campo" id="aviso-perfil"></p>
+  </div>
+
+  <div class="painel">
+    <h2>Idade da criança</h2>
+    <p>Ajusta os jogos: sem letras aos 3 anos, com letras e sequências a partir dos 5 e somas a partir dos 6.</p>
+    <label class="campo-voz" for="idade-crianca">Idade</label>
+    <select id="idade-crianca"><option value="3">3 anos</option><option value="4">4 anos</option><option value="5" selected>5 anos</option><option value="6">6 anos</option><option value="7">7 anos ou mais</option></select>
   </div>
 
   <div class="painel">
@@ -712,7 +741,7 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.0.4"></script>
+<script type="module" src="./js/app.js?v=4.1.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

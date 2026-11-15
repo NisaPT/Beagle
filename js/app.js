@@ -1,12 +1,13 @@
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { Rig, criaCena, VISTAS, THREE } from './rig.js';
-import { desenhaMapa, scrollParaNivel, infoNivel, TOTAL_NIVEIS, MUNDOS, POR_MUNDO,
+import { desenhaMapa, scrollParaNivel, infoNivel, TOTAL_NIVEIS, MUNDOS, POR_MUNDO, defineTipos,
          primeiroDoMundo, ultimoDoMundo, mundoDoNivel } from './mapa.js';
 import { BICHOS } from './bichos.js';
 import { Jogo } from './jogos.js';
 import { avatar, ANIMAIS, confete } from './arte.js';
 import { Som } from './som.js';
 import { quinta } from './quinta.js';
+import { perfilIdade } from './idades.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -60,7 +61,7 @@ function amigoDeCodigo(codigo){
 }
 
 const Estado = {
-  nivel:1, estrelas:{}, companheiro:'avo', codigo:null, amigos:[], nome:'', perfilId:'principal',
+  nivel:1, estrelas:{}, companheiro:'avo', codigo:null, amigos:[], nome:'', idade:null, perfilId:'principal',
   aprendizagem:{cores:{certas:0,erros:0},contar:{certas:0,erros:0},formas:{certas:0,erros:0},letras:{certas:0,erros:0},memoria:{certas:0,erros:0},logica:{certas:0,erros:0}},
   limiteMinutos:30, tempoHoje:0, diaUso:null, inicioSessao:Date.now(),
 
@@ -88,6 +89,7 @@ const Estado = {
         companheiro: g.companheiro || 'avo',
         nome: g.nome || (perfil && perfil.nome) || 'Criança 1',
         codigo: g.codigo || null,
+        idade: [3,4,5,6,7].includes(g.idade) ? g.idade : null,
         amigos: g.amigos || null,
         missaoDia: g.missaoDia || null,
         aprendizagem:g.aprendizagem || this.aprendizagem,
@@ -102,7 +104,7 @@ const Estado = {
   guarda(){
     const dados = {
       nivel:this.nivel, estrelas:this.estrelas, companheiro:this.companheiro,
-      codigo:this.codigo, amigos:this.amigos, nome:this.nome, missaoDia:this.missaoDia || null,
+      codigo:this.codigo, amigos:this.amigos, nome:this.nome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
       tempoHoje:this.tempoHoje, diaUso:chaveDia(),
     };
@@ -123,6 +125,9 @@ const Estado = {
     if(typeof atualizaQuinta==='function') atualizaQuinta();
   }
 };
+
+/* a idade decide que jogos entram e quão difíceis podem ficar */
+function aplicaIdade(){ defineTipos(perfilIdade(Estado.idade).tipos); }
 
 /* ====================================================== 3D =============== */
 // Arranque resiliente: se o navegador não disponibilizar WebGL, a aplicação
@@ -298,16 +303,20 @@ const jogo = new Jogo({
 });
 
 function comecaNivel(n){
-  const info = {...infoNivel(n)};
-  const tiposNovos=['cores','contar','formas','letras','memoria','logica'];
-  info.tipo = tiposNovos[(n-1)%tiposNovos.length];
+  const P = perfilIdade(Estado.idade);
+  const info = {...infoNivel(n)};       /* o tipo vem da rotação da idade (mapa.js) */
   const chave = info.tipo;
   const m = Estado.aprendizagem[chave] || {certas:0,erros:0};
   const total = m.certas + m.erros, taxa = total ? m.certas / total : .7;
   const ajuste = total >= 5 ? (taxa >= .85 ? 1 : taxa <= .5 ? -1 : 0) : 0;
   info.dificuldade = Math.max(1, Math.min(4, (info.dificuldade||1) + ajuste));
-  info.opcoes = Math.max(2, Math.min(6, (info.opcoes||3) + (ajuste>0?1:0) - (ajuste<0?1:0)));
-  info.maxConta = Math.max(3, Math.min(10, (info.maxConta||5) + ajuste));
+  info.opcoes   = Math.max(2, Math.min(P.opcoes,   (info.opcoes||3) + ajuste));
+  info.maxConta = Math.max(3, Math.min(P.maxConta, (info.maxConta||5) + ajuste));
+  info.formas   = Math.min(info.formas || 2, P.formas);
+  info.paleta   = Math.min(info.paleta || 4, P.paleta);
+  info.pares = P.pares; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
+  info.somaMax = P.somaMax ? P.somaMax + (ajuste > 0 ? 5 : 0) : 0;
+  info.imagens = P.imagens;
   mostra(null);
   $('#tabuleiro').innerHTML = '';
   $('#barra').hidden = false;
@@ -448,7 +457,7 @@ function desenhaPais(){
   const concluidos = Object.keys(Estado.estrelas).length;
   $('#relatorio-aprendizagem').innerHTML =
     `<p><strong>${concluidos}</strong> níveis concluídos · <strong>${Estado.totalEstrelas()}</strong> estrelas conquistadas</p>` +
-    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
+    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
     `<p class="aviso">Dados agregados guardados apenas neste dispositivo. A percentagem orienta a adaptação da dificuldade; não é uma avaliação clínica ou escolar.</p>`;
   const selPerfil = $('#perfil-ativo');
   if(selPerfil){
@@ -456,6 +465,7 @@ function desenhaPais(){
     selPerfil.innerHTML = perfis.map(p => `<option value="${p.id}">${p.nome.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')}</option>`).join('');
     selPerfil.value = Estado.perfilId;
   }
+  const selIdade=$('#idade-crianca'); if(selIdade) selIdade.value=String(Estado.idade||5);
   const endpoint=$('#tts-endpoint'); if(endpoint) endpoint.value=Som.endpointNeural||'';
   desenhaVoz();
 }
@@ -487,6 +497,7 @@ $('#tts-endpoint')?.addEventListener('change',e=>{
   Som.endpointNeural=v;try{localStorage.setItem('eab-tts-endpoint',v);}catch(e){}
   $('#diag-voz').textContent=v?'Gateway neural configurado. Confirme que o servidor devolve áudio PT-PT e protege as credenciais.':'Sem gateway neural: será usada a voz PT-PT do dispositivo, quando disponível.';
 });
+$('#idade-crianca')?.addEventListener('change',e=>{Estado.idade=+e.target.value;Estado.guarda();aplicaIdade();});
 $('#limite-tempo')?.addEventListener('change',e=>{Estado.limiteMinutos=Math.max(0,Math.min(180,+e.target.value||0));Estado.guarda();});
 $('#btn-apagar-perfil')?.addEventListener('click',()=>{
   if(!confirm('Apagar permanentemente o progresso deste perfil neste dispositivo?')) return;
@@ -584,7 +595,7 @@ $('#btn-comecar').onclick = () => {
   Som.arranca();              /* o áudio só pode nascer de um toque */
   pintaBotaoSom();
   if(!Estado.nome){ $('#campo-nome').value = ''; mostra('#ecra-nome'); return; }
-  vaiEscolher();
+  segueAposNome();
 };
 
 $('#form-nome').onsubmit = e => {
@@ -592,9 +603,25 @@ $('#form-nome').onsubmit = e => {
   const v = $('#campo-nome').value.trim().replace(/\s+/g, ' ').slice(0, 14);
   if(v){ Estado.nome = v; Estado.guarda(); }
   Som.efeito('toque');
-  vaiEscolher();
+  segueAposNome();
 };
-$('#btn-saltar-nome').onclick = () => { Som.efeito('toque'); vaiEscolher(); };
+$('#btn-saltar-nome').onclick = () => { Som.efeito('toque'); segueAposNome(); };
+
+/* idade: pergunta-se uma vez por perfil; os pais podem mudá-la na Área dos Pais */
+function segueAposNome(){ Estado.idade ? vaiEscolher() : vaiIdade(); }
+function vaiIdade(){
+  Voz.diz('Quantos anos tens?', null, null, 'Quantos anos tens?');
+  mostra('#ecra-idade');
+}
+document.querySelectorAll('#lista-idades [data-idade]').forEach(b => {
+  b.onclick = () => {
+    Som.efeito('toque');
+    Estado.idade = +b.dataset.idade;
+    Estado.guarda();
+    aplicaIdade();
+    vaiEscolher();
+  };
+});
 
 function vaiEscolher(){
   const ola = Estado.nome ? `Olá, ${Estado.nome}! Quem te vai ajudar hoje?`
@@ -635,6 +662,7 @@ $('#stage').append(jardim);
 (async function iniciar(){
   try {
   Estado.carrega();
+  aplicaIdade();
   Som.endpointNeural=localStorage.getItem('eab-tts-endpoint')||'';
   Som.carregaPreferencia();
   Som.carregaPreferenciasVoz();

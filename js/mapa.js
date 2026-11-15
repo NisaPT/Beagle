@@ -24,8 +24,11 @@ export const MUNDOS = [
 export const POR_MUNDO = 100;
 export const TOTAL_NIVEIS = MUNDOS.length * POR_MUNDO;
 
-const TIPOS = ['cores', 'contar', 'formas'];
-export const COR_TIPO = { cores:'#D93A32', contar:'#4A90D9', formas:'#5BAF6A' };
+let TIPOS = ['cores', 'contar', 'formas', 'letras', 'memoria', 'logica'];
+/* a idade da criança decide que jogos entram na rotação */
+export function defineTipos(lista){ if(lista && lista.length) TIPOS = lista.slice(); }
+export const COR_TIPO = { cores:'#D93A32', contar:'#4A90D9', formas:'#5BAF6A',
+  letras:'#F3822B', memoria:'#8E6BC8', logica:'#2AA6A0', somas:'#C98F55' };
 
 /* ---------------------------------------------------- curva de dificuldade */
 /* dez degraus ao longo dos 500 níveis; cada um acrescenta alguma coisa */

@@ -19,7 +19,7 @@ const CORES = [
 
 const NUM = ['', 'uma', 'duas', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
 const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
-const BEM   = ['Muito bem!', 'Isso mesmo!', 'Boa!', 'Acertaste!', 'Que esperto!'];
+const BEM   = ['Muito bem!', 'Isso mesmo!', 'Boa!', 'Acertaste!', 'Muito bem!'];
 const RONDAS = 5;
 
 export class Jogo {
@@ -64,7 +64,8 @@ export class Jogo {
     if(this.tipo === 'letras') this.rondaLetras();
     if(this.tipo === 'memoria') this.rondaMemoria();
     if(this.tipo === 'logica') this.rondaLogica();
-    if(!['cores','contar','formas','letras','memoria','logica'].includes(this.tipo)) this.rondaCores();
+    if(this.tipo === 'somas')  this.rondaSomas();
+    if(!['cores','contar','formas','letras','memoria','logica','somas'].includes(this.tipo)) this.rondaCores();
   }
 
   diz(texto, aoFim, pista){ this.ctx.voz.diz(texto, aoFim, pista); }
@@ -275,27 +276,54 @@ export class Jogo {
 
   /* Jogos novos: letras, memória e raciocínio lógico, com instruções PT-PT. */
   rondaLetras(){
-    const pares=[['A','ABELHA'],['B','BOLA'],['C','CASA'],['D','DADO'],['F','FLOR'],['G','GATO'],['L','LUA'],['M','MACACO'],['P','PATO'],['S','SOL']];
-    const [letra,palavra]=pick(pares), opts=baralha([letra,...baralha('ABCDEFGHLMNPRST'.split('')).slice(0,3)]);
-    this.ctx.raiz.innerHTML=`<div class="desafio-texto"><strong class="letra-grande">${letra}</strong><p>Qual destas palavras começa pela letra ${letra}?</p><div class="opcoes-palavra">${baralha([palavra,...pares.filter(x=>x[0]!==letra).slice(0,3).map(x=>x[1])]).map(x=>`<button class="botao opcao-palavra" data-v="${x}">${x}</button>`).join('')}</div></div>`;
+    const pares=[['A','ABELHA','🐝'],['B','BOLA','⚽'],['C','CASA','🏠'],['D','DADO','🎲'],['F','FLOR','🌸'],['G','GATO','🐱'],['L','LUA','🌙'],['M','MACACO','🐵'],['P','PATO','🦆'],['S','SOL','☀️']];
+    const n=Math.max(2,Math.min(4,this.info.letraOpcoes||4));
+    const certo=pick(pares), letra=certo[0], palavra=certo[1];
+    const lista=baralha([certo,...baralha(pares.filter(x=>x[0]!==letra)).slice(0,n-1)]);
+    const img=this.info.imagens;
+    this.ctx.raiz.innerHTML=`<div class="desafio-texto"><strong class="letra-grande">${letra}</strong><p>Qual destas palavras começa pela letra ${letra}?</p><div class="opcoes-palavra">${lista.map(x=>`<button class="botao opcao-palavra" data-v="${x[1]}">${img?`<span class="emoji-palavra">${x[2]}</span>`:''}${x[1]}</button>`).join('')}</div></div>`;
     this.pose('apontar'); this.diz(`Escolhe a palavra que começa pela letra ${letra}.`);
-    this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?['Muito bem!',`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+    this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?[pick(BEM),`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
 
   rondaMemoria(){
-    const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,4), seq=baralha([...icons,...icons]);
+    const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,Math.max(2,Math.min(6,this.info.pares||4))), seq=baralha([...icons,...icons]);
     this.ctx.raiz.innerHTML=`<div class="memoria-grelha">${seq.map((v,i)=>`<button class="carta-memoria" data-i="${i}" data-v="${v}" aria-label="Carta ${i+1}">❔</button>`).join('')}</div><p class="instrucao-memoria">Encontra os pares iguais.</p>`;
     let aberto=null, bloqueado=false, paresFeitos=0;
     const cartas=[...this.ctx.raiz.querySelectorAll('.carta-memoria')]; this.pose('apontar');this.diz('Descobre os pares iguais.');
-    cartas.forEach(b=>{const f=()=>{if(bloqueado||b.classList.contains('virada')||b.classList.contains('par'))return;b.textContent=b.dataset.v;b.classList.add('virada');if(!aberto){aberto=b;return;}if(aberto.dataset.v===b.dataset.v){aberto.classList.add('par');b.classList.add('par');aberto=null;paresFeitos++;this.som('certo');if(paresFeitos===4){this.responde(b,true,'Encontraste todos os pares!','#8E6BC8');}}else{if(this.ctx.aoErro)this.ctx.aoErro(this.tipo);this.erros++;bloqueado=true;const anterior=aberto;aberto=null;setTimeout(()=>{anterior.textContent='❔';b.textContent='❔';anterior.classList.remove('virada');b.classList.remove('virada');bloqueado=false;},850);}};b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+    cartas.forEach(b=>{const f=()=>{if(bloqueado||b.classList.contains('virada')||b.classList.contains('par'))return;b.textContent=b.dataset.v;b.classList.add('virada');if(!aberto){aberto=b;return;}if(aberto.dataset.v===b.dataset.v){aberto.classList.add('par');b.classList.add('par');aberto=null;paresFeitos++;this.som('certo');if(paresFeitos===icons.length){this.responde(b,true,'Encontraste todos os pares!','#8E6BC8');}}else{if(this.ctx.aoErro)this.ctx.aoErro(this.tipo);this.erros++;bloqueado=true;const anterior=aberto;aberto=null;setTimeout(()=>{anterior.textContent='❔';b.textContent='❔';anterior.classList.remove('virada');b.classList.remove('virada');bloqueado=false;},850);}};b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
 
   rondaLogica(){
-    const formas=['🔴','🔵','🟡','🔴','🔵'], resposta='🟡';
-    const op=baralha(['🔴','🔵','🟡','🟢']);
-    this.ctx.raiz.innerHTML=`<div class="desafio-texto"><p>Que peça completa a sequência?</p><div class="sequencia-logica">${formas.join('　')}　<strong>?</strong></div><div class="opcoes-logica">${op.map(v=>`<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+    const cores=baralha(['🔴','🔵','🟡','🟢']), [A,B,C]=cores;
+    /* do mais simples (ABAB) ao mais difícil; a idade decide quantos entram */
+    const padroes=[
+      { seq:[A,B,A,B,A], certa:B },
+      { seq:[A,A,B,A,A], certa:B },
+      { seq:[A,B,C,A,B], certa:C },
+      { seq:[A,B,B,A,B], certa:B },
+    ];
+    const p=pick(padroes.slice(0,Math.max(1,Math.min(4,this.info.padroes||2))));
+    const resposta=p.certa;
+    const nOp=(this.info.padroes||2)>=3?4:3;
+    const op=baralha([resposta,...baralha(cores.filter(c=>c!==resposta))].slice(0,nOp));
+    this.ctx.raiz.innerHTML=`<div class="desafio-texto"><p>Que peça completa a sequência?</p><div class="sequencia-logica">${p.seq.join('　')}　<strong>?</strong></div><div class="opcoes-logica">${op.map(v=>`<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
     this.pose('pensar');this.diz('Observa a sequência. O que vem a seguir?');
     this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===resposta,b.dataset.v===resposta?'Isso mesmo! A sequência repete-se.':'Observa as cores e tenta descobrir o padrão.','#2C6FD6');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+  }
+
+  /* ================================================== SOMAS ================ */
+  rondaSomas(){
+    const max=Math.max(4,this.info.somaMax||5);
+    const a=1+rnd(max-1), b=1+rnd(max-a), total=a+b;
+    const fruta=pick(['🍎','🍪','⭐','🐟']);
+    const por=n=>NUM_M[n]||String(n);
+    const cand=[total-2,total-1,total+1,total+2,total+3].filter(x=>x>=1);
+    const op=baralha([total,...baralha(cand).slice(0,3)]);
+    const objetos=total<=10?`<div class="soma-objetos"><span>${fruta.repeat(a)}</span><b>+</b><span>${fruta.repeat(b)}</span></div>`:'';
+    this.ctx.raiz.innerHTML=`<div class="desafio-texto">${objetos}<p class="soma-conta">${a} + ${b} = ?</p><div class="opcoes-logica">${op.map(v=>`<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+    this.pose('pensar');this.diz(`Quanto é ${por(a)} mais ${por(b)}?`);
+    this.ctx.raiz.querySelectorAll('[data-v]').forEach(bt=>{const f=()=>this.responde(bt,+bt.dataset.v===total,+bt.dataset.v===total?[pick(BEM),`${por(a)} mais ${por(b)} é ${por(total)}.`]:'Quase! Conta outra vez.','#C98F55');bt.addEventListener('click',f);this.limpezas.push(()=>bt.removeEventListener('click',f));});
   }
 
   /* ================================================ RESPOSTA =============== */

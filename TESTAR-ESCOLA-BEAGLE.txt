@@ -98,3 +98,18 @@ ALTERAÇÕES V4.0.4 — PREPARAÇÃO PARA PUBLICAR ONLINE (PWA)
 - Telemóvel: o balão de fala já não tapa os botões do topo; o tabuleiro já não corta respostas em ecrãs pequenos (360x640) nem em horizontal (avô à esquerda, jogo à direita); o tabuleiro faz scroll se for preciso.
 - Ao publicar uma nova versão: aumentar VERSAO em sw.js e o ?v= em index.html.
 - Verificação: node --check em todos os ficheiros; testado em Chrome com 375x812, 360x640 e 812x375, sem erros de consola.
+
+
+ALTERAÇÕES V4.1.0 — IDADE DA CRIANÇA E ELOGIOS
+- Novo ecrã "Quantos anos tens?" (3, 4, 5, 6, 7+), depois do nome, uma vez por perfil. Os pais podem mudar a idade na Área dos Pais.
+- 3 anos: cores, contagem até 3, formas (2), memória com 2 pares. Sem letras, sequências nem contas.
+- 4 anos: acrescenta sequências simples (ABAB) e contagem até 5.
+- 5 anos: acrescenta letras com 2 opções e imagens (🐝 ABELHA), contagem até 6.
+- 6 anos: letras com 3 opções, sequências até ao padrão ABC, somas até 5 com desenhos.
+- 7+ anos: letras com 4 opções sem imagens, sequências difíceis, memória com 6 pares, somas até 10 (sobe para 15 com bom desempenho).
+- A dificuldade adaptativa continua a funcionar, dentro dos limites da idade.
+- O mapa mostra a cor certa de cada tipo de jogo (letras, memória, lógica, somas).
+- "Que esperto!" foi substituído por "Muito bem!".
+- Perfis existentes sem idade escolhida: o jogo pergunta a idade na próxima vez que carregam em Começar (sem idade, comporta-se como aos 5 anos).
+- Para testar: apagar a chave "eab" no armazenamento local, ou usar janela privada.
+- Ao publicar: aumentar VERSAO em sw.js e ?v= em index.html (agora 4.1.0).
