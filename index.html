@@ -633,6 +633,73 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 @media (min-aspect-ratio:1/1) and (max-height:600px){
   body[data-jogo] .fala{max-width:56%;font-size:clamp(.85rem,2.4vw,1.15rem);padding:.45rem .7rem}
 }
+
+/* ================= A Minha Quinta e a loja (v4.6.0) ================= */
+#ecra-quinta{justify-content:flex-start;align-items:stretch;overflow-y:auto;overflow-x:hidden;gap:.5rem;
+  padding:4.3rem .6rem 2rem;text-align:center;
+  background:linear-gradient(180deg,#CDEBF6 0,#CDEBF6 7rem,#A9D98F 7rem,#8CC878 100%)}
+.quinta-topo{display:flex;flex-direction:column;align-items:center;gap:.35rem}
+.quinta-topo h1{margin:0;font-size:clamp(1.5rem,6vw,2.2rem)}
+.quinta-resumo{margin:0;display:flex;gap:.6rem;font-weight:700;font-size:1rem}
+.quinta-resumo span{background:#fff;border:3px solid var(--azul-tinta);border-radius:99px;padding:.1rem .7rem}
+.quinta-grelha{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem;width:min(100%,70rem);margin:.4rem auto 0}
+@media (min-width:640px){.quinta-grelha{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1000px){.quinta-grelha{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lote{position:relative;z-index:0;aspect-ratio:1/1;border-radius:1.3rem;border:0;padding:0;
+  background:radial-gradient(ellipse 78% 52% at 50% 66%,rgba(255,255,255,.22),rgba(70,140,60,.22) 70%,transparent 72%)}
+.lote.vazio{cursor:pointer;background:none;border:3px dashed rgba(90,60,32,.28);border-radius:1.3rem}
+.lote-arte{position:absolute;left:0;right:0;top:0;height:68%;border:0;background:none;padding:0;cursor:pointer;display:block}
+.lote-arte.fantasma{opacity:.22;pointer-events:none}
+.edificio-svg{width:100%;height:100%;display:block;overflow:visible}
+.placa{position:absolute;left:50%;bottom:7%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(180deg,#E8C196,#C98F55);border:3px solid #8A5A28;border-radius:.8rem;padding:.25rem .8rem;
+  box-shadow:0 4px 0 rgba(90,60,32,.3);font-weight:700;line-height:1.2;white-space:nowrap}
+.placa-nome{font-size:.95rem;color:#4a2e14}.placa-preco{font-size:.9rem;color:#fff;text-shadow:0 1px 0 #8A5A28}
+.lote-nome{position:absolute;left:50%;bottom:1%;transform:translateX(-50%);font-size:.8rem;font-weight:700;background:rgba(255,255,255,.82);
+  border-radius:99px;padding:.05rem .65rem;white-space:nowrap;pointer-events:none}
+.bicho{position:absolute;left:var(--x);top:var(--y);width:var(--w);transform:translate(-50%,-100%);border:0;background:none;padding:0;cursor:pointer;z-index:calc(var(--z,50))}
+.bicho img{width:100%;display:block;pointer-events:none;animation:passeia var(--d,3s) ease-in-out var(--a,0s) infinite alternate}
+.bicho img.salta{animation:salta-bicho .5s var(--mola)}
+@keyframes passeia{0%{transform:translate(-14%,0)}50%{transform:translate(0,-5%)}100%{transform:translate(14%,0)}}
+@keyframes salta-bicho{0%{transform:translateY(0)}40%{transform:translateY(-35%) rotate(-6deg)}100%{transform:translateY(0)}}
+.lote.novo{animation:pop-novo .9s var(--mola)}
+@keyframes pop-novo{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+.fumo{animation:fumo 3.4s ease-in infinite}
+@keyframes fumo{0%{transform:translateY(8px);opacity:0}30%{opacity:1}100%{transform:translateY(-16px);opacity:0}}
+.pas{transform-box:fill-box;transform-origin:50% 50%;animation:roda 9s linear infinite}
+@keyframes roda{to{transform:rotate(360deg)}}
+.onda{transform-box:fill-box;transform-origin:50% 50%;animation:onda 3.2s ease-in-out infinite alternate}
+@keyframes onda{from{transform:scale(.82)}to{transform:scale(1.04)}}
+@media (prefers-reduced-motion:reduce){.fumo,.pas,.onda,.bicho img{animation:none}}
+.mundo.minha .selo{background:#CFEBC3}
+.mundo.minha .selo svg{width:92%;height:92%}
+
+.loja-fundo{position:fixed;inset:0;background:rgba(40,25,10,.45);z-index:9}
+.loja{position:fixed;left:0;right:0;bottom:0;height:82%;z-index:10;background:var(--creme);border-radius:1.7rem 1.7rem 0 0;
+  box-shadow:0 -8px 30px rgba(40,25,10,.35);display:flex;flex-direction:column;max-width:70rem;margin:0 auto;animation:sobe-loja .32s var(--mola)}
+.loja[hidden],.loja-fundo[hidden]{display:none}
+@keyframes sobe-loja{from{transform:translateY(40%);opacity:.4}to{transform:none;opacity:1}}
+.loja-cab{display:flex;align-items:center;gap:.5rem;padding:.8rem .8rem .5rem}
+.abas{display:flex;gap:.4rem;flex:1}
+.aba{flex:1;border:3px solid var(--azul-tinta);background:#fff;border-radius:99px;padding:.45rem .5rem;font-weight:700;font-size:1rem;color:var(--azul-tinta);cursor:pointer}
+.aba.on{background:var(--ouro);box-shadow:0 3px 0 rgba(90,60,32,.3)}
+.loja-saldo{font-weight:700;font-size:1.15rem;background:#fff;border:3px solid var(--azul-tinta);border-radius:99px;padding:.15rem .7rem;white-space:nowrap}
+.loja-lista{overflow-y:auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;padding:.4rem .8rem 1.2rem;align-content:start;-webkit-overflow-scrolling:touch}
+@media (min-width:640px){.loja-lista{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1000px){.loja-lista{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.item-loja{background:#fff;border:3px solid var(--barro);border-radius:1.2rem;padding:.5rem .5rem .7rem;display:flex;flex-direction:column;align-items:center;gap:.2rem;min-width:0}
+.item-loja.tem{background:#EAF8E7;border-color:#5BB36B}
+.item-loja.destaque{border-color:var(--ouro);box-shadow:0 0 0 4px rgba(245,195,68,.5)}
+.item-arte{height:5.6rem;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.item-arte img{height:5.4rem;width:auto;max-width:100%;object-fit:contain;display:block}
+.item-arte svg{height:5.6rem;width:100%;display:block}
+.item-nome{font-weight:700;font-size:1.02rem;line-height:1.15}
+.item-nome small{margin-left:.4rem;opacity:.65;font-weight:600}
+.item-preco{font-weight:700;font-size:1rem;color:var(--ouro-escuro)}
+.item-loja .comprar{width:100%;margin-top:.2rem;font-size:.95rem;padding:.5em .6em}
+.item-loja .comprar:not(:disabled){background:linear-gradient(180deg,#6BC27A,#3E9B52);color:#fff;border:0;box-shadow:0 5px 0 #2C7A3C}
+.item-loja .comprar:disabled{opacity:.6;background:#fff;color:var(--azul-tinta);border:3px solid var(--barro-esc);box-shadow:none;cursor:default}
+#btn-ir-quinta{display:inline-block}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -709,6 +776,27 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
   <div class="mundos" id="lista-mundos"></div>
 </section>
 
+<section class="ecra" id="ecra-quinta">
+  <div class="quinta-topo">
+    <h1>A Minha Quinta</h1>
+    <p class="quinta-resumo" id="quinta-resumo"></p>
+    <button class="botao quente pequeno" id="btn-loja" type="button">🛒 Loja</button>
+  </div>
+  <div class="quinta-grelha" id="quinta-grelha"></div>
+  <div class="loja-fundo" id="loja-fundo" hidden></div>
+  <div class="loja" id="loja" hidden role="dialog" aria-label="Loja da quinta">
+    <div class="loja-cab">
+      <div class="abas">
+        <button class="aba on" data-aba="edificios" type="button">🏠 Edifícios</button>
+        <button class="aba" data-aba="bichos" type="button">🐄 Animais</button>
+      </div>
+      <span class="loja-saldo">⭐ <b id="loja-saldo">0</b></span>
+      <button class="mini" id="btn-fechar-loja" type="button" aria-label="Fechar a loja">✕</button>
+    </div>
+    <div class="loja-lista" id="loja-lista"></div>
+  </div>
+</section>
+
 <section class="ecra" id="ecra-mapa">
   <div class="missao-dia" id="missao-dia"><strong>⭐ Missão de hoje</strong><span>Completa uma atividade para aprender e ganhar estrelas.</span></div>
   <div class="mapa-scroll" id="mapa-scroll"><div class="mapa-tela" id="mapa-tela"></div></div>
@@ -720,6 +808,7 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
   <div class="chuva" id="chuva"></div>
   <button class="botao" id="btn-continuar">Continuar</button>
   <button class="botao calma" id="btn-repetir">Jogar outra vez</button>
+  <button class="botao calma" id="btn-ir-quinta" type="button">🏡 A minha quinta</button>
 </section>
 
 <section class="ecra cobre" id="ecra-porta">
@@ -838,7 +927,7 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.5.0"></script>
+<script type="module" src="./js/app.js?v=4.6.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

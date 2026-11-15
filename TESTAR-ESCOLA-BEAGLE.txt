@@ -151,3 +151,10 @@ V4.5.0 - Elogios, balão e avós com vida
 - Ao acertar, só se diz: Muito bem! / Boa! / Isso mesmo! / Parabéns! (sem repetir o nome do objeto).
 - Nos jogos o avô/avó fica à esquerda e o balão de fala à direita, nunca à frente da cara.
 - Esqueleto 3D mais vivo: respira, passa o peso de um pé para o outro, bate o pé, baloiça braços e pulsos, passeia o olhar e gesticula enquanto fala.
+
+V4.6.0 - A Minha Quinta e loja
+- Jogo dos pares: cada par pode falhar uma vez (mais uma de folga) sem perder estrelas; já é possível ter 3 estrelas.
+- Novo ecrã "A Minha Quinta" (em "Onde queres brincar?" e no fim de cada nível): 12 áreas, com edifícios e animais.
+- Loja: com as estrelas ganhas compram-se edifícios (casa, horta, galinheiro, pocilga, redil, vacaria, lago, pomar, estábulo, celeiro, estufa, moinho) e animais (precisam do edifício certo).
+- O contador de estrelas passa a mostrar as estrelas por gastar. A quinta guarda-se no aparelho e na conta dos pais.
+- Tocar num animal faz o som; tocar num edifício diz o nome.

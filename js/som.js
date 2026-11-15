@@ -315,7 +315,7 @@ export const Som = {
     const vs = this.vozesDoAparelho(); // exclusivamente pt-PT
     const preferida = this.vozesPreferidas[this.personagem];
     const escolhida = preferida ? vs.find(x => x.name === preferida) : null;
-    const v = escolhida || this.escolheVoz();
+    const v = escolhida || this.escolheVoz(this.personagem);
     if(!v){
       console.warn('Não existe uma voz PT-PT instalada. A locução foi omitida para não usar português do Brasil.');
       if(aoFim) aoFim();
@@ -332,8 +332,11 @@ export const Som = {
       const u = new SpeechSynthesisUtterance(texto);
       u.lang = 'pt-PT';
       u.voice = v;
-      u.rate = .90;
-      u.pitch = 1.0;
+      /* avô: voz grave e pausada de pessoa idosa; avó: um pouco mais suave */
+      const avo = this.personagem !== 'f';
+      const masc = this.eMasculina(v), fem = this.eFeminina(v);
+      u.rate = avo ? .80 : .90;
+      u.pitch = avo ? (masc ? .85 : .5) : (fem ? 1.0 : 1.35);
       u.onend = terminar;
       u.onerror = terminar;
       this.timerInicioVoz = setTimeout(() => {
@@ -349,7 +352,15 @@ export const Som = {
     return (speechSynthesis.getVoices() || [])
       .filter(v => v.lang && v.lang.replace('_', '-').toLowerCase() === 'pt-pt');
   },
-  escolheVoz(){ return this.vozesDoAparelho()[0] || null; },
+  eMasculina(v){ return /duarte|cristiano|ricardo|miguel|jo[aã]o|diogo|male|masculin|homem/i.test(v.name) && !/female/i.test(v.name); },
+  eFeminina(v){ return /raquel|joana|catarina|h[eé]lia|fernanda|maria|ines|inês|female|feminin|mulher/i.test(v.name); },
+  /* escolhe, entre as vozes PT-PT, uma do género da personagem (se existir) */
+  escolheVoz(p){
+    const vs = this.vozesDoAparelho();
+    if(!vs.length) return null;
+    if(p === 'f') return vs.find(v => this.eFeminina(v)) || vs.find(v => !this.eMasculina(v)) || vs[0];
+    return vs.find(v => this.eMasculina(v)) || vs.find(v => !this.eFeminina(v)) || vs[0];
+  },
 
   diagnostico(){
     const temApi = 'speechSynthesis' in window;

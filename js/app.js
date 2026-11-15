@@ -9,6 +9,7 @@ import { Som } from './som.js';
 import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
+import { EDIFICIOS, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -68,7 +69,7 @@ function amigoDeCodigo(codigo){
 const nomeReal = n => (n && n !== 'Criança 1' && n !== 'Criança') ? n : '';
 
 const Estado = {
-  nivel:1, estrelas:{}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
+  nivel:1, estrelas:{}, quinta:{itens:{}}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
   aprendizagem:{cores:{certas:0,erros:0},contar:{certas:0,erros:0},formas:{certas:0,erros:0},letras:{certas:0,erros:0},memoria:{certas:0,erros:0},logica:{certas:0,erros:0}},
   limiteMinutos:30, tempoHoje:0, diaUso:null, inicioSessao:Date.now(),
 
@@ -93,6 +94,7 @@ const Estado = {
       Object.assign(this, {
         nivel: g.nivel || 1,
         estrelas: g.estrelas || {},
+        quinta: (g.quinta && g.quinta.itens) ? g.quinta : {itens:{}},
         companheiro: g.companheiro || 'avo',
         nome: nomeReal(g.nome) || nomeReal(perfil && perfil.nome) || '',
         perguntouNome: !!g.perguntouNome || !!nomeReal(g.nome),
@@ -111,7 +113,7 @@ const Estado = {
   },
   guarda(){
     const dados = {
-      nivel:this.nivel, estrelas:this.estrelas, companheiro:this.companheiro,
+      nivel:this.nivel, estrelas:this.estrelas, quinta:this.quinta, companheiro:this.companheiro,
       codigo:this.codigo, amigos:this.amigos, nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
       tempoHoje:this.tempoHoje, diaUso:chaveDia(), t:Date.now(),
@@ -127,6 +129,8 @@ const Estado = {
     Nuvem.agenda();
   },
   totalEstrelas(){ return Object.values(this.estrelas).reduce((a, b) => a + b, 0); },
+  /* estrelas por gastar: as ganhas menos o que já foi comprado na quinta */
+  saldo(){ return Math.max(0, this.totalEstrelas() - gastoTotal(this.quinta.itens)); },
   ganha(nivel, estrelas){
     this.estrelas[nivel] = Math.max(this.estrelas[nivel] || 0, estrelas);
     if(nivel >= this.nivel) this.nivel = Math.min(TOTAL_NIVEIS, nivel + 1);
@@ -204,14 +208,16 @@ function anima(){
 
 /* =================================================== ECRÃS =============== */
 function mostra(id){
+  const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo();
   document.querySelectorAll('.ecra').forEach(s => s.classList.remove('on'));
   if(id) $(id).classList.add('on');
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
-  pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar';
+  pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar' || id === '#ecra-quinta';
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   const t = $('#texto-voltar');
   if(t) t.textContent = id === '#ecra-mundos' ? 'Avós'
                       : id === '#ecra-mapa'   ? 'Quinta'
+                      : id === '#ecra-quinta' ? 'Brincar'
                       : 'Mapa';
 }
 
@@ -232,7 +238,12 @@ function abreMundos(){
   Voz.cala(); Fala.esconde(); jogo.para();
   $('#tabuleiro').innerHTML = '';
   const maior = Estado.nivel;
-  $('#lista-mundos').innerHTML = MUNDOS.map((m, i) => {
+  const cartaoQuinta = `<button class="mundo minha" data-quinta="1">
+      <span class="selo" style="--c:#8FCB85">${arteEdificio('casa')}</span>
+      <span class="texto"><span class="titulo">A Minha Quinta</span>
+        <span class="sub">${contaEdificios(Estado.quinta.itens)} edifícios · ${contaBichos(Estado.quinta.itens)} animais · ⭐ ${Estado.saldo()}</span></span>
+    </button>`;
+  $('#lista-mundos').innerHTML = cartaoQuinta + MUNDOS.map((m, i) => {
     const inicio = primeiroDoMundo(i);
     const aberto = maior >= inicio;
     const feitos = Math.max(0, Math.min(POR_MUNDO, maior - inicio));
@@ -257,6 +268,7 @@ $('#lista-mundos').onclick = e => {
   const b = e.target.closest('.mundo');
   if(!b || b.disabled) return;
   Som.efeito('toque');
+  if(b.dataset.quinta) return abreQuinta();
   abreMapa(false, +b.dataset.mundo);
 };
 
@@ -280,7 +292,7 @@ function abreMapa(suave, mundo){
   $('#faixa-mundo').textContent = MUNDOS[mundoVisto].nome;
   atualizaMissao();
   mostra('#ecra-mapa');
-  $('#conta-estrelas').textContent = Estado.totalEstrelas();
+  $('#conta-estrelas').textContent = Estado.saldo();
   requestAnimationFrame(() => scrollParaNivel(caixaMapa, telaMapa, Estado.nivel, mundoVisto, suave));
 }
 
@@ -312,7 +324,7 @@ const jogo = new Jogo({
   aoAcertar: tipo => {
     const k=tipo||jogo.tipo; if(!Estado.aprendizagem[k]) Estado.aprendizagem[k]={certas:0,erros:0};
     Estado.aprendizagem[k].certas++; Estado.guarda();
-    $('#conta-estrelas').textContent = Estado.totalEstrelas();
+    $('#conta-estrelas').textContent = Estado.saldo();
   },
   aoErro: tipo => {
     const k=tipo||jogo.tipo; if(!Estado.aprendizagem[k]) Estado.aprendizagem[k]={certas:0,erros:0};
@@ -363,6 +375,7 @@ function mostraRecompensa(nivel, estrelas){
   const n = Estado.nome ? ', ' + Estado.nome : '';
   $('#titulo-recompensa').textContent =
     (estrelas === 3 ? 'Perfeito' : pick(['Muito bem', 'Conseguiste'])) + n + '!';
+  $('#btn-ir-quinta').textContent = `🏡 A minha quinta · ⭐ ${Estado.saldo()}`;
   mostra('#ecra-recompensa');
   for(let i = 0; i < estrelas; i++) setTimeout(() => Som.efeito('estrela'), 180 + i * 240);
   const r = $('#chuva').getBoundingClientRect();
@@ -398,7 +411,8 @@ function voltaAoMapa(){
 $('#btn-voltar').onclick = () => {
   Som.efeito('toque');
   const onde = document.body.dataset.ecra;
-  if(onde === 'mundos') abreEscolha();        /* mundos -> escolher avô */
+  if(onde === 'quinta'){ if(!$('#loja').hidden) fechaLoja(); else abreMundos(); }   /* quinta -> mundos */
+  else if(onde === 'mundos') abreEscolha();        /* mundos -> escolher avô */
   else if(onde === 'mapa') abreMundos();      /* mapa   -> mundos      */
   else voltaAoMapa();                         /* jogo   -> mapa        */
 };
@@ -774,6 +788,103 @@ function atualizaQuinta(){
   jardim.innerHTML=`<span class="quinta-arvore" title="A quinta cresce com as estrelas">${marcos[fase]}</span><span>🌼 ${flores}/12</span><span>⭐ ${n}</span>`;
 }
 $('#stage').append(jardim);
+
+
+/* ================================================ A MINHA QUINTA ========= */
+const Cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+let abaLoja = 'edificios', novoEd = null;
+
+function redesenhaQuinta(){
+  const it = Estado.quinta.itens;
+  desenhaQuinta($('#quinta-grelha'), it, novoEd);
+  $('#quinta-resumo').innerHTML =
+    `<span>🏠 ${contaEdificios(it)}</span><span>🐾 ${contaBichos(it)}</span><span>⭐ ${Estado.saldo()}</span>`;
+  $('#conta-estrelas').textContent = Estado.saldo();
+}
+function abreQuinta(novo){
+  Voz.cala(); Fala.esconde(); jogo.para();
+  $('#tabuleiro').innerHTML = '';
+  novoEd = novo || null;
+  $('#loja').hidden = true; $('#loja-fundo').hidden = true;
+  redesenhaQuinta();
+  mostra('#ecra-quinta');
+  $('#barra').hidden = false;
+  $('#ecra-quinta').scrollTop = 0;
+  if(novo) setTimeout(() => {
+    const l = document.querySelector(`#quinta-grelha .lote[data-ed="${novo}"]`);
+    if(l) l.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 160);
+}
+function abreLoja(aba, destaque){
+  const it = Estado.quinta.itens;
+  abaLoja = aba || (EDIFICIOS.every(e => it[e.id]) ? 'bichos' : 'edificios');
+  desenhaLoja($('#loja-lista'), it, Estado.saldo(), abaLoja);
+  document.querySelectorAll('#loja .aba').forEach(b => b.classList.toggle('on', b.dataset.aba === abaLoja));
+  $('#loja-saldo').textContent = Estado.saldo();
+  $('#loja').hidden = false; $('#loja-fundo').hidden = false;
+  $('#loja-lista').scrollTop = 0;
+  if(destaque){
+    const c = document.querySelector(`#loja-lista .item-loja[data-id="${destaque}"]`);
+    if(c){ c.classList.add('destaque'); c.scrollIntoView({ block:'center' }); }
+  }
+}
+function fechaLoja(){ $('#loja').hidden = true; $('#loja-fundo').hidden = true; }
+
+function compra(id, botao){
+  const item = achaItem(id), it = Estado.quinta.itens;
+  if(!item) return;
+  const eEdificio = EDIFICIOS.some(e => e.id === id);
+  if(Estado.saldo() < item.preco) return;
+  if(eEdificio){ if(it[id]) return; }
+  else{ if(!it[item.casa] || (it[id] || 0) >= item.max) return; }
+  it[id] = (it[id] || 0) + 1;
+  Estado.guarda();
+  Som.efeito('certo');
+  if(botao){
+    const r = botao.getBoundingClientRect();
+    confete(document.body, r.left + r.width / 2, r.top, ['#F7C21B', '#E0162B', '#2C6FD6', '#3DA35D', '#fff']);
+  }
+  Som.fala(eEdificio ? `Já tens ${item.art} ${item.nome}!` : `${item.nome}! Bem-vind${item.art}!`);
+  if(eEdificio){
+    fechaLoja();
+    novoEd = id;
+    redesenhaQuinta();
+    setTimeout(() => {
+      const l = document.querySelector(`#quinta-grelha .lote[data-ed="${id}"]`);
+      if(l) l.scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 120);
+  }else{
+    redesenhaQuinta();
+    abreLoja(abaLoja);
+  }
+}
+
+$('#btn-loja').onclick = () => { Som.arranca(); Som.efeito('toque'); abreLoja(); };
+$('#btn-fechar-loja').onclick = () => { Som.efeito('toque'); fechaLoja(); };
+$('#loja-fundo').onclick = fechaLoja;
+$('#loja').addEventListener('click', e => {
+  const aba = e.target.closest('.aba');
+  if(aba){ Som.efeito('toque'); abreLoja(aba.dataset.aba); return; }
+  const c = e.target.closest('[data-comprar]');
+  if(c && !c.disabled){ Som.arranca(); compra(c.dataset.comprar, c); }
+});
+$('#quinta-grelha').addEventListener('click', e => {
+  Som.arranca();
+  const bicho = e.target.closest('.bicho');
+  if(bicho){
+    const b = achaItem(bicho.dataset.b);
+    const img = bicho.querySelector('img');
+    img.classList.remove('salta'); void img.offsetWidth; img.classList.add('salta');
+    Som.efeito('toque');
+    Som.fala(b.som);
+    return;
+  }
+  const ed = e.target.closest('[data-edificio]');
+  if(ed){ Som.efeito('toque'); const x = achaItem(ed.dataset.edificio); Som.fala(`${Cap(x.art)} ${x.nome}.`); return; }
+  const vazio = e.target.closest('.lote.vazio');
+  if(vazio){ Som.efeito('toque'); abreLoja('edificios', vazio.dataset.ed); }
+});
+$('#btn-ir-quinta').onclick = () => { Som.efeito('toque'); Voz.cala(); Fala.esconde(); abreQuinta(); };
 
 
 (async function iniciar(){
