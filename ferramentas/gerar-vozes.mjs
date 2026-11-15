@@ -15,7 +15,8 @@ const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const CHAVE = process.env.ELEVENLABS_API_KEY;
 const BASE = process.env.ELEVENLABS_BASE_URL || 'https://api.elevenlabs.io';
 const VELOCIDADE = Number(process.env.VELOCIDADE || 1.08);   /* ligeiramente mais rápida (0.7 a 1.2) */
-const MODELO = 'eleven_multilingual_v2';
+const MODELO = process.env.MODELO || 'eleven_v4';          /* o modelo com que ouviste e aprovaste a voz */
+const NOVO = /^eleven_v[34]/.test(MODELO);                    /* v3 e v4 não aceitam velocidade e levam o sotaque da própria voz */
 const FORMATO = 'mp3_22050_32';                               /* pequeno: a app embute o áudio em base64 */
 
 const VOZES = {
@@ -45,12 +46,10 @@ async function sintetiza(texto, voz) {
     const r = await fetch(`${BASE}/v1/text-to-speech/${voz}?output_format=${FORMATO}`, {
       method: 'POST',
       headers: { 'xi-api-key': CHAVE, 'Content-Type': 'application/json', Accept: 'audio/mpeg' },
-      body: JSON.stringify({
-        text: texto,
-        model_id: MODELO,
-        language_code: 'pt',
-        voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0, use_speaker_boost: true, speed: VELOCIDADE },
-      }),
+      body: JSON.stringify(NOVO
+        ? { text: texto, model_id: MODELO }                     /* sem language_code: forçar "pt" dá sotaque do Brasil */
+        : { text: texto, model_id: MODELO, language_code: 'pt',
+            voice_settings: { stability: 0.6, similarity_boost: 0.8, style: 0, use_speaker_boost: true, speed: VELOCIDADE } }),
     });
     if (r.ok) return Buffer.from(await r.arrayBuffer());
     const corpo = await r.text();
@@ -67,17 +66,17 @@ for (const p of quais) {
   const pasta = path.join(RAIZ, 'ferramentas', 'vozes-geradas', p);
   fs.mkdirSync(pasta, { recursive: true });
   const chars = lista.reduce((n, t) => n + t.length, 0);
-  console.log(`Voz ${v.nome}: ${lista.length} frases, ${chars} caracteres, velocidade ${VELOCIDADE}`);
+  console.log(`Voz ${v.nome}: ${lista.length} frases, ${chars} caracteres, modelo ${MODELO}`);
 
   const dados = {};
   for (let i = 0; i < lista.length; i++) {
     const texto = lista[i];
     const mp3 = path.join(pasta, String(i).padStart(3, '0') + '.mp3');
     const meta = mp3 + '.txt';
-    const feito = fs.existsSync(mp3) && fs.existsSync(meta) && fs.readFileSync(meta, 'utf8') === texto + '|' + VELOCIDADE;
+    const feito = fs.existsSync(mp3) && fs.existsSync(meta) && fs.readFileSync(meta, 'utf8') === texto + '|' + MODELO + '|' + VELOCIDADE;
     if (!feito) {
       fs.writeFileSync(mp3, await sintetiza(texto, v.id));
-      fs.writeFileSync(meta, texto + '|' + VELOCIDADE);
+      fs.writeFileSync(meta, texto + '|' + MODELO + '|' + VELOCIDADE);
       process.stdout.write('.');
     }
     dados[texto] = fs.readFileSync(mp3).toString('base64');
@@ -88,7 +87,7 @@ for (const p of quais) {
 
   const destino = path.join(RAIZ, 'js', v.ficheiro);
   fs.copyFileSync(destino, destino + '.antigo');             /* cópia de segurança */
-  const cab = `/* Voz ${v.nome} em português europeu.\n   Gerada com ElevenLabs (voz desenhada, pt-PT), velocidade ${VELOCIDADE}. */\n`;
+  const cab = `/* Voz ${v.nome} em português europeu.\n   Gerada com ElevenLabs (voz desenhada, pt-PT), modelo ${MODELO}. */\n`;
   fs.writeFileSync(destino, cab + `export const ${v.constante} = ${JSON.stringify(dados)};\n`);
   console.log(`Escrito ${v.ficheiro} (cópia antiga em ${v.ficheiro}.antigo)`);
 }

@@ -211,6 +211,7 @@ export const Som = {
      palavras em qualquer aparelho, offline e sem depender de haver voz
      portuguesa instalada. A voz do sistema soa muito melhor onde existe,
      por isso fica como opção, ligável na área dos pais. */
+  ritmoVoz: 1.05,            /* clips um pouco mais rápidos (1 = normal); sobe o tom ligeiramente */
   modo: 'embutida',          /* 'embutida' = vozes dos avós (clips ElevenLabs); 'aparelho' = voz instalada PT-PT */
   personagem: 'm',           /* 'm' = avô, 'f' = avó */
   vozesPreferidas: { m:'', f:'' },
@@ -301,13 +302,15 @@ export const Som = {
       if(!b) return;
       const f = this.ctx.createBufferSource();
       f.buffer = b;
+      f.playbackRate.value = this.ritmoVoz || 1;
       const g = this.ctx.createGain();
       g.gain.value = 1.0;
       f.connect(g); g.connect(this.mestre);
       f.start(t);
       this.fontes.push(f);
-      t += b.duration + .09;
-      total += b.duration + .09;
+      const dur = b.duration / (this.ritmoVoz || 1) + .09;
+      t += dur;
+      total += dur;
     });
     this.tempoVoz = setTimeout(() => { if(geracao === this.geracaoVoz && aoFim) aoFim(); }, (total + .18) * 1000);
   },
