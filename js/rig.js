@@ -32,9 +32,36 @@ function fazSombra(){
   return m;
 }
 
+/* Alguns modelos trazem saias e capuzes com um pouco de peso nos ossos dos
+   braços: ao levantar os braços a roupa abre-se como asas. Tira esses pesos
+   fracos (os braços e as mãos, que dependem deles por inteiro, ficam como estão). */
+function limpaPesos(malha){
+  const g = malha.geometry, I = g.attributes.skinIndex, W = g.attributes.skinWeight;
+  if(!I || !W || !malha.skeleton) return;
+  const braco = malha.skeleton.bones.map(b => /^(Left|Right)(Shoulder|Arm|ForeArm|Hand)/.test(b.name.replace('mixamorig:', '').replace(/^mixamorig/, '')));
+  const P = g.attributes.position;
+  const anca = Math.max(0, malha.skeleton.bones.findIndex(b => /Hips$/.test(b.name)));
+  for(let v = 0; v < W.count; v++){
+    let soma = 0;
+    for(let k = 0; k < 4; k++) if(braco[I.getComponent(v, k)]) soma += W.getComponent(v, k);
+    if(soma <= 0) continue;
+    /* zona da saia/calções: baixo e junto ao corpo, longe das mãos que pendem */
+    const saia = P.getY(v) < .40 && Math.abs(P.getZ(v)) < .27 && soma < .85;
+    if(soma >= .5 && !saia) continue;
+    let resto = 0;
+    for(let k = 0; k < 4; k++){
+      if(braco[I.getComponent(v, k)]) W.setComponent(v, k, 0); else resto += W.getComponent(v, k);
+    }
+    if(resto > 0) for(let k = 0; k < 4; k++) W.setComponent(v, k, W.getComponent(v, k) / resto);
+    else{ I.setComponent(v, 0, anca); W.setComponent(v, 0, 1); }
+  }
+  W.needsUpdate = true;
+}
+
 export class Rig {
-  constructor(cena, gltf){
+  constructor(cena, gltf, opcoes = {}){
     this.raiz = gltf.scene;
+    this.opcoes = opcoes;
     this.grupo = new THREE.Group();
     this.grupo.add(this.raiz);
     cena.add(this.grupo);
@@ -48,10 +75,11 @@ export class Rig {
       if(o.isSkinnedMesh){
         this.malha = o;
         o.frustumCulled = false;
+        if(opcoes.limpaPesos) limpaPesos(o);
         if(o.material) o.material.metalness = 0;
       }
       if(o.isBone){
-        const nome = o.name.replace('mixamorig:', '');
+        const nome = o.name.replace('mixamorig:', '').replace(opcoes.esqueleto ? /^mixamorig/ : /^$/, '');
         this.todos[nome] = o;
         if(OSSOS.includes(nome)){
           this.ossos[nome] = o;
@@ -231,7 +259,7 @@ export class Rig {
       soma('RightForeArm', 0, o, 0);
       soma('LeftForeArm', 0, -o, 0);
     }
-    if(this.acao === 'festejar'){
+    if(this.acao === 'festejar' || this.acao === 'festa'){
       const o = Math.sin(f * 7) * 9;
       soma('RightForeArm', 0, 0, o);
       soma('LeftForeArm', 0, 0, -o);

@@ -635,6 +635,19 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 }
 
 
+
+/* ---- v4.13: festa dos meninos Beagle ---- */
+.festa{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(24,61,53,.6);padding:1rem;animation:festa-fundo .25s ease-out}
+.festa[hidden]{display:none}
+.festa-cartao{width:min(92vw,26rem);background:var(--creme);border:4px solid var(--azul-tinta);border-radius:2rem;padding:.6rem 1rem 1.1rem;
+  display:flex;flex-direction:column;align-items:center;gap:.3rem;text-align:center;box-shadow:0 14px 40px rgba(0,0,0,.35);animation:festa-pop .55s var(--mola)}
+.festa-gl{width:100%;height:min(50vh,22rem);display:block}
+.festa-titulo{margin:0;font-size:clamp(1.6rem,7vw,2.3rem);color:var(--azul-tinta)}
+.festa-sub{margin:0 0 .5rem;font-weight:700;font-size:1.1rem}
+@keyframes festa-fundo{from{opacity:0}to{opacity:1}}
+@keyframes festa-pop{0%{transform:scale(.4) translateY(30px);opacity:0}70%{transform:scale(1.05)}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.festa,.festa-cartao{animation:none}}
+
 /* ---- v4.12: quinta em 3D ---- */
 #ecra-quinta.com3d{overflow:hidden;padding-left:0;padding-right:0;background:#CDEBF6}
 .com3d .q3d{position:absolute;inset:0;z-index:0}
@@ -903,6 +916,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
       <div class="abas">
         <button class="aba on" data-aba="edificios" type="button">🏠 Edifícios</button>
         <button class="aba" data-aba="bichos" type="button">🐄 Animais</button>
+        <button class="aba" data-aba="amigos" type="button">🧒 Amigos</button>
       </div>
       <span class="loja-saldo">⭐ <b id="loja-saldo">0</b></span>
       <button class="mini" id="btn-fechar-loja" type="button" aria-label="Fechar a loja">✕</button>
@@ -1042,7 +1056,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.12.0"></script>
+<script type="module" src="./js/app.js?v=4.13.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

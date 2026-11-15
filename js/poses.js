@@ -36,6 +36,13 @@ export const POSES = {
     Spine1:       {X:-7},
   },
 
+  /* festa dos meninos Beagle: braços no ar, mãos junto às orelhas */
+  festa: {
+    RightArm:     {Z:-80},  LeftArm:     {Z:80},
+    RightForeArm: {Z:-65},  LeftForeArm: {Z:65},
+    Head:         {X:-8},
+  },
+
   pensar: {                                     /* mão junto ao focinho */
     RightArm:     {X:-82, Y:45, Z:6},
     RightForeArm: {X:-42, Y:23, Z:3},

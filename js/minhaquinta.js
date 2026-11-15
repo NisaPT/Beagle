@@ -37,9 +37,17 @@ export const BICHOS = [
   { id:'cavalo',    nome:'Cavalo',    art:'o', preco:16, max:2, casa:'estabulo',   som:'Iiii-i-i!' },
 ];
 
+/* personagens que se compram na loja: aparecem a festejar de 10 em 10 níveis.
+   O ficheiro 3D (com esqueleto) fica em ./modelos/<id>.glb */
+export const PERSONAGENS = [
+  { id:'menino', nome:'Menino Beagle', art:'o', preco:150 },
+  { id:'menina', nome:'Menina Beagle', art:'a', preco:150 },
+];
+
 export const achaEdificio = id => EDIFICIOS.find(e => e.id === id);
 export const achaBicho = id => BICHOS.find(b => b.id === id);
-export const achaItem = id => achaEdificio(id) || achaBicho(id);
+export const achaPersonagem = id => PERSONAGENS.find(p => p.id === id);
+export const achaItem = id => achaEdificio(id) || achaBicho(id) || achaPersonagem(id);
 export const precoDe = id => (achaItem(id) || { preco:0 }).preco;
 
 /* quanto já se gastou: vem sempre do catálogo, por isso a fusão entre
@@ -213,7 +221,7 @@ export function desenhaQuinta(raiz, itens, novo){
 
 /* ------------------------------------------------------------- a loja */
 export function desenhaLoja(raiz, itens, saldo, aba){
-  const lista = aba === 'bichos' ? BICHOS : EDIFICIOS;
+  const lista = aba === 'bichos' ? BICHOS : aba === 'amigos' ? PERSONAGENS : EDIFICIOS;
   const cartas = lista.map(x => {
     const tem = itens[x.id] || 0;
     let estado = '', desligado = false, rotulo = '';
@@ -228,7 +236,7 @@ export function desenhaLoja(raiz, itens, saldo, aba){
       else if(saldo < x.preco){ rotulo = `Faltam ${x.preco - saldo} ⭐`; desligado = true; estado = 'pobre'; }
       else rotulo = 'Comprar';
     }
-    const miniatura = aba === 'bichos'
+    const miniatura = (aba === 'bichos' || aba === 'amigos')
       ? `<img src="./media/img/${x.id}.webp" alt="" draggable="false">`
       : arteEdificio(x.id);
     return `<div class="item-loja ${estado}" data-id="${x.id}">

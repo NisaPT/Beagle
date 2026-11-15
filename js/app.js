@@ -10,7 +10,8 @@ import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { miniFilme } from './curiosidades.js';
-import { EDIFICIOS, BICHOS as BICHOS_LOJA, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
+import { Festa } from './festa.js';
+import { EDIFICIOS, BICHOS as BICHOS_LOJA, PERSONAGENS, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -301,6 +302,7 @@ function abreMapa(suave, mundo){
   mostra('#ecra-mapa');
   $('#conta-estrelas').textContent = Estado.saldo();
   requestAnimationFrame(() => scrollParaNivel(caixaMapa, telaMapa, Estado.nivel, mundoVisto, suave));
+  if(festaPendente) setTimeout(festaDeNivel, 700);
 }
 
 telaMapa.addEventListener('click', e => {
@@ -323,6 +325,24 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden) atualizaTe
 setInterval(()=>{if(!document.hidden) atualizaTempoUso();},30000);
 
 /* ===================================================== JOGO ============== */
+/* ---- festa dos meninos Beagle: de 10 em 10 níveis de cada mapa ---- */
+const festa = new Festa({ confete, som: Som });
+let festaPendente = 0, ultimaFesta = null;
+function festaDeNivel(){
+  const n = festaPendente; festaPendente = 0;
+  if(!n || document.body.dataset.ecra !== 'mapa') return;
+  const donos = PERSONAGENS.filter(p => Estado.quinta.itens[p.id]);
+  if(!donos.length) return;
+  const outros = donos.filter(p => p.id !== ultimaFesta);
+  const p = pick(outros.length ? outros : donos);
+  ultimaFesta = p.id;
+  const m = mundoDoNivel(n), no = n - primeiroDoMundo(m) + 1;
+  festa.mostra(p.id, {
+    titulo: `Nível ${no}!`,
+    sub: `${MUNDOS[m].nome} · Muito bem${Estado.nome ? ', ' + Estado.nome : ''}!`,
+  });
+}
+
 const jogo = new Jogo({
   raiz: $('#tabuleiro'),
   voz: Voz,
@@ -339,7 +359,9 @@ const jogo = new Jogo({
   },
   aoSair: () => voltaAoMapa(),
   aoAcabar: (nivel, estrelas) => {
+    const antes = Estado.nivel;
     Estado.ganha(nivel, estrelas);
+    if(Estado.nivel > antes && nivel % 10 === 0) festaPendente = nivel;   /* chegou a um múltiplo de 10 */
     Estado.missaoDia = chaveDia();
     Estado.guarda();
     mostraRecompensa(nivel, estrelas);
@@ -892,6 +914,7 @@ function abreLoja(aba, destaque, casa){
   const it = Estado.quinta.itens;
   abaLoja = aba || (EDIFICIOS.every(e => it[e.id]) ? 'bichos' : 'edificios');
   desenhaLoja($('#loja-lista'), it, Estado.saldo(), abaLoja, casaLoja);
+  if(abaLoja === 'amigos') festa.prepara(PERSONAGENS.map(p => p.id));   /* descarrega os modelos em segundo plano */
   document.querySelectorAll('#loja .aba').forEach(b => b.classList.toggle('on', b.dataset.aba === abaLoja));
   $('#loja-saldo').textContent = Estado.saldo();
   $('#loja').hidden = false; $('#loja-fundo').hidden = false;
@@ -907,8 +930,9 @@ function compra(id, botao){
   const item = achaItem(id), it = Estado.quinta.itens;
   if(!item) return;
   const eEdificio = EDIFICIOS.some(e => e.id === id);
+  const ePers = PERSONAGENS.some(p => p.id === id);
   if(Estado.saldo() < item.preco) return;
-  if(eEdificio){ if(it[id]) return; }
+  if(eEdificio || ePers){ if(it[id]) return; }
   else{ if(!it[item.casa] || (it[id] || 0) >= item.max) return; }
   const primeiro = !eEdificio && !(it[id] || 0);   /* primeiro animal desta espécie */
   it[id] = (it[id] || 0) + 1;
@@ -917,6 +941,12 @@ function compra(id, botao){
   if(botao){
     const r = botao.getBoundingClientRect();
     confete(document.body, r.left + r.width / 2, r.top, ['#F7C21B', '#E0162B', '#2C6FD6', '#3DA35D', '#fff']);
+  }
+  if(ePers){
+    /* personagem nova: festa logo ali, e volta à loja ao fechar */
+    fechaLoja(); redesenhaQuinta();
+    festa.mostra(id, { titulo: `${item.nome}!`, sub: 'Já faz parte da tua quinta!', aoFechar: () => abreLoja('amigos') });
+    return;
   }
   if(!primeiro) Som.fala(eEdificio ? `Já tens ${item.art} ${item.nome}!` : `${item.nome}! Bem-vind${item.art}!`);
   if(eEdificio){
