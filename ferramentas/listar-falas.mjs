@@ -77,6 +77,10 @@ for (let a = 1; a < MAX; a++) for (let b = 1; b <= MAX - a; b++) add('2 Somas', 
 add('2 Somas', 'Quase! Conta outra vez.');
 add('2 Lógica', 'Observa as cores e tenta descobrir o padrão.');
 add('2 Lógica', 'Quantos anos tens?');
+/* jogos mais recentes (memória e lógica) e o elogio que faltava */
+add('2 Memória e lógica', 'Descobre os pares iguais.');
+add('2 Memória e lógica', 'Observa a sequência. O que vem a seguir?');
+add('2 Memória e lógica', 'Parabéns!');
 
 /* 3. quinta */
 for (const e of EDIFICIOS) { add('3 Quinta: edifícios', `Já tens ${e.art} ${e.nome}!`); add('3 Quinta: edifícios', `${Cap(e.art)} ${e.nome}.`); }
