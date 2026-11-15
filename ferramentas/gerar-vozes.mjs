@@ -31,6 +31,9 @@ const quais = escolhidas.length ? escolhidas : ['f', 'm'];
 if (!CHAVE) { console.error('Falta a variável ELEVENLABS_API_KEY.'); process.exit(1); }
 
 async function frases(ficheiro, constante) {
+  /* se existir ferramentas/falas.json (node ferramentas/listar-falas.mjs) usa todas as falas */
+  const lista = path.join(RAIZ, 'ferramentas', 'falas.json');
+  if (fs.existsSync(lista)) return JSON.parse(fs.readFileSync(lista, 'utf8')).map(x => x.t);
   const mod = await import(pathToFileURL(path.join(RAIZ, 'js', ficheiro)).href);
   return Object.keys(mod[constante]);
 }

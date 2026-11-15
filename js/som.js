@@ -79,13 +79,14 @@ export const Som = {
   carregaPreferencia(){
     try{
       this.ligado = localStorage.getItem('eab-som') !== '0';
-      this.modo = 'aparelho'; localStorage.setItem('eab-voz', 'aparelho');
+      /* chave nova: a antiga ficou guardada como 'aparelho' em todos os telemóveis */
+      this.modo = localStorage.getItem('eab-voz-v2') === 'aparelho' ? 'aparelho' : 'embutida';
     }catch(e){}
     return this.ligado;
   },
   defineModo(m){
-    this.modo = 'aparelho';
-    try{ localStorage.setItem('eab-voz', this.modo); }catch(e){}
+    this.modo = m === 'aparelho' ? 'aparelho' : 'embutida';
+    try{ localStorage.setItem('eab-voz-v2', this.modo); }catch(e){}
   },
 
 
@@ -210,7 +211,7 @@ export const Som = {
      palavras em qualquer aparelho, offline e sem depender de haver voz
      portuguesa instalada. A voz do sistema soa muito melhor onde existe,
      por isso fica como opção, ligável na área dos pais. */
-  modo: 'aparelho',          /* apenas voz instalada PT-PT por omissão */
+  modo: 'embutida',          /* 'embutida' = vozes dos avós (clips ElevenLabs); 'aparelho' = voz instalada PT-PT */
   personagem: 'm',           /* 'm' = avô, 'f' = avó */
   vozesPreferidas: { m:'', f:'' },
   pacotes: { m:null, f:null }, aCarregar: { m:null, f:null },
@@ -292,7 +293,8 @@ export const Som = {
       bufs.push(await this.buffer(t));
     }
     if(geracao !== this.geracaoVoz || !this.ctx || !this.ligado) return;
-    if(bufs.every(b => !b)){ if(aoFim) aoFim(); return; }
+    /* falta algum clip (frase nova, ficheiro ainda não carregado): diz a frase toda com a voz do aparelho */
+    if(bufs.some(b => !b)){ this.falaAparelho(lista.join(' '), aoFim, geracao); return; }
     let t = this.ctx.currentTime + .04, total = 0;
     this.fontes = [];
     bufs.forEach((b, i) => {

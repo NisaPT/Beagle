@@ -3,3 +3,7 @@ Thumbs.db
 node_modules/
 .vercel/
 *.log
+
+# áudios de trabalho e cópias de segurança (as vozes já estão dentro de js/voz_f.js e js/voz_m.js)
+ferramentas/vozes-geradas/
+*.antigo
