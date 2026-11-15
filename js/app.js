@@ -8,6 +8,7 @@ import { avatar, ANIMAIS, confete } from './arte.js';
 import { Som } from './som.js';
 import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
+import { Nuvem } from './nuvem.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -60,8 +61,11 @@ function amigoDeCodigo(codigo){
   };
 }
 
+/* 'Criança 1' era um rótulo por defeito: não conta como nome escolhido */
+const nomeReal = n => (n && n !== 'Criança 1' && n !== 'Criança') ? n : '';
+
 const Estado = {
-  nivel:1, estrelas:{}, companheiro:'avo', codigo:null, amigos:[], nome:'', idade:null, perfilId:'principal',
+  nivel:1, estrelas:{}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
   aprendizagem:{cores:{certas:0,erros:0},contar:{certas:0,erros:0},formas:{certas:0,erros:0},letras:{certas:0,erros:0},memoria:{certas:0,erros:0},logica:{certas:0,erros:0}},
   limiteMinutos:30, tempoHoje:0, diaUso:null, inicioSessao:Date.now(),
 
@@ -87,7 +91,8 @@ const Estado = {
         nivel: g.nivel || 1,
         estrelas: g.estrelas || {},
         companheiro: g.companheiro || 'avo',
-        nome: g.nome || (perfil && perfil.nome) || 'Criança 1',
+        nome: nomeReal(g.nome) || nomeReal(perfil && perfil.nome) || '',
+        perguntouNome: !!g.perguntouNome || !!nomeReal(g.nome),
         codigo: g.codigo || null,
         idade: [3,4,5,6,7].includes(g.idade) ? g.idade : null,
         amigos: g.amigos || null,
@@ -104,9 +109,9 @@ const Estado = {
   guarda(){
     const dados = {
       nivel:this.nivel, estrelas:this.estrelas, companheiro:this.companheiro,
-      codigo:this.codigo, amigos:this.amigos, nome:this.nome, idade:this.idade, missaoDia:this.missaoDia || null,
+      codigo:this.codigo, amigos:this.amigos, nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
-      tempoHoje:this.tempoHoje, diaUso:chaveDia(),
+      tempoHoje:this.tempoHoje, diaUso:chaveDia(), t:Date.now(),
     };
     try{
       localStorage.setItem('eab', JSON.stringify(dados));
@@ -115,7 +120,8 @@ const Estado = {
       const perfil = perfis.find(p => p.id === this.perfilId);
       if(perfil && this.nome) perfil.nome = this.nome;
       localStorage.setItem('eab-perfis', JSON.stringify(perfis));
-    }catch(e){}
+    }catch(e){ console.warn('Não foi possível guardar neste aparelho', e); }
+    Nuvem.agenda();
   },
   totalEstrelas(){ return Object.values(this.estrelas).reduce((a, b) => a + b, 0); },
   ganha(nivel, estrelas){
@@ -468,6 +474,7 @@ function desenhaPais(){
   const selIdade=$('#idade-crianca'); if(selIdade) selIdade.value=String(Estado.idade||5);
   const endpoint=$('#tts-endpoint'); if(endpoint) endpoint.value=Som.endpointNeural||'';
   desenhaVoz();
+  desenhaConta();
 }
 
 function desenhaVoz(){
@@ -497,10 +504,57 @@ $('#tts-endpoint')?.addEventListener('change',e=>{
   Som.endpointNeural=v;try{localStorage.setItem('eab-tts-endpoint',v);}catch(e){}
   $('#diag-voz').textContent=v?'Gateway neural configurado. Confirme que o servidor devolve áudio PT-PT e protege as credenciais.':'Sem gateway neural: será usada a voz PT-PT do dispositivo, quando disponível.';
 });
+
+/* ============================================ CONTA DOS PAIS (cloud) ======= */
+function desenhaConta(){
+  const estado = $('#conta-estado'), fora = $('#conta-fora'), dentro = $('#conta-dentro');
+  if(!estado) return;
+  if(!Nuvem.configurada){
+    estado.textContent = 'As contas na cloud ainda não estão ativadas neste jogo. Por agora o progresso fica só neste aparelho.';
+    fora.hidden = true; dentro.hidden = true; return;
+  }
+  if(Nuvem.utilizador){
+    const h = Nuvem.ultimaSync ? new Date(Nuvem.ultimaSync).toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}) : 'ainda não';
+    estado.textContent = `Sessão iniciada: ${Nuvem.utilizador.email || 'conta Google'}. Último guardar na cloud: ${h}.` + (Nuvem.erro ? ' ' + Nuvem.erro : '');
+    fora.hidden = true; dentro.hidden = false;
+  }else{
+    estado.textContent = 'Entre com a sua conta para guardar o progresso na cloud e continuar noutro telemóvel ou tablet.';
+    fora.hidden = false; dentro.hidden = true;
+  }
+}
+Nuvem.aMudar = desenhaConta;
+Nuvem.aoTrazerDados = () => {
+  /* progresso novo da cloud: recarrega uma vez para o jogo o mostrar */
+  const ultimo = +(sessionStorage.getItem('eab-sync-reload') || 0);
+  if(Date.now() - ultimo < 15000) return;
+  sessionStorage.setItem('eab-sync-reload', String(Date.now()));
+  location.reload();
+};
+async function tentaConta(acao){
+  const aviso = $('#aviso-conta');
+  aviso.textContent = '';
+  const botoes = document.querySelectorAll('#painel-conta button');
+  botoes.forEach(b => b.disabled = true);
+  try{ await acao(); }
+  catch(e){ aviso.textContent = Nuvem.mensagem(e); }
+  finally{ botoes.forEach(b => b.disabled = false); }
+}
+const dadosConta = () => ({ email: $('#conta-email').value.trim(), pw: $('#conta-pw').value });
+$('#btn-google').onclick = () => tentaConta(() => Nuvem.entraGoogle());
+$('#form-conta').onsubmit = e => { e.preventDefault(); const c = dadosConta(); tentaConta(() => Nuvem.entraEmail(c.email, c.pw)); };
+$('#btn-criar-conta').onclick = () => { const c = dadosConta(); tentaConta(() => Nuvem.criaConta(c.email, c.pw)); };
+$('#btn-esqueci').onclick = () => {
+  const c = dadosConta();
+  if(!c.email){ $('#aviso-conta').textContent = 'Escreva primeiro o seu email.'; return; }
+  tentaConta(async () => { await Nuvem.recupera(c.email); $('#aviso-conta').textContent = 'Enviámos um email para repor a palavra-passe.'; });
+};
+$('#btn-sair-conta').onclick = () => tentaConta(() => Nuvem.sai());
+
 $('#idade-crianca')?.addEventListener('change',e=>{Estado.idade=+e.target.value;Estado.guarda();aplicaIdade();});
 $('#limite-tempo')?.addEventListener('change',e=>{Estado.limiteMinutos=Math.max(0,Math.min(180,+e.target.value||0));Estado.guarda();});
 $('#btn-apagar-perfil')?.addEventListener('click',()=>{
   if(!confirm('Apagar permanentemente o progresso deste perfil neste dispositivo?')) return;
+  try{ const ap=JSON.parse(localStorage.getItem('eab-apagados')||'[]'); ap.push(Estado.perfilId); localStorage.setItem('eab-apagados',JSON.stringify(ap)); }catch(e){}
   localStorage.removeItem('eab-perfil-'+Estado.perfilId);
   const ps=Estado.listaPerfis().filter(p=>p.id!==Estado.perfilId);
   if(!ps.length) ps.push({id:'principal',nome:'Criança 1'});
@@ -526,7 +580,7 @@ $('#form-perfil').onsubmit = e => {
   const id = 'p' + Date.now().toString(36);
   perfis.push({id, nome});
   localStorage.setItem('eab-perfis', JSON.stringify(perfis));
-  const dados = {nivel:1, estrelas:{}, companheiro:'avo', nome, codigo:codigoNovo(), amigos:[], missaoDia:null};
+  const dados = {nivel:1, estrelas:{}, companheiro:'avo', nome, perguntouNome:true, idade:null, codigo:codigoNovo(), amigos:[], missaoDia:null};
   localStorage.setItem('eab-perfil-' + id, JSON.stringify(dados));
   localStorage.setItem('eab-perfil-ativo', id);
   location.reload();
@@ -594,18 +648,20 @@ const carrega = b64 => new Promise((ok, erro) =>
 $('#btn-comecar').onclick = () => {
   Som.arranca();              /* o áudio só pode nascer de um toque */
   pintaBotaoSom();
-  if(!Estado.nome){ $('#campo-nome').value = ''; mostra('#ecra-nome'); return; }
+  if(!Estado.nome && !Estado.perguntouNome){ $('#campo-nome').value = ''; mostra('#ecra-nome'); return; }
   segueAposNome();
 };
 
 $('#form-nome').onsubmit = e => {
   e.preventDefault();
   const v = $('#campo-nome').value.trim().replace(/\s+/g, ' ').slice(0, 14);
-  if(v){ Estado.nome = v; Estado.guarda(); }
+  Estado.perguntouNome = true;
+  if(v){ Estado.nome = v; }
+  Estado.guarda();
   Som.efeito('toque');
   segueAposNome();
 };
-$('#btn-saltar-nome').onclick = () => { Som.efeito('toque'); segueAposNome(); };
+$('#btn-saltar-nome').onclick = () => { Som.efeito('toque'); Estado.perguntouNome = true; Estado.guarda(); segueAposNome(); };
 
 /* idade: pergunta-se uma vez por perfil; os pais podem mudá-la na Área dos Pais */
 function segueAposNome(){ Estado.idade ? vaiEscolher() : vaiIdade(); }
@@ -663,6 +719,9 @@ $('#stage').append(jardim);
   try {
   Estado.carrega();
   aplicaIdade();
+  /* pede ao navegador para não apagar o progresso por falta de espaço */
+  try{ navigator.storage && navigator.storage.persist && navigator.storage.persist(); }catch(e){}
+  Nuvem.inicia();
   Som.endpointNeural=localStorage.getItem('eab-tts-endpoint')||'';
   Som.carregaPreferencia();
   Som.carregaPreferenciasVoz();

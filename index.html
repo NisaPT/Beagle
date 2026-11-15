@@ -562,6 +562,19 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
 .soma-objetos{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:.2rem .7rem;font-size:clamp(1.4rem,6vw,2.1rem);line-height:1.4}
 .soma-objetos b{font-size:1.4em;color:var(--azul-tinta)}
 .soma-conta{font-size:clamp(1.6rem,8vw,2.6rem)!important;font-weight:700;color:var(--azul-tinta);margin:.3rem 0 0}
+
+.form-conta{display:flex;flex-direction:column;gap:.35rem;margin:.8rem 0 .4rem;text-align:left}
+.form-conta input{font-family:inherit;font-size:1rem;padding:.6em .8em;border-radius:.9rem;border:2px solid var(--barro-esc);background:#fff;color:var(--tinta)}
+.form-conta input:focus{outline:3px solid var(--azul-claro);outline-offset:1px;border-color:var(--azul-tinta)}
+.conta-botoes{display:flex;gap:.6rem;margin-top:.5rem}
+#painel-conta [hidden]{display:none!important}
+#painel-conta .botao:disabled{opacity:.55;cursor:default}
+
+/* ecrãs longos (Área dos Pais): centrar só quando cabe; senão começar no topo */
+.ecra.cobre{justify-content:flex-start}
+.ecra.cobre>:first-child{margin-top:auto}
+.ecra.cobre>:last-child{margin-bottom:auto}
+#ecra-pais{padding-top:4.2rem}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -660,6 +673,30 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
 <section class="ecra cobre" id="ecra-pais">
   <h1>Área dos Pais</h1>
 
+  <div class="painel" id="painel-conta">
+    <h2>Conta e cópia na cloud</h2>
+    <p id="conta-estado">—</p>
+    <div id="conta-fora" hidden>
+      <button class="botao pequeno" id="btn-google" type="button">Entrar com Google</button>
+      <form class="form-conta" id="form-conta" autocomplete="on">
+        <label class="campo-voz" for="conta-email">Email dos pais</label>
+        <input id="conta-email" type="email" autocomplete="email" inputmode="email" placeholder="nome@exemplo.pt">
+        <label class="campo-voz" for="conta-pw">Palavra-passe (mínimo 6 caracteres)</label>
+        <input id="conta-pw" type="password" autocomplete="current-password" minlength="6">
+        <div class="conta-botoes">
+          <button type="submit" class="botao calma pequeno">Entrar</button>
+          <button type="button" class="botao calma pequeno" id="btn-criar-conta">Criar conta</button>
+        </div>
+      </form>
+      <button class="saltar" id="btn-esqueci" type="button">Esqueci a palavra-passe</button>
+    </div>
+    <div id="conta-dentro" hidden>
+      <button class="botao calma pequeno" id="btn-sair-conta" type="button">Terminar sessão</button>
+    </div>
+    <p class="aviso-campo" id="aviso-conta" role="status"></p>
+    <p class="aviso">Guardamos apenas o progresso da criança e a alcunha escolhida, ligados ao email dos pais. O jogo continua a funcionar sem conta e sem internet.</p>
+  </div>
+
   <div class="painel">
     <h2>Perfis da família</h2>
     <p>O progresso de cada criança fica separado neste dispositivo.</p>
@@ -741,7 +778,7 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.1.0"></script>
+<script type="module" src="./js/app.js?v=4.2.1"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

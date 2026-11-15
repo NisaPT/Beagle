@@ -113,3 +113,21 @@ ALTERAÇÕES V4.1.0 — IDADE DA CRIANÇA E ELOGIOS
 - Perfis existentes sem idade escolhida: o jogo pergunta a idade na próxima vez que carregam em Começar (sem idade, comporta-se como aos 5 anos).
 - Para testar: apagar a chave "eab" no armazenamento local, ou usar janela privada.
 - Ao publicar: aumentar VERSAO em sw.js e ?v= em index.html (agora 4.1.0).
+
+
+CORREÇÃO V4.1.1 — NOME DA CRIANÇA
+- O ecrã "Como te chamas?" nunca aparecia: o jogo usava "Criança 1" como nome por defeito e achava que já havia nome. Agora "Criança 1" é só um rótulo da lista de perfis.
+- O nome é pedido na primeira utilização de cada perfil e fica guardado. "Agora não" também fica guardado, para não perguntar sempre.
+- Perfis antigos com "Criança 1" passam a pedir o nome na próxima vez.
+- Verificado: nível, estrelas, nome, idade e perfil mantêm-se depois de recarregar a página (no mesmo navegador/aparelho).
+
+
+ALTERAÇÕES V4.2.0 — CONTAS DOS PAIS E CÓPIA NA CLOUD
+- Novo painel "Conta e cópia na cloud" na Área dos Pais: entrar com Google ou email, criar conta, repor palavra-passe, terminar sessão.
+- Com sessão iniciada, o progresso (nível, estrelas, estatísticas, idade, alcunha) é copiado para o Firestore e sincroniza entre aparelhos. A fusão nunca perde progresso (fica o nível mais alto e as melhores estrelas).
+- Perfis apagados não "ressuscitam" a partir da cloud.
+- Sem configuração (js/firebase-config.js = null) o painel diz que as contas ainda não estão ativadas e o jogo funciona como antes, só no aparelho.
+- Ver NUVEM-FIREBASE.md para criar o projeto Firebase e as regras de segurança.
+- O navegador é pedido para não apagar o armazenamento do jogo (storage.persist).
+- Corrigido: na Área dos Pais, o topo ficava cortado e inacessível quando o conteúdo era mais alto que o ecrã.
+- Versão da cache: 4.2.0.
