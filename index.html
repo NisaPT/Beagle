@@ -591,12 +591,45 @@ body[data-ecra="escolher"] #barra{display:none}
   body[data-ecra="escolher"] .fala{font-size:1rem;padding:.4rem .9rem;top:.5rem}
   body[data-ecra="escolher"] #ecra-escolher{padding-bottom:.8rem}
 }
+
+/* saudação depois de escolher o avô/avó */
+.intro-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:3;display:none;background:#CDEBF6}
+body[data-saudacao="ava"] .intro-video{display:block}
+#btn-saltar-saudacao{display:none}
+#ecra-escolher.a-saudar .avos{display:none}
+#ecra-escolher.a-saudar #btn-saltar-saudacao{display:inline-block}
+
+/* animais, frutas e legumes (v4.4.0) */
+.cartas-nat{display:grid;grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));gap:clamp(.5rem,2.4vw,1rem);width:min(100%,36rem);padding:.6rem}
+.carta-nat{border:3px solid #fff;border-radius:1.3rem;background:rgba(255,255,255,.9);padding:.5rem .35rem .4rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.2rem;
+  box-shadow:0 5px 0 rgba(27,77,143,.25);transition:transform .16s var(--mola);animation:entra-nat .45s var(--mola) both;animation-delay:var(--atraso,0ms);min-width:0}
+.carta-nat img{width:100%;height:clamp(64px,17vh,118px);object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.cartas-nat[data-n="2"] .carta-nat img,.cartas-nat[data-n="3"] .carta-nat img{height:clamp(80px,21vh,140px)}
+.legenda-nat{font-family:inherit;font-weight:700;font-size:clamp(.85rem,3.4vw,1.15rem);color:var(--azul-tinta);line-height:1.1;text-align:center}
+.carta-nat:active{transform:scale(.94)}
+.carta-nat:focus-visible{outline:4px solid var(--azul-tinta);outline-offset:3px}
+.carta-nat.certo{animation:salta-nat .55s ease forwards;border-color:#5bb36b;background:#e9f8e8}
+.carta-nat.errado{animation:abana .4s ease}
+@keyframes entra-nat{from{opacity:0;transform:translateY(14px) scale(.9)}to{opacity:1;transform:none}}
+@keyframes salta-nat{0%{transform:scale(1)}40%{transform:scale(1.14) rotate(-3deg)}100%{transform:scale(1.06)}}
+.pista-som{font-size:1.1em;color:var(--azul-tinta);white-space:nowrap}
+.pista-letra{font-size:1.6em;line-height:1;color:var(--azul-tinta)}
+.contagem-nat{width:min(100%,34rem);display:grid;gap:.8rem;justify-items:center;padding:.5rem}
+.grupo-nat{display:grid;grid-template-columns:repeat(var(--por,3),minmax(0,1fr));gap:.3rem;width:min(100%,26rem);justify-items:center}
+.grupo-nat img{width:100%;max-width:92px;max-height:clamp(52px,12vh,88px);object-fit:contain;transform:rotate(var(--giro,0deg));animation:entra-nat .4s var(--mola) both;animation-delay:var(--atraso,0ms)}
+.grupo-nat.um img{max-width:none;width:auto;max-height:clamp(100px,26vh,170px)}
+.opcoes-num{grid-template-columns:repeat(var(--cols,3),minmax(0,1fr));width:100%;max-width:26rem;margin-top:.2rem}
+.opcoes-tipo{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;max-width:26rem}
+.opcoes-num .botao,.opcoes-tipo .botao{min-width:0;width:100%;padding:.55rem .3rem;margin:0}
+.opcoes-num .botao{font-size:1.9rem}
+.opcoes-tipo .botao{font-size:1.2rem}
 </style>
 </head>
 <body data-ecra="carregar">
 <div id="app">
   <div class="stage" id="stage">
     <canvas id="gl"></canvas>
+    <video id="intro-video" class="intro-video" muted playsinline preload="none" poster="./media/ava-intro.jpg" aria-hidden="true"></video>
     <div class="fala" id="fala"></div>
     <div class="prateleira"></div>
   </div>
@@ -658,6 +691,7 @@ body[data-ecra="escolher"] #barra{display:none}
     <button class="avo-escolha" id="esc-avo"><span class="cara" id="cara-avo"></span><span class="nome">Avô</span><span class="papel">Beagle</span></button>
     <button class="avo-escolha" id="esc-ava"><span class="cara" id="cara-ava"></span><span class="nome">Avó</span><span class="papel">Beagle</span></button>
   </div>
+  <button class="botao calma pequeno" id="btn-saltar-saudacao" type="button">Continuar</button>
 </section>
 
 <section class="ecra cobre" id="ecra-mundos">
@@ -794,7 +828,7 @@ body[data-ecra="escolher"] #barra{display:none}
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.2.4"></script>
+<script type="module" src="./js/app.js?v=4.4.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

@@ -137,3 +137,12 @@ CORREÇÃO V4.2.4 — ECRÃ DE ESCOLHER O AVÔ/AVÓ
 - O cenário (quinta e avós) ocupa agora o ecrã todo e só os dois botões ficam à frente, sem faixa bege.
 - Em computador e em ecrãs largos, o jogo já não fica "metade vazio": o layout lado a lado só se aplica a telemóveis na horizontal e só durante um jogo.
 - Em telemóvel na vertical a câmara afasta-se para os dois avós caberem; na horizontal os botões e o balão são mais pequenos.
+
+
+V4.4.0 - Animais, Frutas e Legumes
+- 3 jogos novos com 89 desenhos (media/img). Entram na rotação de níveis conforme a idade.
+- 3 anos: tocar no animal/fruta/legume (poucos, os mais conhecidos).
+- 4 anos: + "Quem faz au au?" (sons) e cores ("Qual é a fruta amarela?").
+- 5 anos: + animais da quinta/do mar, contar frutas, "fruta ou legume?".
+- 6-7 anos: + letra inicial ("Qual animal começa pela letra L?"), nomes escritos, mais opções e itens raros.
+- Nunca há castigo: ao errar, diz o nome do que a criança tocou e pede para tentar outra vez.

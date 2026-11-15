@@ -4,16 +4,21 @@
 export const IDADES = [3, 4, 5, 6, 7];
 
 const PERFIS = {
-  3: { tipos:['cores','contar','formas','memoria'],
-       opcoes:3, maxConta:3,  formas:2, paleta:4, pares:2, padroes:0, letraOpcoes:0, somaMax:0,  imagens:true },
-  4: { tipos:['cores','contar','formas','memoria','logica'],
-       opcoes:3, maxConta:5,  formas:3, paleta:5, pares:3, padroes:1, letraOpcoes:0, somaMax:0,  imagens:true },
-  5: { tipos:['cores','contar','formas','letras','memoria','logica'],
-       opcoes:4, maxConta:6,  formas:4, paleta:6, pares:4, padroes:2, letraOpcoes:2, somaMax:0,  imagens:true },
-  6: { tipos:['cores','contar','formas','letras','memoria','logica','somas'],
-       opcoes:5, maxConta:8,  formas:5, paleta:6, pares:4, padroes:3, letraOpcoes:3, somaMax:5,  imagens:true },
-  7: { tipos:['cores','contar','formas','letras','memoria','logica','somas'],
-       opcoes:6, maxConta:10, formas:6, paleta:8, pares:6, padroes:4, letraOpcoes:4, somaMax:10, imagens:false },
+  3: { tipos:['cores','animais','contar','frutas','formas','legumes','memoria'],
+       opcoes:3, maxConta:3,  formas:2, paleta:4, pares:2, padroes:0, letraOpcoes:0, somaMax:0,  imagens:true,
+       nat:{ nivel:1, nomes:false, modos:{ animais:['nome'], frutas:['nome'], legumes:['nome'] } } },
+  4: { tipos:['cores','animais','contar','frutas','formas','legumes','memoria','logica'],
+       opcoes:3, maxConta:5,  formas:3, paleta:5, pares:3, padroes:1, letraOpcoes:0, somaMax:0,  imagens:true,
+       nat:{ nivel:2, nomes:false, modos:{ animais:['nome','som'], frutas:['nome','cor'], legumes:['nome','cor'] } } },
+  5: { tipos:['cores','animais','contar','frutas','formas','legumes','letras','memoria','logica'],
+       opcoes:4, maxConta:6,  formas:4, paleta:6, pares:4, padroes:2, letraOpcoes:2, somaMax:0,  imagens:true,
+       nat:{ nivel:2, nomes:false, modos:{ animais:['nome','som','grupo'], frutas:['nome','cor','contagem'], legumes:['nome','cor','tipo'] } } },
+  6: { tipos:['cores','animais','frutas','contar','formas','legumes','letras','memoria','logica','somas'],
+       opcoes:5, maxConta:8,  formas:5, paleta:6, pares:4, padroes:3, letraOpcoes:3, somaMax:5,  imagens:true,
+       nat:{ nivel:3, nomes:true, modos:{ animais:['nome','som','grupo','inicial'], frutas:['nome','cor','contagem','inicial'], legumes:['nome','cor','tipo','contagem','inicial'] } } },
+  7: { tipos:['cores','animais','frutas','contar','formas','legumes','letras','memoria','logica','somas'],
+       opcoes:6, maxConta:10, formas:6, paleta:8, pares:6, padroes:4, letraOpcoes:4, somaMax:10, imagens:false,
+       nat:{ nivel:3, nomes:true, modos:{ animais:['som','grupo','inicial','nome'], frutas:['cor','contagem','inicial','nome'], legumes:['cor','tipo','contagem','inicial','nome'] } } },
 };
 
 /* sem idade escolhida: comporta-se como aos 5 anos (a versão anterior) */

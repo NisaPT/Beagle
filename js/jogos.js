@@ -1,4 +1,5 @@
 import { balao, flor, biscoito, peca, buraco, FORMAS, confete } from './arte.js';
+import { rondaNatureza } from './natureza.js';
 
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
@@ -65,7 +66,8 @@ export class Jogo {
     if(this.tipo === 'memoria') this.rondaMemoria();
     if(this.tipo === 'logica') this.rondaLogica();
     if(this.tipo === 'somas')  this.rondaSomas();
-    if(!['cores','contar','formas','letras','memoria','logica','somas'].includes(this.tipo)) this.rondaCores();
+    if(['animais','frutas','legumes'].includes(this.tipo)) rondaNatureza(this, this.tipo);
+    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes'].includes(this.tipo)) this.rondaCores();
   }
 
   diz(texto, aoFim, pista){ this.ctx.voz.diz(texto, aoFim, pista); }
