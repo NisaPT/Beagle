@@ -693,9 +693,29 @@ function paraBuffer(b64){
 const carrega = b64 => new Promise((ok, erro) =>
   carregador.parse(paraBuffer(b64), '', ok, erro));
 
-$('#btn-comecar').onclick = () => {
+/* Ao carregar em Começar: ecrã de carregamento até as vozes e a quinta 3D
+   estarem prontas (no máximo 15 s; se a rede for lenta, a voz do aparelho
+   serve de reserva e o jogo arranca na mesma). */
+let aPreparar = false;
+$('#btn-comecar').onclick = async () => {
+  if(aPreparar) return;
+  aPreparar = true;
   Som.arranca();              /* o áudio só pode nascer de um toque */
   pintaBotaoSom();
+  $('#texto-carregar').textContent = 'A preparar as vozes do avô e da avó…';
+  mostra('#ecra-carregar');
+  const espera = ms => new Promise(r => setTimeout(r, ms));
+  try{
+    const pronto = Promise.all([
+      Som.carregaVozes('m'), Som.carregaVozes('f'),
+      import('./quinta3d.js').catch(() => null),
+    ]).then(async () => {
+      const v = Som.pacotes[Som.personagem];
+      if(v){ const k = Object.keys(v)[0]; if(k) await Som.buffer(k); }   /* descodifica uma frase: prova que o som funciona */
+    });
+    await Promise.all([Promise.race([pronto, espera(15000)]), espera(900)]);
+  }catch(e){ console.warn('Preparação das vozes incompleta', e); }
+  aPreparar = false;
   if(!Estado.nome && !Estado.perguntouNome){ $('#campo-nome').value = ''; mostra('#ecra-nome'); return; }
   segueAposNome();
 };
