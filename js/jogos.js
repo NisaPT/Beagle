@@ -297,9 +297,11 @@ export class Jogo {
   rondaMemoria(){
     const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,Math.max(2,Math.min(6,this.info.pares||4))), seq=baralha([...icons,...icons]);
     this.ctx.raiz.innerHTML=`<div class="memoria-grelha">${seq.map((v,i)=>`<button class="carta-memoria" data-i="${i}" data-v="${v}" aria-label="Carta ${i+1}">❔</button>`).join('')}</div><p class="instrucao-memoria">Encontra os pares iguais.</p>`;
-    let aberto=null, bloqueado=false, paresFeitos=0;
+    let aberto=null, bloqueado=false, paresFeitos=0, falhas=0;
+    /* margem justa: cada par pode falhar uma vez (e mais uma de folga) sem perder estrelas */
+    const margem=icons.length+1;
     const cartas=[...this.ctx.raiz.querySelectorAll('.carta-memoria')]; this.pose('apontar');this.diz('Descobre os pares iguais.');
-    cartas.forEach(b=>{const f=()=>{if(bloqueado||b.classList.contains('virada')||b.classList.contains('par'))return;b.textContent=b.dataset.v;b.classList.add('virada');if(!aberto){aberto=b;return;}if(aberto.dataset.v===b.dataset.v){aberto.classList.add('par');b.classList.add('par');aberto=null;paresFeitos++;this.som('certo');if(paresFeitos===icons.length){this.responde(b,true,'Encontraste todos os pares!','#8E6BC8');}}else{if(this.ctx.aoErro)this.ctx.aoErro(this.tipo);this.erros++;bloqueado=true;const anterior=aberto;aberto=null;setTimeout(()=>{anterior.textContent='❔';b.textContent='❔';anterior.classList.remove('virada');b.classList.remove('virada');bloqueado=false;},850);}};b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+    cartas.forEach(b=>{const f=()=>{if(bloqueado||b.classList.contains('virada')||b.classList.contains('par'))return;b.textContent=b.dataset.v;b.classList.add('virada');if(!aberto){aberto=b;return;}if(aberto.dataset.v===b.dataset.v){aberto.classList.add('par');b.classList.add('par');aberto=null;paresFeitos++;this.som('certo');if(paresFeitos===icons.length){this.responde(b,true,'Encontraste todos os pares!','#8E6BC8');}}else{falhas++;if(falhas>margem){if(this.ctx.aoErro)this.ctx.aoErro(this.tipo);this.erros++;}bloqueado=true;const anterior=aberto;aberto=null;setTimeout(()=>{anterior.textContent='❔';b.textContent='❔';anterior.classList.remove('virada');b.classList.remove('virada');bloqueado=false;},850);}};b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
 
   rondaLogica(){

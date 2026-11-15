@@ -623,6 +623,16 @@ body[data-saudacao="ava"] .intro-video{display:block}
 .opcoes-num .botao,.opcoes-tipo .botao{min-width:0;width:100%;padding:.55rem .3rem;margin:0}
 .opcoes-num .botao{font-size:1.9rem}
 .opcoes-tipo .botao{font-size:1.2rem}
+
+/* balão de fala nos jogos: à direita do avô/avó, nunca à frente da cara (v4.5.0) */
+body[data-ecra="jogo"] .fala{left:44%;right:auto;top:50%;transform:translateY(-50%) scale(.9);max-width:54%;
+  font-size:clamp(.95rem,3.8vw,1.4rem);padding:.65rem .95rem}
+body[data-ecra="jogo"] .fala.on{transform:translateY(-50%) scale(1)}
+body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);width:18px;height:18px;border-radius:0 0 0 6px;
+  background:#fff;border-left:3px solid var(--azul-tinta);border-bottom:3px solid var(--azul-tinta);box-shadow:none;transform:rotate(45deg)}
+@media (min-aspect-ratio:1/1) and (max-height:600px){
+  body[data-jogo] .fala{max-width:56%;font-size:clamp(.85rem,2.4vw,1.15rem);padding:.45rem .7rem}
+}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -828,7 +838,7 @@ body[data-saudacao="ava"] .intro-video{display:block}
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.4.0"></script>
+<script type="module" src="./js/app.js?v=4.5.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

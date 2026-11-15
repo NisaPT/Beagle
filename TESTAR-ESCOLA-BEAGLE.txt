@@ -146,3 +146,8 @@ V4.4.0 - Animais, Frutas e Legumes
 - 5 anos: + animais da quinta/do mar, contar frutas, "fruta ou legume?".
 - 6-7 anos: + letra inicial ("Qual animal começa pela letra L?"), nomes escritos, mais opções e itens raros.
 - Nunca há castigo: ao errar, diz o nome do que a criança tocou e pede para tentar outra vez.
+
+V4.5.0 - Elogios, balão e avós com vida
+- Ao acertar, só se diz: Muito bem! / Boa! / Isso mesmo! / Parabéns! (sem repetir o nome do objeto).
+- Nos jogos o avô/avó fica à esquerda e o balão de fala à direita, nunca à frente da cara.
+- Esqueleto 3D mais vivo: respira, passa o peso de um pé para o outro, bate o pé, baloiça braços e pulsos, passeia o olhar e gesticula enquanto fala.

@@ -22,6 +22,10 @@ export function fundePerfil(a, b){
   r.estrelas = { ...(b.estrelas || {}) };
   for(const [k, v] of Object.entries(a.estrelas || {})) r.estrelas[k] = Math.max(r.estrelas[k] || 0, v);
   r.aprendizagem = novo.aprendizagem || velho.aprendizagem;
+  /* quinta: fica o maior número de cada item comprado em qualquer aparelho */
+  const qi = { ...((b.quinta && b.quinta.itens) || {}) };
+  for(const [k, v] of Object.entries((a.quinta && a.quinta.itens) || {})) qi[k] = Math.max(qi[k] || 0, v);
+  r.quinta = { itens: qi };
   r.nome = novo.nome || velho.nome || '';
   r.idade = novo.idade || velho.idade || null;
   r.perguntouNome = !!(a.perguntouNome || b.perguntouNome);
