@@ -219,6 +219,7 @@ function mostra(id){
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
   pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar' || id === '#ecra-quinta';
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
+  setTimeout(aplicaPendentes, 0);
   const t = $('#texto-voltar');
   if(t) t.textContent = id === '#ecra-mundos' ? 'Avós'
                       : id === '#ecra-mapa'   ? 'Quinta'
@@ -562,13 +563,20 @@ function desenhaConta(){
   }
 }
 Nuvem.aMudar = desenhaConta;
-Nuvem.aoTrazerDados = () => {
-  /* progresso novo da cloud: recarrega uma vez para o jogo o mostrar */
-  const ultimo = +(sessionStorage.getItem('eab-sync-reload') || 0);
-  if(Date.now() - ultimo < 15000) return;
-  sessionStorage.setItem('eab-sync-reload', String(Date.now()));
-  location.reload();
-};
+/* progresso novo da cloud: aplica-se sem recarregar, e nunca a meio de um jogo */
+let dadosPendentes = false;
+function aplicaPendentes(){
+  if(!dadosPendentes) return;
+  const ecra = document.body.dataset.ecra;
+  if(!['inicio', 'mundos', 'mapa', 'quinta', 'pais'].includes(ecra)) return;
+  dadosPendentes = false;
+  Estado.carrega();
+  aplicaIdade();
+  const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo();
+  if(ecra === 'mundos') abreMundos();
+  else if(ecra === 'quinta') redesenhaQuinta();
+}
+Nuvem.aoTrazerDados = () => { dadosPendentes = true; aplicaPendentes(); };
 async function tentaConta(acao){
   const aviso = $('#aviso-conta');
   aviso.textContent = '';

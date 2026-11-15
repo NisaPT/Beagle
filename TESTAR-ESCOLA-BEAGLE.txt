@@ -179,3 +179,6 @@ V4.9.0
 V4.10.0
 - 3 e 4 anos: memória passa a 'Encontra o igual' (modelo + 2 ou 3 objetos); sem somas (guarda extra); contar com só 3 números para escolher.
 - Memória de cartas só a partir dos 5 anos: 5 anos 3 pares, 6 anos 4 pares, 7 anos 5 pares.
+
+V4.10.1
+- Corrigido: com conta Google/email o jogo recarregava sozinho e voltava ao início. Agora a cloud só atualiza quando há progresso novo, sem recarregar e nunca a meio de um jogo.
