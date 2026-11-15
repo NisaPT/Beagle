@@ -158,3 +158,9 @@ V4.6.0 - A Minha Quinta e loja
 - Loja: com as estrelas ganhas compram-se edifícios (casa, horta, galinheiro, pocilga, redil, vacaria, lago, pomar, estábulo, celeiro, estufa, moinho) e animais (precisam do edifício certo).
 - O contador de estrelas passa a mostrar as estrelas por gastar. A quinta guarda-se no aparelho e na conta dos pais.
 - Tocar num animal faz o som; tocar num edifício diz o nome.
+
+
+V4.7.0
+- 3 e 4 anos: nunca saem jogos de letras; pares da memória no máximo 3 (3 anos: 2).
+- Avô: escolhe uma voz masculina PT-PT do aparelho (Duarte, Cristiano...), mais grave e pausada; se só houver voz feminina, baixa o tom.
+- Botão 🏡 Quinta sempre visível na barra de cima (Avós, Mapa, fim de nível).

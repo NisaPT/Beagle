@@ -700,6 +700,10 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 .item-loja .comprar:not(:disabled){background:linear-gradient(180deg,#6BC27A,#3E9B52);color:#fff;border:0;box-shadow:0 5px 0 #2C7A3C}
 .item-loja .comprar:disabled{opacity:.6;background:#fff;color:var(--azul-tinta);border:3px solid var(--barro-esc);box-shadow:none;cursor:default}
 #btn-ir-quinta{display:inline-block}
+.quinta-atalho{display:none;width:auto;padding:0 12px;gap:6px;font-weight:800;font-size:15px;background:#CFEBC3;color:#1B4D8F;border-radius:22px}
+.quinta-atalho span{font-size:14px}
+body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,body[data-ecra="recompensa"] .quinta-atalho{display:inline-flex;align-items:center}
+@media (max-width:420px){.quinta-atalho span{display:none}.quinta-atalho{padding:0 10px}}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -718,6 +722,7 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
     <span class="seta">◀</span><span id="texto-voltar">Mapa</span>
   </button>
   <div class="espaco"></div>
+  <button class="mini quinta-atalho" id="btn-quinta-barra" type="button" aria-label="A minha quinta e loja">🏡 <span>Quinta</span></button>
   <div class="estrelas">
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5 4.9 1.2 7L12 18l-6.2 3.3L7 14.3l-5-4.9 7-.9z" fill="#F7C21B" stroke="#1B4D8F" stroke-width="1.6"/></svg>
     <span id="conta-estrelas">0</span>
@@ -927,7 +932,7 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.6.0"></script>
+<script type="module" src="./js/app.js?v=4.7.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));
