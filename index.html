@@ -1077,7 +1077,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
     </form>
     <p class="aviso-campo" id="aviso-amigo"></p>
     <div id="lista-amigos"></div>
-    <p class="aviso">A criança vê apenas o avatar e o nível. Nunca nomes, fotografias nem mensagens. No protótipo os amigos são gerados a partir do código, sem servidor.</p>
+    <p class="aviso">Os amigos veem só a alcunha, as estrelas e o nível da quinta (nunca fotografias nem mensagens). Os dados vêm da cloud: para aparecerem, a conta dos pais tem de estar ligada nos dois aparelhos, com a versão mais recente do jogo.</p>
   </div>
 
   <div class="painel">
@@ -1115,7 +1115,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.16.0"></script>
+<script type="module" src="./js/app.js?v=4.16.1"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

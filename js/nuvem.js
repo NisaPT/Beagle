@@ -151,10 +151,11 @@ export const Nuvem = {
   /* devolve { CODIGO: resumo } só dos que existem */
   async lerResumos(codigos){
     const r = {};
+    this.erroAmigos = '';
     if(!this.ligada) return r;
     await Promise.all(codigos.map(async c => {
       try{ const s = await fb.getDoc(fb.doc(db, 'ranking', c)); if(s.exists()) r[c] = s.data(); }
-      catch(e){ console.warn('Resumo indisponível', c, e); }
+      catch(e){ this.erroAmigos = (e && e.code) || 'erro'; console.warn('Resumo indisponível', c, e); }
     }));
     return r;
   },

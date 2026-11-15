@@ -297,6 +297,24 @@ $('#lista-mundos').onclick = e => {
 };
 
 /* ================================================= AMIGOS (cloud) ========= */
+/* códigos dos perfis deste aparelho: não contam como amigos (já aparecem como perfis) */
+function codigosLocais(){
+  const s = new Set([Estado.codigo]);
+  for(const p of Estado.listaPerfis()){
+    if(p.id === Estado.perfilId) continue;
+    try{ const d = JSON.parse(localStorage.getItem('eab-perfil-' + p.id) || 'null'); if(d && d.codigo) s.add(d.codigo); }catch(e){}
+  }
+  return s;
+}
+function limpaAmigosLocais(){
+  const locais = codigosLocais();
+  const fora = Estado.amigos.filter(a => locais.has(a.codigo));
+  if(!fora.length) return false;
+  Estado.amigos = Estado.amigos.filter(a => !locais.has(a.codigo));
+  Estado.removidos = [...new Set([...(Estado.removidos || []), ...fora.map(a => a.codigo)])];
+  Estado.guarda();
+  return true;
+}
 function resumoMeu(){
   const it = Estado.quinta.itens, nq = nivelQuinta(it);
   return {
@@ -314,6 +332,7 @@ async function atualizaAmigos(forca){
   if(!forca && Date.now() - amigosAtualizadoEm < 45000) return;
   aAtualizarAmigos = true; amigosAtualizadoEm = Date.now();
   try{
+    limpaAmigosLocais();
     await Nuvem.publica();
     /* quem me adicionou passa a ser meu amigo também */
     for(const c of await Nuvem.quemMeSegue(Estado.codigo)){
@@ -326,9 +345,11 @@ async function atualizaAmigos(forca){
     for(const a of Estado.amigos){
       const r = dados[a.codigo];
       if(r && JSON.stringify(r) !== JSON.stringify(a.resumo)){ a.resumo = r; mudou = true; }
+      a.sem = !r;                 /* o amigo ainda não publicou nada */
     }
     if(mudou || Estado.amigos.length) Estado.guarda();
     const e = document.body.dataset.ecra;
+    if(e === 'pais') desenhaPais();
     if(e === 'ranking') desenhaRanking();
     else if(e === 'quinta') redesenhaQuinta();
   }catch(err){ console.warn('Amigos: não foi possível atualizar', err); }
@@ -336,10 +357,11 @@ async function atualizaAmigos(forca){
 }
 Nuvem.aposSync = () => atualizaAmigos(true);
 /* só os amigos de quem já se conhece o nível aparecem no mapa */
-const amigosNoMapa = () => Estado.amigos.filter(a => a.resumo).map(a => ({ ...a, nivel: Math.max(1, Math.min(TOTAL_NIVEIS, a.resumo.nivel || 1)) }));
+const amigosNoMapa = () => Estado.amigos.filter(a => a.resumo && !codigosLocais().has(a.codigo)).map(a => ({ ...a, nivel: Math.max(1, Math.min(TOTAL_NIVEIS, a.resumo.nivel || 1)) }));
 /* os que passeiam pela quinta (no máximo 3, para não pesar) */
 function visitantesQuinta(){
-  return Estado.amigos.filter(a => a.resumo && a.resumo.nome).slice(0, 3).map(a => ({
+  const locais = codigosLocais();
+  return Estado.amigos.filter(a => a.resumo && a.resumo.nome && !locais.has(a.codigo)).slice(0, 3).map(a => ({
     codigo: a.codigo, nome: a.resumo.nome,
     modelo: (a.resumo.personagens || []).includes('menina') ? 'menina' : (a.resumo.personagens || []).includes('menino') ? 'menino'
             : (a.codigo.charCodeAt(0) % 2 ? 'menino' : 'menina'),
@@ -364,7 +386,7 @@ function dadosRanking(){
       edificios: contaEdificios(itens), bichos: contaBichos(itens),
       eu: p.id === Estado.perfilId,
     };
-  }).filter(Boolean).concat(Estado.amigos.filter(a => a.resumo).map(a => {
+  }).filter(Boolean).concat(Estado.amigos.filter(a => a.resumo && !codigosLocais().has(a.codigo)).map(a => {
     const r = a.resumo;
     return { id: a.codigo, amigo: true, nome: r.nome || 'Amigo', estrelas: r.estrelas || 0, nivel: r.nivel || 1,
       nq: { nivel: r.nqNivel || 1, nome: r.nqNome || '', pontos: r.pontos || 0 },
@@ -627,6 +649,7 @@ function gesto(rig, pose){
 let contaPorta = null, digitos = '';
 
 $('#btn-pais').onclick = () => {
+  atualizaAmigos(true);
   Voz.cala(); Fala.esconde();
   const a = 3 + rnd(7), b = 4 + rnd(6);
   contaPorta = { r:a * b };
@@ -644,7 +667,7 @@ $('#teclado-porta').onclick = e => {
   const v = b.dataset.t;
   if(v === '←') digitos = digitos.slice(0, -1);
   else if(v === '✓'){
-    if(+digitos === contaPorta.r){ desenhaPais(); mostra('#ecra-pais'); return; }
+    if(+digitos === contaPorta.r){ desenhaPais(); mostra('#ecra-pais'); atualizaAmigos(true); return; }
     digitos = '';
     $('#mostrador-porta').textContent = '✗';
     setTimeout(() => $('#mostrador-porta').textContent = '', 700);
@@ -654,7 +677,16 @@ $('#teclado-porta').onclick = e => {
   $('#mostrador-porta').textContent = digitos;
 };
 
+function textoSemDados(a){
+  if(!Nuvem.configurada) return 'A cloud não está ativa neste jogo.';
+  if(!Nuvem.utilizador) return 'Ligue a conta dos pais (mais abaixo) para ver este amigo.';
+  if(Nuvem.erroAmigos === 'permission-denied') return 'Sem permissão: falta publicar as regras do Firestore (ver NUVEM-FIREBASE.md).';
+  if(a.sem) return 'Ainda não partilhou nada: o amigo precisa da versão mais recente e da conta dos pais ligada.';
+  return 'A procurar os dados…';
+}
+
 function desenhaPais(){
+  limpaAmigosLocais();
   $('#meu-codigo').textContent = Estado.codigo;
   const lista = $('#lista-amigos');
   if(!Estado.amigos.length){
@@ -665,7 +697,7 @@ function desenhaPais(){
         ${avatar(a.animal, a.cor, 44)}
         <div class="amigo-dados">
           <strong>${a.resumo ? esc(a.resumo.nome || 'Amigo') + ' · ' : ''}${a.codigo}</strong>
-          <span>${a.resumo ? `⭐ ${a.resumo.estrelas || 0} · Quinta nível ${a.resumo.nqNivel || 1}` : 'À espera dos dados (precisa da conta dos pais ligada)'}</span>
+          <span>${a.resumo ? `⭐ ${a.resumo.estrelas || 0} · Quinta nível ${a.resumo.nqNivel || 1}` : textoSemDados(a)}</span>
         </div>
         <button class="mini discreto" data-tira="${a.codigo}" aria-label="Remover amigo">✕</button>
       </div>`).join('');
@@ -845,6 +877,7 @@ $('#form-amigo').onsubmit = e => {
     return;
   }
   if(cod === Estado.codigo){ aviso.textContent = 'Esse é o seu próprio código.'; return; }
+  if(codigosLocais().has(cod)){ aviso.textContent = 'Esse perfil já está neste aparelho: aparece sozinho no ranking.'; return; }
   if(Estado.amigos.some(a => a.codigo === cod)){ aviso.textContent = 'Esse amigo já está na lista.'; return; }
   Estado.amigos.push({ ...amigoDeCodigo(cod), resumo: null });
   Estado.removidos = (Estado.removidos || []).filter(c => c !== cod);
