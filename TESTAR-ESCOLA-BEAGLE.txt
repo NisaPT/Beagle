@@ -1,0 +1,100 @@
+ESCOLA DOS AVÓS BEAGLE — VERSÃO DE TESTE
+
+O QUE FOI ALTERADO
+- Missão diária no mapa: concluir uma atividade educativa (um nível) marca a missão como concluída nesse dia.
+- A missão diária fica guardada no progresso local do dispositivo.
+- Área dos Pais: escolha separada de voz para o Avô e para a Avó, entre as vozes portuguesas disponíveis no dispositivo.
+- A escolha de voz fica guardada localmente. A voz embutida continua disponível como alternativa offline.
+- A seleção de voz passa a preferir uma voz PT-PT escolhida pelo adulto; a escolha automática tenta identificar uma voz masculina/feminina, mas isso depende dos nomes fornecidos pelo sistema.
+
+IMPORTANTE SOBRE AS VOZES HUMANAS
+Os ficheiros voz_f.js e voz_m.js existentes são síntese e não gravações humanas. Esta atualização permite selecionar vozes PT-PT de melhor qualidade que já estejam instaladas no telemóvel/computador. Não é possível garantir que o dispositivo tenha uma voz masculina e outra feminina naturais.
+Para obter duas vozes humanas consistentes em todos os dispositivos, será necessário integrar locuções gravadas por atores/locutores PT-PT ou um serviço de Text-to-Speech neural com vozes PT-PT, incluindo credenciais e configuração de serviço. Não coloque chaves privadas diretamente no JavaScript distribuído ao público.
+
+COMO TESTAR
+1. Extraia o ZIP para uma pasta no computador.
+2. Abra um terminal nessa pasta.
+3. Inicie um servidor local:
+   Windows: py -m http.server 8000
+   macOS/Linux: python3 -m http.server 8000
+4. Abra http://localhost:8000 no Chrome, Edge ou Firefox.
+   Não abra index.html diretamente por file://, porque a aplicação usa módulos JavaScript e import maps.
+5. Clique em Começar e permita áudio no primeiro toque.
+6. Escolha Avô ou Avó e entre no mapa.
+7. Confirme que aparece a faixa “Missão de hoje”. Complete um nível até ao ecrã de recompensa; volte ao mapa e confirme “Missão concluída!”.
+8. Abra a Área dos Pais (ícone ⚙; responda ao desafio matemático).
+9. Na secção Voz, escolha “Voz natural do dispositivo”. Selecione uma voz diferente para Avô e Avó, se existirem. Carregue em “Testar a voz selecionada”.
+10. Feche e volte a abrir a página. Confirme que as preferências de voz e a missão do dia continuam guardadas.
+11. Teste também num telemóvel Android/iPhone. A lista e qualidade das vozes podem variar por sistema operativo, navegador e vozes instaladas.
+
+NOTAS DE TESTE
+- Para testar a missão diária novamente no mesmo dia, abra as ferramentas de programador do navegador > Application/Storage > Local Storage > http://localhost:8000 e apague a chave “eab”, ou teste num perfil de navegador privado. Isto apaga o progresso local de demonstração.
+- Se não aparecerem vozes PT-PT, instale/ative uma voz de Português (Portugal) nas definições de acessibilidade/idioma do sistema operativo e recarregue a página.
+- A primeira fala pode demorar alguns segundos enquanto o navegador carrega a lista de vozes.
+
+
+ALTERAÇÕES V3 — VOZ PT-PT E ÁREA DOS PAIS
+1. A aplicação só seleciona vozes cujo idioma é exatamente pt-PT. Não escolhe pt-BR.
+2. Cada nova fala cancela a anterior e invalida chamadas atrasadas, para evitar vozes sobrepostas.
+3. Se o dispositivo não tiver voz pt-PT instalada, a aplicação mantém as instruções escritas e não substitui por voz brasileira.
+4. Na Área dos Pais, escolhe separadamente a voz do Avô e da Avó, quando existirem vozes PT-PT disponíveis.
+5. A Área dos Pais permite criar até 6 perfis locais. Cada perfil tem progresso e estrelas separados.
+6. Para testar perfis: abre Área dos Pais, adiciona um perfil, confirma que a aplicação reinicia nesse perfil e alterna entre perfis.
+
+NOTA IMPORTANTE SOBRE A NATURALIDADE
+As vozes PT-PT do navegador são fornecidas pelo sistema operativo. Algumas são mais naturais do que outras. Esta versão impede a seleção de pt-BR e resolve a sobreposição, mas não inclui ainda gravações humanas nem um serviço neural de voz. Para garantir uma voz masculina e uma feminina realmente naturais em todos os dispositivos, será necessário integrar um fornecedor de voz neural ou locuções gravadas, com configuração própria.
+
+
+ALTERAÇÕES V4 — APRENDIZAGEM, JOGOS, QUINTA, RELATÓRIOS E SEGURANÇA
+- A rotação de níveis inclui seis experiências: cores, contagem, formas, letras, memória e lógica.
+- A dificuldade adapta-se por competência após pelo menos cinco respostas registadas: sobe com taxa de sucesso >=85% e desce com taxa <=50%.
+- A Área dos Pais mostra tentativas e percentagem de sucesso por competência.
+- A quinta apresenta marcos visuais que evoluem com as estrelas.
+- O limite diário pode ser definido entre 15 e 90 minutos, ou desativado (0). O tempo é contado localmente e a pausa é aplicada entre atividades.
+- É possível apagar o perfil ativo e o respetivo progresso local.
+- A aplicação continua sem contas cloud; perfis e relatórios ficam apenas no armazenamento do navegador deste dispositivo.
+
+VOZ NEURAL ONLINE — INTEGRAÇÃO PREPARADA, SERVIÇO EXTERNO NECESSÁRIO
+Na Área dos Pais pode indicar o URL HTTPS de um gateway TTS. A aplicação envia POST JSON:
+  { "text": "...", "language": "pt-PT", "voice": "male" | "female" }
+O gateway tem de devolver áudio (por exemplo audio/mpeg ou audio/wav). As credenciais do fornecedor devem ficar exclusivamente no servidor. Se o gateway falhar, a aplicação recorre à voz PT-PT do dispositivo.
+Esta entrega NÃO inclui um gateway/backend, conta de fornecedor, chave API ou custos de síntese. Por isso, as vozes neurais online só ficam ativas depois de o operador instalar e configurar esse serviço. Não introduzir chaves secretas no navegador.
+
+TESTES V4 ADICIONAIS
+1. Completar níveis consecutivos e confirmar a rotação entre cores, contagem, formas, letras, memória e lógica.
+2. Responder várias vezes em cada competência e confirmar que a dificuldade se ajusta após cinco respostas.
+3. Abrir Área dos Pais e confirmar as estatísticas por competência.
+4. Ganhar estrelas e confirmar que os marcos da quinta avançam.
+5. Definir um limite curto e confirmar que a aplicação pede uma pausa quando o limite é atingido (a pausa é aplicada no início da atividade seguinte).
+6. Apagar um perfil de teste e confirmar que deixa de aparecer na lista.
+7. Configurar um gateway TTS de teste com áudio PT-PT e confirmar as vozes masculina/feminina; sem gateway, confirmar o fallback local.
+
+
+CORREÇÃO V4.0.1 — ECRÃ INICIAL BLOQUEADO
+- Corrigido um carácter de escape literal que ficou indevidamente na rotina de arranque de js/app.js e impedia a inicialização do módulo.
+- Atualizado o URL do módulo principal com versão 4.0.1 para evitar reutilização da cópia antiga em cache.
+- Verificação: todos os ficheiros JavaScript em js/ passaram `node --check`.
+
+
+CORREÇÃO V4.0.2 — ARRANQUE SEM BLOQUEIO
+- A criação do WebGL passa a estar protegida por try/catch.
+- Se o navegador/driver não disponibilizar WebGL, a aplicação continua em modo de compatibilidade 2D em vez de ficar no ecrã de carregamento.
+- Falhas durante a inicialização ou carregamento dos modelos apresentam um aviso e permitem entrar nos jogos, em vez de deixar o ecrã inicial bloqueado.
+- URL do módulo principal atualizado para 4.0.2 para invalidar a cache.
+- Verificação de sintaxe: todos os ficheiros js/*.js passaram `node --check`.
+
+
+CORREÇÃO V4.0.3 — ERRO DE SINTAXE NO RELATÓRIO
+- Corrigida a concatenação em js/app.js:452; faltava `+` entre a grelha de competências e o parágrafo de privacidade.
+- Incrementado o parâmetro de versão do módulo para app.js?v=4.0.3.
+- Validação com `node --check` de todos os ficheiros .js do projeto: sem erros.
+
+
+ALTERAÇÕES V4.0.4 — PREPARAÇÃO PARA PUBLICAR ONLINE (PWA)
+- Corrigida a versão da cache: app.js?v=4.0.4 (antes o index.html ainda chamava 4.0.2).
+- Tipo de letra Fredoka agora incluído em fonts/ (já não depende do Google Fonts; funciona offline).
+- Novo manifest.webmanifest, sw.js (service worker, funciona offline) e ícones em icons/.
+- Novo vercel.json com cabeçalhos de cache e segurança.
+- Telemóvel: o balão de fala já não tapa os botões do topo; o tabuleiro já não corta respostas em ecrãs pequenos (360x640) nem em horizontal (avô à esquerda, jogo à direita); o tabuleiro faz scroll se for preciso.
+- Ao publicar uma nova versão: aumentar VERSAO em sw.js e o ?v= em index.html.
+- Verificação: node --check em todos os ficheiros; testado em Chrome com 375x812, 360x640 e 812x375, sem erros de consola.

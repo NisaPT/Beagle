@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Escola dos Avós Beagle</title>
+<meta name="theme-color" content="#C98F55">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Escola dos Avós">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="preload" href="./fonts/fredoka-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:'Fredoka';font-style:normal;font-weight:400;font-display:swap;src:url('./fonts/fredoka-latin-400-normal.woff2') format('woff2')}
+@font-face{font-family:'Fredoka';font-style:normal;font-weight:500;font-display:swap;src:url('./fonts/fredoka-latin-500-normal.woff2') format('woff2')}
+@font-face{font-family:'Fredoka';font-style:normal;font-weight:600;font-display:swap;src:url('./fonts/fredoka-latin-600-normal.woff2') format('woff2')}
+@font-face{font-family:'Fredoka';font-style:normal;font-weight:700;font-display:swap;src:url('./fonts/fredoka-latin-700-normal.woff2') format('woff2')}
+:root{
+  /* barro e quinta */
+  --azul-tinta:#6B4A2A; --azul-vivo:#C98F55; --azul-claro:#8FB8CE;
+  --vidrado:#FFF4E4; --creme:#F7E6D0; --tinta:#5A3C20;
+  --madeira:#C98F55; --madeira-escura:#8A5A28; --madeira-clara:#E8C196;
+  --ouro:#F5C344; --ouro-escuro:#8A5E08;
+  --vermelho:#D93A32; --amarelo:#F5C344; --verde:#5BAF6A;
+  --massa:#FFF4E4; --massa-2:#FBEEDC; --barro:#E8D3B8; --barro-esc:#C9A882;
+  --stage-h:58%;
+  --mola:cubic-bezier(.34,1.56,.64,1);
+  --azulejo:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23EFF4F8'/%3E%3Cg fill='none' stroke='%231B4D8F' stroke-width='1.5' opacity='0.4'%3E%3Crect x='3.5' y='3.5' width='73' height='73'/%3E%3Cpath d='M40 17C50 29 51 30 63 40 51 50 50 51 40 63 30 51 29 50 17 40 29 30 30 29 40 17Z'/%3E%3Ccircle cx='40' cy='40' r='6.5'/%3E%3Cpath d='M0 13A13 13 0 0 0 13 0'/%3E%3Cpath d='M80 13A13 13 0 0 1 67 0'/%3E%3Cpath d='M0 67A13 13 0 0 1 13 80'/%3E%3Cpath d='M80 67A13 13 0 0 0 67 80'/%3E%3C/g%3E%3C/svg%3E");
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0;overflow:hidden}
+body{
+  font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;color:var(--tinta);
+  background:var(--creme);user-select:none;touch-action:manipulation;
+}
+button{font-family:inherit}
+.arte{display:block;width:100%;height:100%;overflow:visible}
+
+/* ======================================================== palco 3D ====== */
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+body[data-ecra="mapa"] #app,
+body[data-ecra="carregar"] #app{visibility:hidden}
+
+.stage{
+  position:relative;flex:0 0 var(--stage-h);min-height:0;
+  background:#CDEBF6;overflow:hidden;
+}
+.cenario{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0}
+.nuvens{animation:passear 48s linear infinite}
+@keyframes passear{from{transform:translateX(-6%)}50%{transform:translateX(6%)}to{transform:translateX(-6%)}}
+.stage::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:radial-gradient(90% 55% at 78% 10%,rgba(255,228,150,.38),transparent 62%);
+}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block}
+.prateleira{display:none}
+
+.fala{
+  position:absolute;z-index:4;left:50%;top:2.6vh;transform:translateX(-50%) scale(.88);
+  max-width:min(86%,30rem);padding:.8rem 1.15rem;
+  background:#fff;border:3px solid var(--azul-tinta);border-radius:1.4rem;
+  font-size:clamp(1rem,4.4vw,1.5rem);font-weight:600;line-height:1.25;text-align:center;
+  display:flex;align-items:center;justify-content:center;gap:.55rem;
+  box-shadow:
+    inset 0 4px 6px rgba(255,255,255,.95),
+    inset 0 -5px 9px rgba(160,120,74,.2),
+    0 7px 0 rgba(160,120,74,.16),
+    0 12px 20px rgba(122,86,46,.2);
+  opacity:0;transform:scale(.9);
+  transition:opacity .25s ease,transform .3s var(--mola);
+}
+.fala.on{opacity:1;transform:scale(1)}
+.fala-pista{flex:0 0 auto;display:grid;place-items:center}
+.pista-cor{
+  width:1.5em;height:1.5em;border-radius:50%;display:block;
+  border:3px solid var(--azul-tinta);
+  box-shadow:inset 0 -5px 8px rgba(0,0,0,.25),inset 0 4px 6px rgba(255,255,255,.35);
+}
+.pista-forma{width:1.8em;height:1.8em;display:block;overflow:visible}
+.fala::after{
+  content:'';position:absolute;left:14%;bottom:-10px;width:20px;height:20px;
+  border-radius:0 0 0 14px;background:#FBEEDC;
+  box-shadow:-3px 3px 6px rgba(160,120,74,.16);transform:rotate(-10deg);
+}
+
+.tabuleiro{
+  flex:1 1 auto;min-height:0;position:relative;z-index:2;
+  background:linear-gradient(180deg,#FBEEDC,#F3E0C6);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:.9rem;padding:.9rem clamp(.6rem,3vw,2rem) max(.9rem,env(safe-area-inset-bottom));
+}
+body[data-jogo="formas"]{--stage-h:44%}
+body[data-jogo="contar"]{--stage-h:50%}
+
+/* ========================================================= barra ======== */
+.barra{
+  position:absolute;z-index:8;top:max(.55rem,env(safe-area-inset-top));left:.6rem;right:.6rem;
+  display:flex;align-items:center;gap:.5rem;
+}
+.barra[hidden]{display:none}          /* sem isto o display:flex anula o hidden */
+.barra .espaco{flex:1}
+.voltar{
+  display:flex;align-items:center;gap:.4rem;height:2.7rem;padding:0 1rem 0 .8rem;
+  border-radius:999px;border:2.5px solid var(--azul-tinta);
+  background:rgba(255,255,255,.92);color:var(--azul-tinta);
+  font-weight:700;font-size:1rem;cursor:pointer;backdrop-filter:blur(6px);
+  box-shadow:0 3px 0 rgba(27,77,143,.25);
+}
+.voltar .seta{font-size:.85em;line-height:1}
+.voltar:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(27,77,143,.25)}
+.voltar:focus-visible{outline:3px solid var(--vermelho);outline-offset:3px}
+.mini.calado{opacity:.55}
+.mini{
+  cursor:pointer;font-weight:600;width:2.7rem;height:2.7rem;padding:0;
+  border-radius:50%;border:2.5px solid var(--azul-tinta);
+  background:rgba(255,255,255,.92);color:var(--azul-tinta);font-size:1.1rem;
+  display:grid;place-items:center;backdrop-filter:blur(6px);
+  box-shadow:0 3px 0 rgba(27,77,143,.25);
+}
+.mini:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(27,77,143,.25)}
+.mini:focus-visible{outline:3px solid var(--vermelho);outline-offset:3px}
+.mini.discreto{border-color:rgba(18,49,79,.25);color:rgba(18,49,79,.45);font-size:.95rem;width:2.4rem;height:2.4rem;box-shadow:none}
+.estrelas{
+  display:flex;align-items:center;gap:.35rem;padding:.3rem .9rem .3rem .65rem;
+  background:rgba(255,255,255,.92);border:2.5px solid var(--azul-tinta);border-radius:999px;
+  font-weight:700;color:var(--azul-tinta);font-size:1.05rem;backdrop-filter:blur(6px);
+  box-shadow:0 3px 0 rgba(27,77,143,.25);
+}
+
+/* ========================================================== mapa ======== */
+#ecra-mapa{padding:0}
+#ecra-mapa.on{display:block}
+.mapa-scroll{
+  position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;background:#9DC89A;
+}
+.mapa-tela{
+  position:relative;width:100%;
+  background:
+    repeating-linear-gradient(102deg,rgba(255,255,255,.07) 0 3px,transparent 3px 26px),
+    linear-gradient(180deg,var(--relva-b,#7FBE78),var(--relva-a,#B5DCA6) 55%,var(--relva-b,#7FBE78));
+}
+.mapa-tela::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 30% at 50% 0%,rgba(255,245,210,.5),transparent 60%);
+}
+
+.pedra{
+  position:absolute;width:12px;height:12px;border-radius:50%;
+  transform:translate(-50%,50%);background:rgba(90,60,32,.22);
+  box-shadow:inset 0 -2px 3px rgba(0,0,0,.2);
+}
+.pedra.acesa{background:var(--ouro);box-shadow:inset 0 -2px 3px rgba(138,94,8,.4),0 0 0 4px rgba(245,195,68,.25)}
+.enfeite{position:absolute;width:46px;height:46px;pointer-events:none;display:block}
+.enfeite svg{width:100%;height:100%;display:block;overflow:visible}
+
+/* ------- animais a passear ------- */
+.bicho-anda{
+  position:absolute;left:4%;width:62px;height:50px;pointer-events:none;
+  animation-name:atravessa;animation-timing-function:linear;animation-iteration-count:infinite;
+  --d:190px;
+}
+.bicho-anda.voa{--d:230px;opacity:.95}
+@keyframes atravessa{
+  0%   {transform:translateX(0) scaleX(1)}
+  46%  {transform:translateX(var(--d)) scaleX(1)}
+  50%  {transform:translateX(var(--d)) scaleX(-1)}
+  96%  {transform:translateX(0) scaleX(-1)}
+  100% {transform:translateX(0) scaleX(1)}
+}
+.bicho-corpo{display:block;width:100%;height:100%;animation:saltita .55s ease-in-out infinite alternate}
+.bicho-anda.voa .bicho-corpo{animation:esvoaca 1.9s ease-in-out infinite alternate}
+@keyframes saltita{to{transform:translateY(-5px)}}
+@keyframes esvoaca{to{transform:translateY(-16px) rotate(6deg)}}
+.bicho{width:100%;height:100%;display:block;overflow:visible}
+
+/* ------- medalhas: barro feito em CSS, não em SVG ------- */
+.nivel{
+  position:absolute;transform:translate(-50%,50%);
+  width:70px;height:70px;padding:0;border:0;background:transparent;cursor:pointer;
+  transition:transform .18s var(--mola);
+}
+.nivel:active:not(:disabled){transform:translate(-50%,50%) scale(.9)}
+.nivel:disabled{cursor:default}
+.nivel:focus-visible{outline:4px solid #fff;outline-offset:4px;border-radius:50%}
+.nivel.atual{width:86px;height:86px;animation:respira 2.2s ease-in-out infinite}
+@keyframes respira{0%,100%{transform:translate(-50%,50%) scale(1)}50%{transform:translate(-50%,50%) scale(1.07)}}
+
+.disco{
+  display:grid;place-items:center;width:100%;height:100%;border-radius:50%;
+  background:radial-gradient(circle at 34% 27%,var(--luz),var(--cor) 44%,var(--sombra));
+  box-shadow:
+    inset 0 -9px 13px rgba(0,0,0,.2),
+    inset 0 7px 11px rgba(255,255,255,.55),
+    0 6px 0 var(--base),
+    0 11px 16px rgba(47,74,31,.3);
+}
+.nivel.feito   .disco{--luz:#FFEEBE;--cor:#F5C344;--sombra:#A8750C;--base:rgba(110,74,10,.4);color:#7A5208}
+.nivel.atual   .disco{--luz:#FFFDF6;--cor:#FFF2DC;--sombra:#C9A47A;--base:rgba(122,86,46,.35);color:#8A6A3A}
+.nivel.fechado .disco{--luz:#EFE8DC;--cor:#D4C6B0;--sombra:#9A8970;--base:rgba(80,64,46,.3);color:#7D6A52}
+.numero{font-size:1.45rem;font-weight:800;color:currentColor;line-height:1}
+.nivel.atual .numero{font-size:1.7rem}
+.cadeado{position:relative;width:17px;height:14px;border-radius:3px;background:currentColor;opacity:.6;margin-top:4px}
+.cadeado::before{
+  content:'';position:absolute;left:50%;top:-9px;transform:translateX(-50%);
+  width:11px;height:11px;border:3px solid currentColor;border-bottom:0;border-radius:6px 6px 0 0;
+}
+.estrelinhas{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);display:flex;gap:3px}
+.estrelinhas i{
+  width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.5);
+  box-shadow:inset 0 -1px 2px rgba(0,0,0,.2);
+}
+.estrelinhas i.cheia{background:#FFD95E;box-shadow:inset 0 -1px 2px rgba(138,94,8,.5)}
+.marca{
+  position:absolute;right:2px;top:2px;width:15px;height:15px;border-radius:50%;
+  border:2.5px solid rgba(255,255,255,.85);box-shadow:0 1px 3px rgba(47,74,31,.4);
+}
+
+.amigo{position:absolute;transform:translate(-50%,50%);pointer-events:none}
+.disco-amigo{
+  display:block;width:34px;height:34px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#fff6,var(--c) 45%,#0004);
+  background-color:var(--c);
+  box-shadow:inset 0 -4px 7px rgba(0,0,0,.3),0 3px 6px rgba(47,74,31,.35);
+  border:2.5px solid rgba(255,255,255,.75);
+}
+.eu{position:absolute;transform:translate(-50%,50%);pointer-events:none;animation:salta 1.7s ease-in-out infinite}
+@keyframes salta{0%,100%{transform:translate(-50%,50%)}50%{transform:translate(-50%,calc(50% - 10px))}}
+.disco-eu{
+  display:block;width:48px;height:48px;border-radius:50%;
+  background:radial-gradient(circle at 34% 27%,#FFF0C2,#F5C344 45%,#A8750C);
+  box-shadow:inset 0 -6px 9px rgba(0,0,0,.22),inset 0 5px 8px rgba(255,255,255,.5),0 5px 10px rgba(47,74,31,.4);
+}
+.disco-eu::after{
+  content:'';position:absolute;inset:9px;border-radius:50%;
+  background:#fff;opacity:.9;
+  -webkit-mask:radial-gradient(circle at 32% 42%,#000 12%,transparent 13%),radial-gradient(circle at 68% 42%,#000 12%,transparent 13%),radial-gradient(ellipse at 50% 66%,#000 26% 27%,transparent 28%);
+  mask:radial-gradient(circle at 32% 42%,#000 12%,transparent 13%),radial-gradient(circle at 68% 42%,#000 12%,transparent 13%),radial-gradient(ellipse at 50% 66%,#000 26% 27%,transparent 28%);
+}
+.eu-seta{
+  position:absolute;left:50%;bottom:-10px;margin-left:-8px;width:0;height:0;
+  border:8px solid transparent;border-top-color:var(--ouro);border-bottom:0;
+}
+
+/* ------- faixa do mundo, fixa no topo do mapa ------- */
+.faixa-mundo{
+  position:absolute;z-index:7;top:max(.55rem,env(safe-area-inset-top));left:50%;
+  transform:translateX(-50%);display:flex;align-items:center;gap:.5rem;
+  padding:.35rem 1.1rem;border-radius:999px;font-weight:700;font-size:1rem;color:#6B4A2A;
+  background:linear-gradient(170deg,#FFFDF8,#F7E6D0);
+  box-shadow:inset 0 3px 5px rgba(255,255,255,.9),0 4px 0 rgba(160,120,74,.25),0 8px 14px rgba(47,74,31,.25);
+}
+
+/* ------- missão diária ------- */
+.missao-dia{position:absolute;z-index:8;left:50%;bottom:max(.7rem,env(safe-area-inset-bottom));transform:translateX(-50%);width:min(92%,28rem);padding:.7rem 1rem;border:2px solid rgba(27,77,143,.75);border-radius:1.1rem;background:rgba(255,250,235,.96);color:#31502f;box-shadow:0 5px 0 rgba(27,77,143,.2),0 8px 18px rgba(25,55,35,.2);text-align:center;pointer-events:none}
+.missao-dia strong{display:block;font-size:.9rem}.missao-dia span{font-size:.78rem}
+.missao-dia.concluida{background:rgba(232,249,220,.97);border-color:#4b9b57}
+/* ------- escolher mundo ------- */
+.mundos{display:flex;flex-direction:column;gap:.75rem;width:min(100%,24rem)}
+.mundo{
+  display:flex;align-items:center;gap:.9rem;cursor:pointer;font-family:inherit;text-align:left;
+  padding:.85rem 1rem;border:0;border-radius:1.4rem;color:#5A3C20;
+  background:linear-gradient(170deg,#FFFBF2,#F2E0C6);
+  box-shadow:inset 0 4px 6px rgba(255,255,255,.9),0 6px 0 rgba(160,120,74,.28),0 10px 16px rgba(122,86,46,.2);
+  transition:transform .14s ease;
+}
+.mundo:active:not(:disabled){transform:translateY(5px);box-shadow:inset 0 3px 5px rgba(255,255,255,.8),0 1px 0 rgba(160,120,74,.28)}
+.mundo:disabled{opacity:.55;cursor:default}
+.mundo .selo{
+  flex:0 0 auto;width:3rem;height:3rem;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#fff8,var(--c) 45%,#0005);
+  background-color:var(--c);
+  box-shadow:inset 0 -5px 8px rgba(0,0,0,.25),inset 0 4px 6px rgba(255,255,255,.5);
+  display:grid;place-items:center;
+}
+.mundo .selo svg{width:76%;height:76%;overflow:visible}
+.mundo .texto{flex:1;display:flex;flex-direction:column;line-height:1.3}
+.mundo .titulo{font-size:1.15rem;font-weight:700}
+.mundo .sub{font-size:.88rem;opacity:.7;font-weight:500}
+.mundo .tranca{font-size:1.1rem;opacity:.5}
+
+/* ========================================================== jogos ======= */
+.alvos{display:flex;align-items:center;justify-content:center;gap:clamp(.6rem,3.5vw,1.6rem);flex-wrap:wrap;width:100%}
+.alvo{
+  border:0;background:transparent;padding:0;cursor:pointer;position:relative;
+  width:clamp(78px,23vw,120px);height:clamp(96px,28vw,150px);
+  transition:transform .16s var(--mola);
+}
+.alvo:active{transform:scale(.9)}
+.alvo:focus-visible{outline:4px solid var(--azul-tinta);outline-offset:6px;border-radius:1.2rem}
+.flutua .alvo{animation:flutua 3.2s ease-in-out infinite;animation-delay:var(--atraso,0ms)}
+@keyframes flutua{0%,100%{translate:0 0}50%{translate:0 -10px}}
+.alvo.certo{animation:estoira .5s ease forwards}
+@keyframes estoira{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(0);opacity:0}}
+.alvo.errado{animation:abana .4s ease}
+@keyframes abana{0%,100%{transform:none}20%{transform:translateX(-10px) rotate(-6deg)}60%{transform:translateX(10px) rotate(6deg)}}
+
+/* contar */
+.cesta{
+  position:relative;width:clamp(96px,27vw,130px);height:clamp(58px,16vw,78px);
+  border-radius:0 0 46% 46%/0 0 70% 70%;
+  background:linear-gradient(180deg,var(--madeira-clara),var(--madeira) 55%,var(--madeira-escura));
+  box-shadow:inset 0 7px 12px rgba(0,0,0,.25),0 6px 0 rgba(18,49,79,.2);
+  display:grid;place-items:center;
+}
+.cesta::before{
+  content:'';position:absolute;top:-7px;left:-7px;right:-7px;height:15px;border-radius:999px;
+  background:linear-gradient(180deg,var(--madeira-clara),var(--madeira));
+  box-shadow:0 2px 0 rgba(0,0,0,.18);
+}
+.cesta-conta{
+  position:relative;font-size:clamp(1.9rem,7vw,2.6rem);font-weight:700;color:#fff;
+  text-shadow:0 2px 0 rgba(0,0,0,.3);
+}
+.cesta-conta.bate{animation:bate .4s var(--mola)}
+@keyframes bate{0%{transform:scale(1)}45%{transform:scale(1.45)}100%{transform:scale(1)}}
+
+.espalhados{position:relative;width:100%;max-width:26rem;height:clamp(96px,26vw,150px)}
+.biscoito-alvo{
+  position:absolute;left:var(--x);top:var(--y);width:clamp(62px,17vw,86px);height:auto;
+  border:0;background:transparent;padding:0;cursor:pointer;rotate:var(--giro);
+  animation:entra .4s var(--mola) backwards;animation-delay:var(--atraso);
+  transition:transform .2s var(--mola);
+}
+.biscoito-alvo:active{transform:scale(.88)}
+.biscoito-alvo:focus-visible{outline:3px solid var(--azul-tinta);outline-offset:4px}
+.biscoito-alvo.contado{animation:voaCesta .45s ease forwards}
+@keyframes voaCesta{to{transform:scale(.2) translateY(-90px);opacity:0}}
+@keyframes entra{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+
+.numeros{display:flex;gap:clamp(.4rem,2.4vw,.9rem);justify-content:center;flex-wrap:wrap}
+.num{
+  cursor:pointer;width:clamp(58px,15vw,78px);height:clamp(58px,15vw,78px);
+  border:0;border-radius:1.4rem;
+  background:linear-gradient(170deg,#FFFBF2,#F0DCC0);
+  font-size:clamp(1.7rem,6.5vw,2.4rem);font-weight:700;color:#7A5226;
+  box-shadow:
+    inset 0 4px 6px rgba(255,255,255,.9),inset 0 -5px 9px rgba(160,120,74,.25),
+    0 6px 0 rgba(160,120,74,.3),0 10px 16px rgba(122,86,46,.2);
+  transition:transform .13s ease,box-shadow .13s ease;
+}
+.num:active{transform:translateY(5px);box-shadow:inset 0 -3px 6px rgba(160,120,74,.3),0 1px 0 rgba(160,120,74,.3)}
+.num:focus-visible{outline:4px solid var(--vermelho);outline-offset:3px}
+.num.certo{background:linear-gradient(180deg,#FFE9A3,var(--ouro));border-color:var(--ouro-escuro)}
+.num.errado{animation:abana .4s ease}
+
+/* caixa de encaixe */
+.caixa-encaixe{width:min(94%,28rem);filter:drop-shadow(0 10px 0 rgba(18,49,79,.18))}
+.caixa-tampo{
+  display:flex;justify-content:center;align-items:center;gap:clamp(.5rem,3vw,1.3rem);
+  padding:clamp(.7rem,3vw,1.2rem);border-radius:1.2rem 1.2rem 0 0;
+  background:linear-gradient(180deg,var(--madeira-clara),var(--madeira));
+  box-shadow:inset 0 3px 0 rgba(255,255,255,.4);
+}
+.caixa-frente{
+  height:clamp(16px,4vw,26px);border-radius:0 0 1.1rem 1.1rem;
+  background:linear-gradient(180deg,var(--madeira-escura),#6F4418);
+}
+.buraco{
+  width:clamp(52px,14vw,72px);height:clamp(52px,14vw,72px);
+  transition:transform .18s var(--mola);
+}
+.buraco.certo{animation:bate .5s var(--mola)}
+.buraco.errado{animation:abana .4s ease}
+.buraco.cheio{opacity:.35}
+.bandeja{display:grid;place-items:center;min-height:clamp(92px,24vw,130px);width:100%}
+.peca{
+  width:clamp(76px,21vw,108px);height:clamp(76px,21vw,108px);
+  touch-action:none;cursor:grab;position:relative;
+  animation:entra .4s var(--mola);
+}
+.peca.a-arrastar{cursor:grabbing;z-index:50;filter:drop-shadow(0 12px 10px rgba(18,49,79,.35))}
+.peca.encaixada{opacity:0;transition:opacity .2s .1s}
+
+/* confetes */
+.confete{
+  position:fixed;width:10px;height:14px;z-index:99;pointer-events:none;
+  animation:voa .95s cubic-bezier(.2,.7,.4,1) forwards;
+}
+@keyframes voa{
+  0%{transform:translate(0,0) rotate(0) scale(1);opacity:1}
+  70%{opacity:1}
+  100%{transform:translate(var(--dx),calc(var(--dy) + 150px)) rotate(var(--rot)) scale(.5);opacity:0}
+}
+
+/* ========================================================= ecrãs ======== */
+.ecra{
+  position:absolute;inset:0;z-index:6;display:none;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:1.3rem;padding:1.4rem;text-align:center;
+}
+.ecra.on{display:flex}
+.ecra.cobre{background:rgba(239,244,248,.97);backdrop-filter:blur(5px);overflow-y:auto}
+/* estes dois ocupam só a zona de baixo, para a mascote continuar à vista */
+#ecra-escolher,#ecra-recompensa{top:var(--stage-h);background:var(--creme);box-shadow:0 -2px 14px rgba(18,49,79,.1)}
+.cara svg{width:100%;height:100%}
+body[data-ecra="inicio"] #barra,body[data-ecra="escolher"] #barra,
+body[data-ecra="nome"] #barra{display:none}
+/* na escolha há duas mascotes lado a lado: o balão vai para o meio, no topo */
+body[data-ecra="escolher"] .fala{right:auto;left:50%;top:1.5%;transform:translateX(-50%) scale(.9);max-width:84%}
+body[data-ecra="escolher"] .fala.on{transform:translateX(-50%) scale(1)}
+body[data-ecra="escolher"] .fala::after{left:50%;margin-left:-10px;border-radius:0 0 14px 14px;transform:rotate(45deg)}
+
+h1{margin:0;font-size:clamp(1.7rem,7.6vw,3rem);font-weight:700;line-height:1.04;color:var(--azul-tinta)}
+h1 .linha2{display:block;color:var(--madeira-escura)}
+#form-nome{display:flex;flex-direction:column;align-items:center;gap:1.1rem;width:min(100%,20rem)}
+.campo-nome{
+  width:100%;font-family:inherit;font-size:clamp(1.3rem,6vw,1.8rem);font-weight:600;
+  text-align:center;padding:.7em .8em;border:0;border-radius:1.4rem;color:#5A3C20;
+  background:linear-gradient(170deg,#FFFDF8,#F3E2C8);
+  box-shadow:inset 0 5px 9px rgba(160,120,74,.3),inset 0 -3px 5px rgba(255,255,255,.8);
+}
+.campo-nome::placeholder{color:rgba(122,86,46,.4);font-weight:500}
+.campo-nome:focus{outline:4px solid var(--ouro);outline-offset:3px}
+.saltar{
+  background:none;border:0;cursor:pointer;font-family:inherit;font-size:1rem;font-weight:600;
+  color:rgba(122,86,46,.65);text-decoration:underline;text-underline-offset:4px;padding:.4rem;
+}
+.legenda{margin:0;font-size:clamp(.98rem,4.1vw,1.25rem);font-weight:500;max-width:28rem;line-height:1.45}
+.aviso{font-size:.88rem;font-weight:500;opacity:.68;max-width:23rem;line-height:1.5;margin:0}
+
+.botao{
+  cursor:pointer;font-size:clamp(1.1rem,4.8vw,1.45rem);font-weight:700;
+  padding:.78em 1.7em;border:0;border-radius:999px;color:#fff;
+  background:linear-gradient(170deg,#E8A765,#C07A38);
+  box-shadow:inset 0 4px 6px rgba(255,255,255,.5),0 7px 0 #8A5A28,0 12px 20px rgba(122,86,46,.3);
+  transition:transform .13s ease,box-shadow .13s ease;
+}
+.botao:active{transform:translateY(5px);box-shadow:0 2px 0 #0f3463}
+.botao:focus-visible{outline:4px solid var(--amarelo);outline-offset:4px}
+.botao.quente{background:linear-gradient(180deg,#F2415A,var(--vermelho));box-shadow:0 7px 0 #9c0d1d,0 10px 16px rgba(224,22,43,.25)}
+.botao.quente:active{box-shadow:0 2px 0 #9c0d1d}
+.botao.calma{background:#fff;color:var(--azul-tinta);border:3px solid var(--azul-tinta);box-shadow:0 6px 0 rgba(27,77,143,.25)}
+.botao.calma:active{box-shadow:0 1px 0 rgba(27,77,143,.25)}
+
+.avos{display:flex;gap:clamp(.7rem,4vw,2rem);justify-content:center;width:100%}
+.avo-escolha{
+  cursor:pointer;flex:1 1 0;max-width:13rem;padding:1rem .8rem 1.1rem;
+  border:3px solid var(--azul-tinta);border-radius:1.5rem;
+  background:linear-gradient(180deg,#fff,#EDF3FA);
+  box-shadow:0 7px 0 rgba(27,77,143,.25),0 12px 20px rgba(18,49,79,.14);
+  display:flex;flex-direction:column;align-items:center;gap:.5rem;transition:transform .15s ease;
+}
+.avo-escolha:active{transform:translateY(5px)}
+.avo-escolha .nome{font-size:clamp(1.15rem,5vw,1.5rem);font-weight:700;color:var(--azul-tinta)}
+.avo-escolha .papel{font-size:.92rem;font-weight:500;opacity:.7}
+.avo-escolha .cara{width:clamp(54px,15vw,72px);height:clamp(54px,15vw,72px)}
+
+.estrela-grande{width:clamp(52px,14vw,74px);height:clamp(52px,14vw,74px);animation:cai .55s var(--mola) backwards}
+@keyframes cai{from{transform:translateY(-30px) scale(.3) rotate(-45deg);opacity:0}to{transform:none;opacity:1}}
+.chuva{display:flex;gap:.5rem;justify-content:center}
+
+/* porta dos pais */
+.teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;width:min(15rem,78%)}
+.teclado .num{width:100%;height:3.1rem;font-size:1.4rem;border-radius:.9rem}
+.mostrador{
+  font-size:2rem;font-weight:700;letter-spacing:.2em;color:var(--azul-tinta);
+  min-height:2.4rem;min-width:7rem;border-bottom:3px dashed rgba(27,77,143,.3);
+}
+
+/* área dos pais */
+.painel{
+  width:min(100%,30rem);text-align:left;background:#fff;border-radius:1.3rem;
+  border:2px solid rgba(27,77,143,.14);padding:1.1rem 1.2rem;
+  box-shadow:0 6px 18px rgba(18,49,79,.1);
+}
+.painel h2{margin:0 0 .5rem;font-size:1.1rem;font-weight:700;color:var(--azul-tinta)}
+.painel p{margin:.3rem 0;font-size:.95rem;line-height:1.5}
+.codigo{
+  font-size:1.5rem;font-weight:700;letter-spacing:.12em;color:var(--azul-tinta);
+  background:var(--vidrado);border:2px dashed rgba(27,77,143,.3);
+  border-radius:.8rem;padding:.5rem .9rem;display:inline-block;margin:.3rem 0 .1rem;
+}
+.form-amigo{display:flex;gap:.5rem;margin-top:.6rem}
+.form-amigo input{
+  flex:1;min-width:0;font-family:inherit;font-size:1.05rem;font-weight:600;
+  padding:.6rem .8rem;border:2.5px solid rgba(27,77,143,.3);border-radius:.8rem;
+  text-transform:uppercase;color:var(--tinta);background:#fff;
+}
+.form-amigo input:focus{outline:3px solid var(--azul-claro);outline-offset:1px;border-color:var(--azul-tinta)}
+.form-amigo button{
+  cursor:pointer;border:0;border-radius:.8rem;padding:.6rem 1.1rem;
+  background:var(--azul-tinta);color:#fff;font-weight:700;font-size:1rem;
+}
+.aviso-campo{font-size:.85rem;color:var(--vermelho);font-weight:600;min-height:1.1rem;margin:.3rem 0 0}
+.amigo-linha{display:flex;align-items:center;gap:.7rem;padding:.5rem 0;border-top:1px solid rgba(27,77,143,.1)}
+.amigo-linha svg{flex:0 0 auto}
+.amigo-dados{flex:1;display:flex;flex-direction:column;line-height:1.25}
+.amigo-dados strong{font-size:.95rem;letter-spacing:.06em;color:var(--azul-tinta)}
+.amigo-dados span{font-size:.85rem;opacity:.7}
+.vazio{font-size:.9rem;opacity:.7;font-style:italic}
+.lista-pais{margin:.4rem 0 0;padding-left:1.1rem;line-height:1.7;font-size:.95rem}
+.escolha-voz{display:flex;flex-direction:column;gap:.45rem;margin:.6rem 0}
+.escolha-voz label{
+  display:flex;align-items:center;gap:.6rem;cursor:pointer;
+  padding:.5rem .7rem;border:2px solid rgba(27,77,143,.2);border-radius:.8rem;
+}
+.escolha-voz label:has(input:checked){border-color:var(--azul-tinta);background:var(--vidrado)}
+.escolha-voz input{width:1.15rem;height:1.15rem;accent-color:var(--azul-tinta);flex:0 0 auto}
+.campo-voz{display:block;font-weight:700;margin:.65rem 0 .25rem}
+#voz-homem,#voz-mulher{width:100%;padding:.75rem;border:1px solid var(--linha,#d7cbb8);border-radius:12px;background:white;color:inherit;font:inherit}
+.escolha-voz span{display:flex;flex-direction:column;line-height:1.3;font-size:.95rem;font-weight:600}
+.escolha-voz small{font-weight:500;opacity:.65;font-size:.82rem}
+.botao.pequeno{font-size:1rem;padding:.55em 1.2em;box-shadow:0 4px 0 rgba(27,77,143,.25)}
+.lista-pais li::marker{color:var(--azul-vivo)}
+
+.carregando{display:flex;flex-direction:column;align-items:center;gap:1.1rem}
+.osso{width:3.4rem;height:3.4rem;animation:roda 1.1s linear infinite}
+@keyframes roda{to{transform:rotate(360deg)}}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important}
+}
+@media (max-height:620px){:root{--stage-h:50%}}
+@media (min-aspect-ratio:1/1){:root{--stage-h:62%}.tabuleiro{gap:.5rem}}
+
+/* Novos módulos pedagógicos, progresso e segurança */
+.relatorio-grelha{display:grid;gap:.7rem;margin:.8rem 0}
+.relatorio-grelha>div{padding:.65rem;background:#f4f7f2;border-radius:.7rem;display:grid;gap:.25rem}
+.relatorio-grelha span,.relatorio-grelha small{font-size:.82rem;opacity:.75}
+.barra-progresso{height:8px;border-radius:9px;background:#e2e7df;overflow:hidden}
+.barra-progresso i{display:block;height:100%;background:#54a66a;border-radius:9px}
+.desafio-texto{width:min(100%,34rem);text-align:center;padding:1rem}
+.letra-grande{display:block;font-size:clamp(4rem,20vw,7rem);color:var(--azul-tinta);line-height:1.1}
+.opcoes-palavra,.opcoes-logica{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;margin-top:1rem}
+.opcao-palavra{font-size:1.05rem!important}
+.sequencia-logica{font-size:clamp(1.4rem,6vw,2.4rem);padding:1rem 0}
+.opcoes-logica .botao{font-size:2rem}
+.memoria-grelha{display:grid;grid-template-columns:repeat(4,minmax(55px,1fr));gap:.55rem;width:min(100%,25rem);padding:1rem}
+.carta-memoria{aspect-ratio:1;border:2px solid var(--azul-tinta);border-radius:1rem;background:#e9f1f5;font-size:clamp(1.6rem,8vw,2.5rem);box-shadow:0 4px 0 #b7c9d3}
+.carta-memoria.virada{background:#fff}.carta-memoria.par{background:#e3f3df;border-color:#5b9c62}
+.instrucao-memoria{text-align:center;font-weight:700}
+.quinta-conquistas{position:absolute;z-index:3;top:.5rem;left:.5rem;display:flex;gap:.35rem;flex-wrap:wrap;pointer-events:none}
+.quinta-conquistas span{font-size:.78rem;font-weight:700;background:#fffdf0e8;border:1px solid #d5c59a;border-radius:1rem;padding:.25rem .5rem;box-shadow:0 2px 6px #0002}
+.aviso-limite{position:fixed;z-index:1000;inset:0;background:#183d35eF;color:white;display:grid;place-content:center;text-align:center;padding:2rem}
+.aviso-limite p{max-width:22rem;line-height:1.5}
+@media(max-width:420px){.opcoes-palavra{grid-template-columns:1fr}.memoria-grelha{gap:.35rem;padding:.5rem}}
+
+/* ---- Ajustes para telemóvel (v4.0.4): balão abaixo da barra, tabuleiro sem cortes ---- */
+.fala{top:calc(max(.55rem,env(safe-area-inset-top)) + 3.4rem)}
+.tabuleiro{overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;justify-content:safe center}
+@media (max-aspect-ratio:1/1) and (max-height:900px){
+  body[data-ecra="jogo"]{--stage-h:36%}
+  body[data-jogo="formas"],body[data-jogo="contar"]{--stage-h:36%}
+  .tabuleiro{gap:.6rem;padding-top:.6rem}
+}
+@media (min-aspect-ratio:1/1){
+  #app{flex-direction:row}
+  .stage{flex:0 0 40%}
+  .tabuleiro{flex:1 1 0;padding-top:3.8rem}
+  .fala{max-width:min(92%,24rem);font-size:clamp(.95rem,2.6vw,1.3rem);padding:.55rem .9rem}
+}
+</style>
+</head>
+<body data-ecra="carregar">
+<div id="app">
+  <div class="stage" id="stage">
+    <canvas id="gl"></canvas>
+    <div class="fala" id="fala"></div>
+    <div class="prateleira"></div>
+  </div>
+  <div class="tabuleiro" id="tabuleiro"></div>
+</div>
+
+<div class="barra" id="barra" hidden>
+  <button class="voltar" id="btn-voltar">
+    <span class="seta">◀</span><span id="texto-voltar">Mapa</span>
+  </button>
+  <div class="espaco"></div>
+  <div class="estrelas">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5 4.9 1.2 7L12 18l-6.2 3.3L7 14.3l-5-4.9 7-.9z" fill="#F7C21B" stroke="#1B4D8F" stroke-width="1.6"/></svg>
+    <span id="conta-estrelas">0</span>
+  </div>
+  <button class="mini" id="btn-som" aria-label="Desligar o som">🔊</button>
+  <button class="mini discreto" id="btn-pais" aria-label="Área dos pais">⚙</button>
+</div>
+
+<section class="ecra on cobre" id="ecra-carregar">
+  <div class="carregando">
+    <svg class="osso" viewBox="0 0 48 48" aria-hidden="true"><path d="M14 20a6 6 0 1 1 4-10 6 6 0 1 1 6 6l6 6a6 6 0 1 1 10 4 6 6 0 1 1-6 6l-6-6a6 6 0 1 1-10-4z" fill="#F7C21B" stroke="#1B4D8F" stroke-width="2.4" stroke-linejoin="round"/></svg>
+    <p class="legenda" id="texto-carregar">A preparar a escola…</p>
+  </div>
+</section>
+
+<section class="ecra cobre" id="ecra-inicio">
+  <h1>Escola dos<span class="linha2">Avós Beagle</span></h1>
+  <p class="legenda">Cores, números e formas, com o avô e a avó. A partir dos 3 anos.</p>
+  <button class="botao quente" id="btn-comecar">Começar</button>
+  <p class="aviso">O som liga-se com o primeiro toque.</p>
+</section>
+
+<section class="ecra cobre" id="ecra-nome">
+  <h1>Como te chamas?</h1>
+  <form id="form-nome" autocomplete="off">
+    <input id="campo-nome" class="campo-nome" maxlength="14" placeholder="o teu nome"
+           autocapitalize="words" spellcheck="false" aria-label="Nome da criança">
+    <button class="botao quente" type="submit" id="btn-nome">Continuar</button>
+  </form>
+  <button class="saltar" id="btn-saltar-nome">Agora não</button>
+  <p class="aviso">Para os pais: o nome fica só neste aparelho e serve para o avô cumprimentar a criança. Pode ser só o primeiro nome ou uma alcunha.</p>
+</section>
+
+<section class="ecra" id="ecra-escolher">
+  <div class="avos">
+    <button class="avo-escolha" id="esc-avo"><span class="cara" id="cara-avo"></span><span class="nome">Avô</span><span class="papel">Beagle</span></button>
+    <button class="avo-escolha" id="esc-ava"><span class="cara" id="cara-ava"></span><span class="nome">Avó</span><span class="papel">Beagle</span></button>
+  </div>
+</section>
+
+<section class="ecra cobre" id="ecra-mundos">
+  <h1>Onde queres brincar?</h1>
+  <div class="mundos" id="lista-mundos"></div>
+</section>
+
+<section class="ecra" id="ecra-mapa">
+  <div class="missao-dia" id="missao-dia"><strong>⭐ Missão de hoje</strong><span>Completa uma atividade para aprender e ganhar estrelas.</span></div>
+  <div class="mapa-scroll" id="mapa-scroll"><div class="mapa-tela" id="mapa-tela"></div></div>
+  <div class="faixa-mundo" id="faixa-mundo">A Horta</div>
+</section>
+
+<section class="ecra" id="ecra-recompensa">
+  <h1 id="titulo-recompensa">Muito bem!</h1>
+  <div class="chuva" id="chuva"></div>
+  <button class="botao" id="btn-continuar">Continuar</button>
+  <button class="botao calma" id="btn-repetir">Jogar outra vez</button>
+</section>
+
+<section class="ecra cobre" id="ecra-porta">
+  <h1>Área dos Pais</h1>
+  <p class="legenda">Esta área é para adultos. Quanto é <strong id="conta-porta">6 × 7</strong>?</p>
+  <div class="mostrador" id="mostrador-porta"></div>
+  <div class="teclado" id="teclado-porta"></div>
+  <button class="botao calma" id="btn-fechar-porta">Voltar ao jogo</button>
+</section>
+
+<section class="ecra cobre" id="ecra-pais">
+  <h1>Área dos Pais</h1>
+
+  <div class="painel">
+    <h2>Perfis da família</h2>
+    <p>O progresso de cada criança fica separado neste dispositivo.</p>
+    <label class="campo-voz" for="perfil-ativo">Perfil ativo</label>
+    <select id="perfil-ativo"><option value="">A carregar…</option></select>
+    <form class="form-amigo" id="form-perfil">
+      <input id="nome-perfil" placeholder="Nome da criança" maxlength="24" autocomplete="off" aria-label="Nome da criança">
+      <button type="submit">Adicionar perfil</button>
+    </form>
+    <p class="aviso-campo" id="aviso-perfil"></p>
+  </div>
+
+  <div class="painel">
+    <h2>Progresso e aprendizagem</h2>
+    <p id="progresso-filho">—</p>
+    <div id="relatorio-aprendizagem"></div>
+  </div>
+
+  <div class="painel">
+    <h2>Tempo de utilização</h2>
+    <p id="uso-hoje">0 min utilizados hoje</p>
+    <label class="campo-voz" for="limite-tempo">Limite diário (minutos; 0 desativa o limite)</label>
+    <select id="limite-tempo"><option value="15">15 minutos</option><option value="30" selected>30 minutos</option><option value="45">45 minutos</option><option value="60">60 minutos</option><option value="90">90 minutos</option><option value="0">Sem limite</option></select>
+    <button class="botao calma pequeno" id="btn-apagar-perfil" type="button">Apagar dados deste perfil</button>
+  </div>
+
+  <div class="painel">
+    <h2>Amigos</h2>
+    <p>O seu código de família. Dê-o a outro pai ou mãe para que a criança veja o avatar do amigo no mapa.</p>
+    <span class="codigo" id="meu-codigo">—</span>
+    <form class="form-amigo" id="form-amigo">
+      <input id="campo-codigo" placeholder="ABCD-1234" autocomplete="off"
+             spellcheck="false" aria-label="Código do amigo" maxlength="9">
+      <button type="submit">Juntar</button>
+    </form>
+    <p class="aviso-campo" id="aviso-amigo"></p>
+    <div id="lista-amigos"></div>
+    <p class="aviso">A criança vê apenas o avatar e o nível. Nunca nomes, fotografias nem mensagens. No protótipo os amigos são gerados a partir do código, sem servidor.</p>
+  </div>
+
+  <div class="painel">
+    <h2>Voz</h2>
+    <p>Prioridade a vozes neurais online PT-PT (masculina e feminina). Configure aqui o endereço do gateway TTS do projeto. O gateway deve guardar as credenciais do fornecedor no servidor e devolver áudio; nunca coloque chaves API neste campo nem no JavaScript público. Sem gateway configurado, é usada a voz PT-PT do dispositivo, quando disponível.</p>
+    <label class="campo-voz" for="tts-endpoint">Endereço do serviço neural (opcional)</label>
+    <input id="tts-endpoint" type="url" placeholder="https://o-seu-servidor.pt/api/tts" autocomplete="off">
+    <div class="escolha-voz">
+      <label><input type="radio" name="voz" value="aparelho" checked><span>Voz PT-PT do dispositivo<small>seleção independente para o Avô e para a Avó</small></span></label>
+    </div>
+    <label class="campo-voz" for="voz-homem">Voz do Avô (masculina)</label>
+    <select id="voz-homem" aria-label="Escolher voz masculina portuguesa"><option value="">Automática</option></select>
+    <label class="campo-voz" for="voz-mulher">Voz da Avó (feminina)</label>
+    <select id="voz-mulher" aria-label="Escolher voz feminina portuguesa"><option value="">Automática</option></select>
+    <button class="botao calma pequeno" id="btn-testar-voz">Testar a voz selecionada</button>
+    <p class="aviso" id="diag-voz">—</p>
+  </div>
+
+  <div class="painel">
+    <h2>Privacidade e segurança</h2>
+    <p>O progresso, os perfis e as estatísticas ficam guardados localmente neste dispositivo. Não existe conta na nuvem nem sincronização entre aparelhos nesta versão. Não introduza dados sensíveis da criança.</p>
+    <p>Os dados podem ser apagados por perfil através do botão acima. Para apagar todos os dados locais da aplicação, limpe o armazenamento do site nas definições do navegador.</p>
+    <p class="aviso">As vozes neurais online requerem um serviço TTS com backend seguro e credenciais protegidas. A aplicação não inclui chaves de fornecedor nem envia dados pessoais para terceiros.</p>
+  </div>
+
+  <button class="botao" id="btn-sair-pais">Voltar ao jogo</button>
+</section>
+
+<script type="importmap">
+{"imports":{"three":"./lib/three.module.js","three/addons/":"./lib/"}}
+</script>
+<script type="module">
+  import { avatar } from './js/arte.js';
+  document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
+  document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
+</script>
+<script type="module" src="./js/app.js?v=4.0.4"></script>
+<script>
+if('serviceWorker' in navigator && location.protocol!=='file:'){
+  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));
+}
+</script>
+</body>
+</html>
