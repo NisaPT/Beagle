@@ -177,7 +177,13 @@ function anima(){
   if(pausado) return;
   const t = relogio.elapsedTime;
   const k = 1 - Math.exp(-3.4 * dt);
-  vistaPos.lerp(vista.pos, k); vistaAlvo.lerp(vista.alvo, k);
+  /* ecrã estreito (telemóvel na vertical): afasta a câmara para os dois avós caberem */
+  let posAlvo = vista.pos;
+  if(vista === VISTAS.escolher){
+    posAlvo = vista.pos.clone();
+    posAlvo.z *= Math.max(1, .95 / Math.max(.3, camara.aspect));
+  }
+  vistaPos.lerp(posAlvo, k); vistaAlvo.lerp(vista.alvo, k);
   camara.position.copy(vistaPos); camara.lookAt(vistaAlvo);
   if(avo) avo.atualiza(dt, t);
   if(ava) ava.atualiza(dt, t);
@@ -190,6 +196,7 @@ function mostra(id){
   if(id) $(id).classList.add('on');
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
   pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar';
+  requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   const t = $('#texto-voltar');
   if(t) t.textContent = id === '#ecra-mundos' ? 'Avós'
                       : id === '#ecra-mapa'   ? 'Quinta'
@@ -683,15 +690,31 @@ function vaiEscolher(){
   const ola = Estado.nome ? `Olá, ${Estado.nome}! Quem te vai ajudar hoje?`
                           : 'Olá! Quem te vai ajudar hoje?';
   Voz.diz(ola, null, null, 'Olá! Quem te vai ajudar hoje?');
-  vista = VISTAS.dois;
+  vista = VISTAS.escolher;
   if(avo){ avo.visivel(true); avo.faz('acenar'); setTimeout(() => avo && avo.faz('repouso'), 2600); }
   if(ava){ ava.visivel(true); setTimeout(() => { ava.faz('acenar'); setTimeout(() => ava && ava.faz('repouso'), 2400); }, 900); }
+  /* ao voltar à escolha, repõe os botões */
+  saudacaoId++; $('#ecra-escolher').classList.remove('a-saudar'); delete document.body.dataset.saudacao;
+  const iv = $('#intro-video'); if(iv && !iv.getAttribute('src')){ iv.setAttribute('src', './media/ava-intro.mp4'); iv.load(); }
   mostra('#ecra-escolher');
   $('#barra').hidden = false;
 }
 
 $('#esc-avo').onclick = () => escolhe('avo');
 $('#esc-ava').onclick = () => escolhe('ava');
+/* Saudação depois de escolher o avô ou a avó: o jogo só passa ao mapa quando a
+   fala termina (e, no caso da avó, quando o vídeo de boas-vindas acaba). */
+let saudacaoId = 0;
+function terminaSaudacao(id){
+  if(id !== saudacaoId) return;
+  saudacaoId++;
+  const v = $('#intro-video');
+  try{ v.pause(); }catch(e){}
+  delete document.body.dataset.saudacao;
+  $('#ecra-escolher').classList.remove('a-saudar');
+  try{ localStorage.setItem('eab-intro-vista', '1'); }catch(e){}
+  abreMundos();
+}
 function escolhe(q){
   Som.arranca();
   Som.efeito('toque');
@@ -699,10 +722,35 @@ function escolhe(q){
   Som.defineVoz(q === 'ava' ? 'f' : 'm'); /* voz feminina para a avó */
   soUm(q);
   activo.faz('acenar');
+
+  const id = ++saudacaoId;
+  const video = $('#intro-video');
+  let jaVista = false;
+  try{ jaVista = localStorage.getItem('eab-intro-vista') === '1'; }catch(e){}
+  let falaAcabou = false, videoPronto = true, tempoMinimo = false;
+  const tenta = () => { if(falaAcabou && videoPronto && tempoMinimo) terminaSaudacao(id); };
+  setTimeout(() => { tempoMinimo = true; tenta(); }, 3800);   /* dá tempo de ler o balão, mesmo sem voz */
+
+  $('#ecra-escolher').classList.add('a-saudar');
+  if(q === 'ava'){
+    /* a avó aparece no vídeo; o avô fica, por agora, só com a imagem dele */
+    document.body.dataset.saudacao = 'ava';
+    videoPronto = false;
+    const acabou = () => { videoPronto = true; tenta(); };
+    video.onended = acabou;
+    video.onerror = acabou;                         /* sem vídeo (offline): segue só com a imagem */
+    setTimeout(acabou, jaVista ? 4000 : 10800);     /* a partir da 2.ª vez não é preciso esperar pelo fim */
+    try{
+      video.muted = true; video.currentTime = 0;
+      const r = video.play(); if(r && r.catch) r.catch(acabou);
+    }catch(e){ acabou(); }
+  }
+
   Voz.diz(`Olá! Eu sou ${q === 'avo' ? 'o Avô Beagle' : 'a Avó Beagle'}. Vamos ao mapa!`,
-          () => activo.faz('repouso'));
-  setTimeout(() => abreMundos(), 900);
+          () => { if(id !== saudacaoId) return; activo.faz('repouso'); falaAcabou = true; setTimeout(tenta, 500); });
+  setTimeout(() => { falaAcabou = true; tenta(); }, 9000);   /* segurança se a voz falhar */
 }
+$('#btn-saltar-saudacao').onclick = () => { Som.efeito('toque'); terminaSaudacao(saudacaoId); };
 
 $('#stage').insertAdjacentHTML('afterbegin', quinta());
 const jardim=document.createElement('div'); jardim.className='quinta-conquistas'; jardim.setAttribute('aria-label','Conquistas da quinta');

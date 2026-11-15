@@ -131,3 +131,9 @@ ALTERAÇÕES V4.2.0 — CONTAS DOS PAIS E CÓPIA NA CLOUD
 - O navegador é pedido para não apagar o armazenamento do jogo (storage.persist).
 - Corrigido: na Área dos Pais, o topo ficava cortado e inacessível quando o conteúdo era mais alto que o ecrã.
 - Versão da cache: 4.2.0.
+
+
+CORREÇÃO V4.2.4 — ECRÃ DE ESCOLHER O AVÔ/AVÓ
+- O cenário (quinta e avós) ocupa agora o ecrã todo e só os dois botões ficam à frente, sem faixa bege.
+- Em computador e em ecrãs largos, o jogo já não fica "metade vazio": o layout lado a lado só se aplica a telemóveis na horizontal e só durante um jogo.
+- Em telemóvel na vertical a câmara afasta-se para os dois avós caberem; na horizontal os botões e o balão são mais pequenos.

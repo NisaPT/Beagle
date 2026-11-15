@@ -546,11 +546,13 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   body[data-jogo="formas"],body[data-jogo="contar"]{--stage-h:36%}
   .tabuleiro{gap:.6rem;padding-top:.6rem}
 }
-@media (min-aspect-ratio:1/1){
-  #app{flex-direction:row}
-  .stage{flex:0 0 40%}
-  .tabuleiro{flex:1 1 0;padding-top:3.8rem}
-  .fala{max-width:min(92%,24rem);font-size:clamp(.95rem,2.6vw,1.3rem);padding:.55rem .9rem}
+/* telemóvel na horizontal, só durante um jogo: avô à esquerda, jogo à direita.
+   Nos restantes ecrãs (escolher, mundos, mapa) e em computador, o cenário ocupa tudo. */
+@media (min-aspect-ratio:1/1) and (max-height:600px){
+  body[data-jogo] #app{flex-direction:row}
+  body[data-jogo] .stage{flex:0 0 40%}
+  body[data-jogo] .tabuleiro{flex:1 1 0;padding-top:3.8rem}
+  body[data-jogo] .fala{max-width:min(92%,24rem);font-size:clamp(.95rem,2.6vw,1.3rem);padding:.55rem .9rem}
 }
 
 /* ---- idade e jogo das somas (v4.1.0) ---- */
@@ -575,6 +577,20 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
 .ecra.cobre>:first-child{margin-top:auto}
 .ecra.cobre>:last-child{margin-bottom:auto}
 #ecra-pais{padding-top:4.2rem}
+
+/* escolher avô/avó: cenário e avós a toda a altura; só os botões à frente */
+body[data-ecra="escolher"]{--stage-h:100%}
+body[data-ecra="escolher"] #ecra-escolher{top:auto;bottom:0;background:transparent;box-shadow:none;padding-bottom:max(1.6rem,env(safe-area-inset-bottom))}
+body[data-ecra="escolher"] #barra{display:none}
+@media (max-height:600px){
+  body[data-ecra="escolher"] .avo-escolha{padding:.4rem .7rem .5rem;max-width:8.5rem;gap:.2rem}
+  body[data-ecra="escolher"] .avo-escolha .cara{width:2.8rem!important;height:2.8rem!important}
+  body[data-ecra="escolher"] .avo-escolha .cara svg{width:100%!important;height:100%!important}
+  body[data-ecra="escolher"] .avo-escolha .nome{font-size:1rem}
+  body[data-ecra="escolher"] .avo-escolha .papel{font-size:.75rem}
+  body[data-ecra="escolher"] .fala{font-size:1rem;padding:.4rem .9rem;top:.5rem}
+  body[data-ecra="escolher"] #ecra-escolher{padding-bottom:.8rem}
+}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -778,7 +794,7 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.2.1"></script>
+<script type="module" src="./js/app.js?v=4.2.4"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));

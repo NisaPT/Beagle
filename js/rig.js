@@ -222,6 +222,8 @@ export function criaCena(lona){
 export const VISTAS = {
   um:   { pos:new THREE.Vector3(0, .62, 2.45), alvo:new THREE.Vector3(0, .50, 0) },
   dois: { pos:new THREE.Vector3(0, .62, 3.35), alvo:new THREE.Vector3(0, .48, 0) },
+  /* escolher o avô ou a avó: o cenário ocupa o ecrã todo e os botões ficam à frente em baixo */
+  escolher: { pos:new THREE.Vector3(0, .70, 3.55), alvo:new THREE.Vector3(0, .12, 0) },
 };
 
 export { THREE };
