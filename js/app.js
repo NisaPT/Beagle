@@ -35,7 +35,10 @@ const Voz = {
      não há clip de voz para cada nome do mundo */
   diz(texto, aoFim, pista, falado){
     Fala.mostra(texto, pista);
-    Som.fala(falado || texto, aoFim);
+    const frase = Array.isArray(texto) ? texto.join(' ') : String(texto);
+    const r = activo;                         /* o avô/avó gesticula enquanto fala */
+    if(r) r.fala(700 + frase.length * 70);
+    Som.fala(falado || texto, () => { if(r) r.fala(0); if(aoFim) aoFim(); });
   },
   cala(){ Som.cala(); }
 };
@@ -183,7 +186,16 @@ function anima(){
     posAlvo = vista.pos.clone();
     posAlvo.z *= Math.max(1, .95 / Math.max(.3, camara.aspect));
   }
-  vistaPos.lerp(posAlvo, k); vistaAlvo.lerp(vista.alvo, k);
+  /* durante os jogos o avô/avó fica à esquerda e o balão de fala à direita,
+     para o texto nunca tapar a cara */
+  let alvoOlhar = vista.alvo;
+  if(vista === VISTAS.um && document.body.dataset.ecra === 'jogo'){
+    const altura = 2 * posAlvo.z * Math.tan(camara.fov * Math.PI / 360);
+    const dx = .2 * altura * camara.aspect;
+    posAlvo = posAlvo.clone(); posAlvo.x += dx;
+    alvoOlhar = vista.alvo.clone(); alvoOlhar.x += dx;
+  }
+  vistaPos.lerp(posAlvo, k); vistaAlvo.lerp(alvoOlhar, k);
   camara.position.copy(vistaPos); camara.lookAt(vistaAlvo);
   if(avo) avo.atualiza(dt, t);
   if(ava) ava.atualiza(dt, t);

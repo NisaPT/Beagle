@@ -70,6 +70,11 @@ export class Rig {
     this.olharAlvo = {x:0, y:0};
     this.fase = Math.random() * 10;
     this.salto = 0;
+    this.falaAte = 0;                 /* enquanto fala, gesticula */
+    this.pe = { ate:0, inicio:0, lado:1 };   /* bater o pé */
+    this.proxPe = 3 + Math.random() * 3;
+    this.proxOlhar = 2;
+    this.ultimoToque = -99;
 
     this.enquadra();
     this.sombra = fazSombra();
@@ -122,7 +127,11 @@ export class Rig {
     }
   }
 
+  /* a mascote fala: gesticula durante 'ms' milissegundos (0 = parou) */
+  fala(ms){ this.falaAte = ms > 0 ? performance.now() + ms : 0; }
+
   olhaPara(nx, ny){                 /* nx, ny em -1..1 no ecrã */
+    this.ultimoToque = this.tempo || 0;
     this.olharAlvo.x = THREE.MathUtils.clamp(nx, -1, 1) * 26;
     this.olharAlvo.y = THREE.MathUtils.clamp(ny, -1, 1) * 15;
   }
@@ -137,36 +146,100 @@ export class Rig {
     const f = t + this.fase;
 
     /* camadas procedurais somadas por cima da pose */
-    const extra = {
-      Hips:   {X:0, Y:Math.sin(f * .50) * 2.4 * amp, Z:Math.sin(f * .37) * 1.1 * amp},
-      Spine:  {X:0, Y:0, Z:Math.sin(f * .42) * 1.2 * amp},
-      Spine1: {X:Math.sin(f * 1.55) * 1.7 * amp, Y:0, Z:0},
-      Spine2: {X:Math.sin(f * 1.55 + .5) * 1.1 * amp, Y:0, Z:0},
-      Head:   {X:this.olhar.y + Math.sin(f * .83) * 1.6 * amp,
-               Y:this.olhar.x + Math.sin(f * .61) * 2.5 * amp, Z:0},
-      Neck:   {X:this.olhar.y * .3, Y:this.olhar.x * .35, Z:0},
+    const extra = {};
+    const soma = (n, x, y, z) => {
+      const e = extra[n] || (extra[n] = {X:0, Y:0, Z:0});
+      e.X += x || 0; e.Y += y || 0; e.Z += z || 0;
     };
+    this.tempo = t;
+    const parado = this.acao === 'repouso';
+    const gesto = performance.now() < this.falaAte;     /* a falar */
+    const solto = parado ? 1 : .3;                      /* braços livres só em repouso */
+    const viva = amp * (gesto ? 1.7 : 1);
+
+    /* olhar: a meio do silêncio passeia os olhos, a não ser que o dedo esteja no ecrã */
+    if(t > this.proxOlhar){
+      this.proxOlhar = t + 2.2 + Math.random() * 3.2;
+      if(t - this.ultimoToque > 3.5){
+        this.olharAlvo.x = (Math.random() * 2 - 1) * 15;
+        this.olharAlvo.y = (Math.random() * 2 - 1) * 7;
+      }
+    }
+
+    /* respirar + peso que passa de um pé para o outro */
+    const peso = Math.sin(f * .85);                      /* -1 (esq.) .. 1 (dir.) */
+    const respira = Math.sin(f * 1.9);
+    soma('Hips',   0, Math.sin(f * .50) * 3 * amp, peso * 3.4 * amp);
+    soma('Spine',  0, 0, Math.sin(f * .42) * 1.4 * amp - peso * 1.6 * amp);
+    soma('Spine1', respira * 2.2 * amp, 0, 0);
+    soma('Spine2', Math.sin(f * 1.9 + .5) * 1.6 * amp, 0, peso * -.8 * amp);
+    soma('LeftShoulder',  0, 0,  respira * 1.8 * amp);
+    soma('RightShoulder', 0, 0, -respira * 1.8 * amp);
+    /* as pernas contrariam a inclinação da anca: os pés ficam assentes */
+    soma('LeftUpLeg',  0, 0, -peso * 3.4 * amp);
+    soma('RightUpLeg', 0, 0, -peso * 3.4 * amp);
+    /* a perna descarregada dobra um pouco o joelho */
+    const livreE = Math.max(0, -peso), livreD = Math.max(0, peso);
+    soma('LeftUpLeg',  -livreE * 5 * amp, 0, 0);  soma('LeftLeg',  livreE * 9 * amp, 0, 0);  soma('LeftFoot',  livreE * -4 * amp, 0, 0);
+    soma('RightUpLeg', -livreD * 5 * amp, 0, 0);  soma('RightLeg', livreD * 9 * amp, 0, 0);  soma('RightFoot', livreD * -4 * amp, 0, 0);
+
+    /* bater o pé de vez em quando (ritmo de quem espera, a sorrir) */
+    if(!calmo && t > this.proxPe){
+      this.pe = { inicio:t, ate:t + 2.1, lado:Math.random() < .5 ? 1 : -1 };
+      this.proxPe = t + 6 + Math.random() * 6;
+    }
+    if(t < this.pe.ate){
+      const u = (t - this.pe.inicio) / 2.1;                         /* 0..1 */
+      const bate = Math.pow(Math.max(0, Math.sin(u * Math.PI * 4)), 1.3) * Math.sin(u * Math.PI);
+      const L = this.pe.lado > 0 ? 'Right' : 'Left';
+      soma(L + 'Foot', bate * 20, 0, 0);
+      soma(L + 'ToeBase', bate * 8, 0, 0);
+      soma(L + 'Leg', bate * 4, 0, 0);
+    }
+
+    /* braços e mãos nunca estão parados: baloiçam, o pulso roda */
+    const nb = parado ? 1 : .35;
+    soma('LeftArm',  Math.sin(f * 1.05) * 8 * viva * solto,  0, 2.4 * viva * solto + Math.sin(f * .7) * 2 * viva * solto);
+    soma('RightArm', Math.sin(f * 1.05 + 2.4) * 8 * viva * solto, 0, -2.4 * viva * solto - Math.sin(f * .7 + 1) * 2 * viva * solto);
+    soma('LeftForeArm',  Math.sin(f * 1.3 + 1) * 9 * viva * solto, 0, 0);
+    soma('RightForeArm', Math.sin(f * 1.3 + 3) * 9 * viva * solto, 0, 0);
+    soma('LeftHand',  Math.sin(f * 2.1) * 9 * viva * nb, 0, Math.sin(f * 1.6 + .5) * 12 * viva * nb);
+    soma('RightHand', Math.sin(f * 2.1 + 1.7) * 9 * viva * nb, 0, Math.sin(f * 1.6 + 2) * 12 * viva * nb);
+
+    /* a falar: acena com a cabeça e abre as mãos ao ritmo da fala */
+    if(gesto){
+      const r = Math.sin(f * 5.2), r2 = Math.sin(f * 3.1 + 1);
+      soma('Head', r * 3.2 * amp + 2, r2 * 3 * amp, r2 * 2 * amp);
+      soma('Spine2', r * 1.4 * amp, 0, 0);
+      if(parado){
+        soma('LeftArm',  -10 - Math.max(0, r2) * 8, 0, 3);   soma('RightArm', -10 - Math.max(0, -r2) * 8, 0, -3);
+        soma('LeftForeArm', -12 - r * 6, 0, 0);               soma('RightForeArm', -12 + r * 6, 0, 0);
+      }
+    }
+
+    soma('Head', this.olhar.y + Math.sin(f * .83) * 1.8 * amp, this.olhar.x + Math.sin(f * .61) * 2.8 * amp, Math.sin(f * .47) * 1.6 * amp);
+    soma('Neck', this.olhar.y * .3, this.olhar.x * .35, 0);
 
     const osc = OSCILACOES[this.acao];
     if(osc && this.acao === 'acenar'){
       const o = Math.sin(f * osc.ritmo) * osc.amplitude * (calmo ? .4 : 1);
-      extra.RightForeArm = {X:0, Y:o, Z:o * .35};
-      extra.RightHand    = {X:0, Y:0, Z:Math.sin(f * osc.ritmo + .4) * 12};
+      soma('RightForeArm', 0, o, o * .35);
+      soma('RightHand', 0, 0, Math.sin(f * osc.ritmo + .4) * 12);
     }
     if(osc && this.acao === 'palmas'){
       const o = (Math.sin(f * osc.ritmo) * .5 + .5) * osc.amplitude;
-      extra.RightForeArm = {X:0, Y:  o, Z:0};
-      extra.LeftForeArm  = {X:0, Y: -o, Z:0};
+      soma('RightForeArm', 0, o, 0);
+      soma('LeftForeArm', 0, -o, 0);
     }
     if(this.acao === 'festejar'){
       const o = Math.sin(f * 7) * 9;
-      extra.RightForeArm = {X:0, Y:0, Z:  o};
-      extra.LeftForeArm  = {X:0, Y:0, Z: -o};
+      soma('RightForeArm', 0, 0, o);
+      soma('LeftForeArm', 0, 0, -o);
       this.salto = calmo ? 0 : Math.abs(Math.sin(f * 6)) * .055;
     }else{
       this.salto += (0 - this.salto) * (1 - Math.exp(-8 * dt));
     }
-    this.grupo.position.y = this.baseY + this.salto;
+    this.grupo.position.y = this.baseY + this.salto + (calmo ? 0 : Math.sin(f * 3.8) * .0035);
 
     for(const n of this.ordem){
       const osso = this.ossos[n];

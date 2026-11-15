@@ -11,7 +11,7 @@ function baralha(a){
 const Cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const semAcentos = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
-const BEM = ['Muito bem!', 'Isso mesmo!', 'Boa!', 'Acertaste!', 'Muito bem!'];
+const BEM = ['Muito bem!', 'Boa!', 'Isso mesmo!', 'Parabéns!'];
 const EM = { o:'no', a:'na', os:'nos', as:'nas' };
 const NUM_F = ['', 'uma', 'duas', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
 const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];

@@ -20,7 +20,13 @@ const CORES = [
 
 const NUM = ['', 'uma', 'duas', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
 const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
-const BEM   = ['Muito bem!', 'Isso mesmo!', 'Boa!', 'Acertaste!', 'Muito bem!'];
+/* ao acertar diz-se só um elogio curto, sem repetir o nome do objeto */
+const BEM   = ['Muito bem!', 'Boa!', 'Isso mesmo!', 'Parabéns!'];
+let ultimoElogio = '';
+function elogio(){
+  let e; do{ e = pick(BEM); }while(e === ultimoElogio);
+  return (ultimoElogio = e);
+}
 const RONDAS = 5;
 
 export class Jogo {
@@ -342,7 +348,7 @@ export class Jogo {
               [cor || '#F5B921', '#F7C21B', '#fff', '#2C6FD6']);
       this.pose('festejar');
       this.ctx.aoAcertar(this.tipo);
-      this.diz(texto, () => {
+      this.diz(elogio(), () => {
         if(!this.aDecorrer) return;
         this.pose('repouso');
         setTimeout(() => this.proxima(), 300);
