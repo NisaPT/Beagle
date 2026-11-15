@@ -10,7 +10,7 @@ import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { miniFilme } from './curiosidades.js';
-import { EDIFICIOS, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
+import { EDIFICIOS, BICHOS as BICHOS_LOJA, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
 
 const $ = s => document.querySelector(s);
 const rnd = n => Math.floor(Math.random() * n);
@@ -218,6 +218,7 @@ function mostra(id){
   if(id) $(id).classList.add('on');
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
   pausado = id === '#ecra-mapa' || id === '#ecra-mundos' || id === '#ecra-carregar' || id === '#ecra-quinta';
+  if(Q3D) Q3D.ativa(id === '#ecra-quinta');
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   setTimeout(aplicaPendentes, 0);
   const t = $('#texto-voltar');
@@ -417,7 +418,7 @@ function voltaAoMapa(){
 $('#btn-voltar').onclick = () => {
   Som.efeito('toque');
   const onde = document.body.dataset.ecra;
-  if(onde === 'quinta'){ if(!$('#loja').hidden) fechaLoja(); else abreMundos(); }   /* quinta -> mundos */
+  if(onde === 'quinta'){ if(!$('#loja').hidden) fechaLoja(); else if(Q3D && Q3D.dentro) Q3D.sai(); else abreMundos(); }   /* quinta -> mundos */
   else if(onde === 'mundos') abreEscolha();        /* mundos -> escolher avô */
   else if(onde === 'mapa') abreMundos();      /* mapa   -> mundos      */
   else voltaAoMapa();                         /* jogo   -> mapa        */
@@ -807,8 +808,44 @@ $('#stage').append(jardim);
 const Cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 let abaLoja = 'edificios', novoEd = null;
 
+/* ---- quinta 3D: carrega-se só ao abrir o ecrã; se falhar, fica a grelha 2D ---- */
+let Q3D = null, q3dTentou = false;
+async function iniciaQ3D(){
+  if(q3dTentou) return; q3dTentou = true;
+  try{
+    const { Quinta3D } = await import('./quinta3d.js');
+    if(!Quinta3D.suportado()) throw new Error('sem WebGL');
+    const ecra = $('#ecra-quinta'), nome = $('#q3d-nome');
+    Q3D = new Quinta3D($('#q3d-canvas'), {
+      toque: id => { Som.arranca(); Som.efeito('toque'); $('#q3d-dica').hidden = true; Q3D.entra(id); },
+      vazio: id => { Som.efeito('toque'); abreLoja('edificios', id); },
+      entrou: def => {
+        Voz.cala(); Som.fala(`${Cap(def.art)} ${def.nome}.`);
+        ecra.classList.add('dentro'); $('#q3d-dica').hidden = true;
+        nome.textContent = def.nome; nome.hidden = false;
+        $('#q3d-sair').hidden = false;
+        $('#q3d-mais').hidden = !BICHOS_LOJA.some(b => b.casa === def.id);
+        $('#texto-voltar').textContent = 'Quinta';
+      },
+      dentro: def => { if(def.id === 'pomar' || def.id === 'estufa') return; },
+      saiu: () => {
+        ecra.classList.remove('dentro'); nome.hidden = true;
+        $('#q3d-sair').hidden = true; $('#q3d-mais').hidden = true;
+        $('#texto-voltar').textContent = 'Brincar';
+      },
+      bicho: id => { const b = achaItem(id); Som.efeito('toque'); Som.fala(b.som); },
+    });
+    $('#q3d-sair').onclick = () => { Som.efeito('toque'); Q3D.sai(); };
+    $('#q3d-mais').onclick = () => { Som.efeito('toque'); if(Q3D.nomeAtual) abreLoja('bichos', null, Q3D.nomeAtual.id); };
+    $('#q3d').hidden = false; ecra.classList.add('com3d');
+    redesenhaQuinta();
+    if(document.body.dataset.ecra === 'quinta') Q3D.ativa(true);
+  }catch(e){ console.warn('Quinta 3D indisponível; a usar a grelha 2D.', e); Q3D = null; }
+}
+
 function redesenhaQuinta(){
   const it = Estado.quinta.itens;
+  if(Q3D) Q3D.atualiza(it, novoEd);
   desenhaQuinta($('#quinta-grelha'), it, novoEd);
   $('#quinta-resumo').innerHTML =
     `<span>🏠 ${contaEdificios(it)}</span><span>🐾 ${contaBichos(it)}</span><span>⭐ ${Estado.saldo()}</span>`;
@@ -821,6 +858,7 @@ function abreQuinta(novo){
   $('#loja').hidden = true; $('#loja-fundo').hidden = true;
   redesenhaQuinta();
   mostra('#ecra-quinta');
+  iniciaQ3D();
   $('#barra').hidden = false;
   $('#ecra-quinta').scrollTop = 0;
   if(novo) setTimeout(() => {
