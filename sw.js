@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.10.1';
+const VERSAO = 'eab-4.10.2';
 const FICHEIROS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -155,6 +155,16 @@ self.addEventListener('fetch', e => {
       fetch(req)
         .then(r => { const c = r.clone(); caches.open(VERSAO).then(k => k.put('./index.html', c)); return r; })
         .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  /* código (js/html/css): rede primeiro, para a versão nova aparecer logo após publicar; cache se offline */
+  if (/\.(js|html|css|webmanifest)$/.test(url.pathname) && !url.pathname.startsWith('/lib/')) {
+    e.respondWith(
+      fetch(req)
+        .then(r => { if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); } return r; })
+        .catch(() => caches.match(req, { ignoreSearch: true }))
     );
     return;
   }
