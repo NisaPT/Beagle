@@ -142,7 +142,7 @@ export function rondaNatureza(jogo, cat){
     const op = opcoesCom(certa, pool, nOpc);
     desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
-      else errado(b, `${esse(it)} ${com(it)}. Procura ${com(certa)}.`);
+      else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
     }, legendaSempre);
   }
 
@@ -154,7 +154,7 @@ export function rondaNatureza(jogo, cat){
     const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
     desenha(op, `Quem faz ${certa.som}?`, '', (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} faz ${certa.som}.`], '#F5B921');
-      else errado(b, `${esse(it)} ${com(it)}. Quem faz ${certa.som}?`);
+      else errado(b, [`${esse(it)} ${com(it)}.`, `Quem faz ${certa.som}?`]);
     }, legendaSempre);
   }
 
@@ -189,7 +189,7 @@ export function rondaNatureza(jogo, cat){
     if(op.length < 2) return false;
     desenha(op, `Qual ${cat === 'animais' ? 'animal' : cat === 'frutas' ? 'fruta' : 'legume'} começa pela letra ${L}?`, `<b class="pista-letra">${L}</b>`, (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} começa pela letra ${L}.`], '#F5B921');
-      else errado(b, `Esse começa por ${letraInicial(it)}. Procura a letra ${L}.`);
+      else errado(b, [`Esse começa por ${letraInicial(it)}.`, `Procura a letra ${L}.`]);
     }, true);
   }
 
@@ -208,7 +208,7 @@ export function rondaNatureza(jogo, cat){
     const adjCat = COR[c][cat === 'frutas' ? 1 : 0];
     desenha(op, `Qual é ${nomeCat} ${adjCat}?`, `<i class="pista-cor" style="background:${COR[c][4]}"></i>`, (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} ${verbo(certa)} ${adj(certa, c)}.`], COR[c][4]);
-      else errado(b, `${Cap(com(it))} ${verbo(it)} ${adj(it, it.cor || c)}. Procura ${nomeCat} ${adjCat}.`);
+      else errado(b, [`${Cap(com(it))} ${verbo(it)} ${adj(it, it.cor || c)}.`, `Procura ${nomeCat} ${adjCat}.`]);
     }, legendaSempre);
   }
 

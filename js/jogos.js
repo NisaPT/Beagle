@@ -19,7 +19,7 @@ const CORES = [
 ];
 
 const NUM = ['', 'uma', 'duas', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
-const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
+const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'catorze', 'quinze'];   /* as somas vão até 15 */
 /* ao acertar diz-se só um elogio curto, sem repetir o nome do objeto */
 const BEM   = ['Muito bem!', 'Boa!', 'Isso mesmo!', 'Parabéns!'];
 let ultimoElogio = '';
@@ -292,7 +292,7 @@ export class Jogo {
     const img=this.info.imagens;
     this.ctx.raiz.innerHTML=`<div class="desafio-texto"><strong class="letra-grande">${letra}</strong><p>Qual destas palavras começa pela letra ${letra}?</p><div class="opcoes-palavra">${lista.map(x=>`<button class="botao opcao-palavra" data-v="${x[1]}">${img?`<span class="emoji-palavra">${x[2]}</span>`:''}${x[1]}</button>`).join('')}</div></div>`;
     this.pose('apontar'); this.diz(`Escolhe a palavra que começa pela letra ${letra}.`);
-    this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?[pick(BEM),`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+    this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?[pick(BEM),`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra.toLowerCase()}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
 
   rondaMemoria(){
