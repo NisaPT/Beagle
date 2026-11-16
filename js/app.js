@@ -9,6 +9,7 @@ import { Som } from './som.js';
 import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
+import { abreBrincar } from './brincar.js';
 import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
 import { miniFilme } from './curiosidades.js';
 import { Festa } from './festa.js';
@@ -509,6 +510,7 @@ function abreAlbum(){
   f.querySelector('button').onclick = () => f.remove();
 }
 $('#btn-album')?.addEventListener('click', abreAlbum);
+$('#btn-brincar')?.addEventListener('click', () => { if(limiteAtingido()){ mostraAvisoLimite(); return; } abreBrincar(Som); });
 let niveisSeguidos = 0;
 function mostraPausa(){
   if(document.querySelector('.aviso-limite')) return;
@@ -779,7 +781,7 @@ function desenhaPais(){
   const concluidos = Object.keys(Estado.estrelas).length;
   $('#relatorio-aprendizagem').innerHTML =
     `<p><strong>${concluidos}</strong> níveis concluídos · <strong>${Estado.totalEstrelas()}</strong> estrelas conquistadas</p>` +
-    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
+    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes',toupeiras:'Toupeiras',cesto:'Cesto',puzzle:'Puzzle'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
     `<p class="aviso">Dados agregados guardados apenas neste dispositivo. A percentagem orienta a adaptação da dificuldade; não é uma avaliação clínica ou escolar.</p>`;
   const selPerfil = $('#perfil-ativo');
   if(selPerfil){

@@ -1,3 +1,5 @@
+import { campoMovel } from './movimento.js';
+
 /* Jogos de Animais, Frutas e Legumes.
    Cada item: [ficheiro, nome, artigo, nível (1 = mais conhecido), extras].
    O nível e os modos de jogo dependem da idade (ver idades.js). */
@@ -122,6 +124,7 @@ export function rondaNatureza(jogo, cat){
     contagem:() => modoContagem(),
     tipo:   () => modoTipo(),
     escondidos: () => modoEscondidos(),
+    chuva:  () => modoChuva(),
   };
 
   /* ----------------------------------------------------- desenho comum */
@@ -157,6 +160,26 @@ export function rondaNatureza(jogo, cat){
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
       else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
     }, legendaSempre);
+  }
+
+  /* ---------------------------------------------------- 1c. chuva */
+  /* os itens caem do céu e é preciso apanhar os certos a tempo: perguntas e respostas do modo "nome" */
+  function modoChuva(){
+    const certa = escolheResposta(pool);
+    const outros = baralha(pool.filter(x => x.id !== certa.id)).slice(0, 4);
+    if(outros.length < 2) return false;
+    const alvos = info.estrelasMin >= 2 ? 2 : 3;
+    const lista = [];
+    for(let k = 0; k < alvos; k++) lista.push({ it: certa, certo: true });
+    outros.forEach(o => lista.push({ it: o, certo: false }));
+    const elementos = baralha(lista).map(e => ({ html: `<img src="${imgSrc(e.it.id)}" alt="" draggable="false" decoding="async">`, certo: e.certo, rotulo: e.it.nome }));
+    jogo.pose('apontar');
+    jogo.diz(`Toca ${EM[certa.art]} ${certa.nome}.`, () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
+    campoMovel(jogo, {
+      elementos, modo: 'cai', alvos,
+      aoErrar: b => errado(b, `Procura ${com(certa)}.`),
+      aoAcertarFinal: b => certo(b, certa, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921'),
+    });
   }
 
   /* ------------------------------------------------ 1b. escondidos */
@@ -301,3 +324,6 @@ export function rondaNatureza(jogo, cat){
   for(const m of ordem){ if(tenta[m]() !== false) return; }
   modoNome();
 }
+
+/* ajudantes partilhados com os jogos novos (jogos2.js) */
+export const util = { imgSrc, EM, plural, com, esse, verbo, BEM, Cap, pick, baralha };

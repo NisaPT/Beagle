@@ -609,6 +609,61 @@ body[data-saudacao="ava"] .intro-video{display:block}
 .legenda-nat{font-family:inherit;font-weight:700;font-size:clamp(.85rem,3.4vw,1.15rem);color:var(--azul-tinta);line-height:1.1;text-align:center}
 .emoji-palavra img{height:1.35em;width:auto;vertical-align:-.25em;pointer-events:none}
 .carta-nat:active{transform:scale(.94)}
+.campo-movel{position:relative;height:min(50vh,420px);overflow:hidden;width:100%;touch-action:manipulation}
+.mov{position:absolute;left:var(--x);width:clamp(66px,17vw,112px);margin-left:calc(clamp(66px,17vw,112px) / -2);background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mov svg,.mov img{width:100%;height:auto;display:block;pointer-events:none}
+.campo-movel.sobe .mov{bottom:0;animation:mov-sobe var(--d) linear var(--atraso) infinite}
+.campo-movel.cai .mov{top:0;animation:mov-cai var(--d) linear var(--atraso) infinite}
+@keyframes mov-sobe{from{transform:translateY(140px)}to{transform:translateY(calc(-50vh - 140px))}}
+@keyframes mov-cai{from{transform:translateY(-140px)}to{transform:translateY(calc(50vh + 60px))}}
+.parado .mov{animation-play-state:paused}
+.mov.apanhado{animation:mov-pop .3s ease forwards!important;pointer-events:none}
+@keyframes mov-pop{to{transform:scale(1.5);opacity:0}}
+.mov.errado svg,.mov.errado img{animation:abana .4s ease}
+@media (prefers-reduced-motion:reduce){.campo-movel .mov{animation-duration:calc(var(--d) * 2)}}
+.toupeiras{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.6rem;max-width:34rem;margin:0 auto;padding:.4rem}
+.toupeira{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.toupeira .bicho-caixa{position:absolute;inset:0 8% 26% 8%;overflow:hidden;display:block}
+.toupeira .bicho{position:absolute;left:0;bottom:0;width:100%;height:100%;object-fit:contain;transform:translateY(105%);transition:transform .28s cubic-bezier(.34,1.5,.64,1);pointer-events:none}
+.toupeira.sobe .bicho{transform:translateY(0)}
+.toupeira .terra{position:absolute;left:4%;right:4%;bottom:6%;height:34%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%,#3d2a1a 0 55%,#7a5632 56%);box-shadow:0 4px 0 #5a3f22}
+.toupeira.errado .bicho{animation:abana .4s ease}
+.cesto-cena{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
+.cesto-peca-area{height:min(26vh,200px);display:grid;place-items:center}
+.cesto-peca{width:min(30vw,170px);touch-action:none;cursor:grab;transition:opacity .3s}
+.cesto-peca img{width:100%;pointer-events:none;-webkit-user-drag:none}
+.cesto-peca.some{opacity:0}
+.cesto-peca.a-arrastar{z-index:20;cursor:grabbing}
+.cestos{display:flex;gap:1.2rem;justify-content:center}
+.cesto{font-size:clamp(2rem,9vw,3.6rem);display:flex;flex-direction:column;align-items:center;min-width:clamp(110px,32vw,190px);padding:.5rem .8rem .7rem;border-radius:1.2rem 1.2rem 2.2rem 2.2rem;border:4px solid #8a5a2b;background:repeating-linear-gradient(90deg,#d9a566 0 14px,#c8934f 14px 28px);cursor:pointer}
+.cesto span{font-size:clamp(1rem,4vw,1.4rem);font-weight:700;color:#4a2f12}
+.cesto.errado{animation:abana .4s ease}
+.puzzle-cena{--B:min(56vw,34vh);display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
+.puzzle-quadro{position:relative;width:var(--B);height:var(--B);display:grid;grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),1fr);border-radius:.8rem;background:rgba(255,255,255,.35)}
+.puzzle-slot{border:2px dashed rgba(27,77,143,.45);border-radius:.4rem}
+.puzzle-slot.errado{animation:abana .4s ease}
+.puzzle-bandeja{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;max-width:38rem}
+.puzzle-peca{width:calc(var(--B) / var(--cols));height:calc(var(--B) / var(--rows));background-repeat:no-repeat;border-radius:.4rem;border:2px solid #fff;box-shadow:0 3px 8px #0003;touch-action:none;cursor:grab}
+.puzzle-peca.a-arrastar{z-index:20;cursor:grabbing}
+.brincar-fundo{position:fixed;inset:0;z-index:900;background:#fdf3d8;color:#234;display:flex;flex-direction:column;align-items:center;padding:1rem;text-align:center;gap:1rem}
+.brincar-menu{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center}
+.brincar-menu .botao{font-size:1.5rem;padding:1.2rem 1.6rem}
+.brincar-topo{display:flex;gap:1rem;align-items:center;width:100%}
+.brincar-palco{flex:1;width:100%;min-height:0;position:relative;display:flex;flex-direction:column;gap:.5rem}
+.brincar-tela{flex:1;width:100%;min-height:0;background:#fff;border-radius:1rem;box-shadow:0 3px 10px #0002;touch-action:none}
+.brincar-ferr{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;align-items:center}
+.brincar-ferr .cor{width:2.4rem;height:2.4rem;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #8a5a2b66;cursor:pointer}
+.brincar-ferr .cor.on{box-shadow:0 0 0 4px #1B4D8F}
+.carimbo{width:2.8rem;height:2.8rem;border-radius:.7rem;border:2px solid #8a5a2b66;background:#fff;padding:2px;cursor:pointer}
+.carimbo img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.xilofone{flex:1;display:flex;gap:.5rem;align-items:flex-end;justify-content:center;padding:1rem}
+.barra-xilo{flex:1;max-width:5.5rem;border:0;border-radius:.8rem;box-shadow:inset 0 -6px 0 #0003;cursor:pointer;touch-action:manipulation;transition:transform .12s}
+.barra-xilo.toca{transform:scale(.94)}
+.bolhas-campo{position:absolute;inset:0;overflow:hidden}
+.bolha{position:absolute;bottom:-90px;border-radius:50%;border:3px solid #fff;background:radial-gradient(circle at 30% 30%,#fff9,#7fc8f855);cursor:pointer;animation:bolha-sobe linear forwards;padding:0}
+.bolha.estoira{animation:bolha-pop .2s ease forwards!important}
+@keyframes bolha-sobe{from{transform:translateY(0)}to{transform:translateY(calc(-100vh - 140px))}}
+@keyframes bolha-pop{to{transform:scale(1.6);opacity:0}}
 .carta-nat.tapada{background:#8fcf86;border-color:#5aa653;position:relative}
 .carta-nat.tapada img,.carta-nat.tapada canvas,.carta-nat.tapada .legenda-nat{visibility:hidden}
 .carta-nat.tapada::after{content:"🌿";position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(2.4rem,9vh,4rem)}
@@ -902,6 +957,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
     <span class="seta">◀</span><span id="texto-voltar">Mapa</span>
   </button>
   <div class="espaco"></div>
+  <button class="mini" id="btn-brincar" type="button" aria-label="Brincar livre">🎈</button>
   <button class="mini" id="btn-album" type="button" aria-label="O meu álbum de cromos">📒</button>
   <button class="mini quinta-atalho" id="btn-quinta-barra" type="button" aria-label="A minha quinta e loja">🏡 <span>Quinta</span></button>
   <div class="estrelas">
@@ -1125,7 +1181,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.20.0"></script>
+<script type="module" src="./js/app.js?v=4.22.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

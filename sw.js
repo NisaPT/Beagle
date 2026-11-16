@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.20.0';
+const VERSAO = 'eab-4.22.0';
 const FICHEIROS_TODOS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -22,6 +22,9 @@ const FICHEIROS_TODOS = [
   './js/minhaquinta.js',
   './js/curiosidades.js',
   './js/natureza.js',
+  './js/movimento.js',
+  './js/jogos2.js',
+  './js/brincar.js',
   './js/nuvem.js',
   './js/poses.js',
   './js/quinta.js',

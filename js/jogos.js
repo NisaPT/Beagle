@@ -1,5 +1,7 @@
 import { balao, flor, biscoito, peca, buraco, FORMAS, confete } from './arte.js';
 import { rondaNatureza } from './natureza.js';
+import { campoMovel } from './movimento.js';
+import { rondaToupeiras, rondaCesto, rondaPuzzle } from './jogos2.js';
 
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
@@ -55,7 +57,7 @@ export class Jogo {
     /* 4 a 6 rondas conforme o nível (3-4 anos: no máximo 5); de 4 em 4 níveis há uma ronda bónus
        com animais, que nunca tira estrelas */
     const base = [5, 4, 6, 5, 4][nivel % 5];
-    this.total = info.estrelasMin ? Math.min(5, base) : base;
+    this.total = info.estrelasMin >= 2 ? Math.min(5, base) : base;
     this.temBonus = nivel % 4 === 0 && info.tipo !== 'animais';
     this.aDecorrer = true;
     this.aEsperar = false;
@@ -86,6 +88,7 @@ export class Jogo {
     }
     this.ronda++;
     this.aEsperar = false;
+    this.ctx.raiz.classList.remove('parado');
     this.errosRonda = 0;
     if(this.tipo === 'letras' && !(this.info.letraOpcoes > 0)) this.tipo = 'cores';   /* 3 e 4 anos: sem letras */
     if(this.tipo === 'somas' && !(this.info.somaMax > 0)) this.tipo = 'contar';       /* so a partir dos 6 anos */
@@ -97,7 +100,10 @@ export class Jogo {
     if(this.tipo === 'logica') this.rondaLogica();
     if(this.tipo === 'somas')  this.rondaSomas();
     if(['animais','frutas','legumes'].includes(this.tipo)) rondaNatureza(this, this.tipo);
-    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes'].includes(this.tipo)) this.rondaCores();
+    if(this.tipo === 'toupeiras') rondaToupeiras(this);
+    if(this.tipo === 'puzzle') rondaPuzzle(this);
+    if(this.tipo === 'cesto' && rondaCesto(this) === false) this.rondaCores();
+    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes','toupeiras','puzzle','cesto'].includes(this.tipo)) this.rondaCores();
   }
 
   diz(texto, aoFim, pista, falado){ this.ctx.voz.diz(texto, aoFim, pista, falado); }
@@ -114,6 +120,8 @@ export class Jogo {
     const objeto = usaFlor ? flor : balao;
     const nomeDe = c => usaFlor ? `a flor ${c.f}` : `o balão ${c.m}`;
 
+    /* metade das vezes os balões sobem e é preciso estoirar vários: muda a dinâmica */
+    if(!usaFlor && Math.random() < .5) return this.rondaBaloesSobem(paleta, certa);
     this.ctx.raiz.innerHTML = `<div class="alvos flutua">${opcoes.map((c, i) =>
       `<button class="alvo" data-id="${c.id}" aria-label="${usaFlor ? c.f : c.m}"
          style="--atraso:${i * 120}ms">${objeto(c.hex)}</button>`).join('')}</div>`;
@@ -134,6 +142,23 @@ export class Jogo {
       };
       b.addEventListener('click', aoClicar);
       this.limpezas.push(() => b.removeEventListener('click', aoClicar));
+    });
+  }
+
+  rondaBaloesSobem(paleta, certa){
+    const alvos = this.info.estrelasMin >= 2 ? 2 : 3;                 /* 3-4 anos: dois balões */
+    const outras = paleta.filter(c => c.id !== certa.id);
+    const lista = [];
+    for(let k = 0; k < alvos; k++) lista.push({ c: certa, certo: true });
+    for(let k = 0; k < 5; k++) lista.push({ c: outras[k % outras.length], certo: false });
+    const elementos = baralha(lista).map(e => ({ html: balao(e.c.hex), certo: e.certo, rotulo: e.c.m }));
+    this.pose('apontar');
+    this.diz(`Toca no balão ${certa.m}.`, () => { if(this.aDecorrer) this.pose('repouso'); },
+             `<i class="pista-cor" style="background:${certa.hex}"></i>`);
+    campoMovel(this, {
+      elementos, modo: 'sobe', alvos,
+      aoErrar: b => this.responde(b, false, `Essa não é. Procura o balão ${certa.m}.`),
+      aoAcertarFinal: b => this.responde(b, true, [pick(BEM), `É o balão ${certa.m}.`], certa.hex),
     });
   }
 
