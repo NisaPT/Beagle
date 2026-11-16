@@ -84,7 +84,7 @@ export const BICHOS = {
     </svg>`,
 
   /* o pato é agora o pato 3D (imagem tirada do modelo); como os outros bichos olha para a direita */
-  pato: () => `<img class="bicho-img bicho-pato" src="./media/img/pato.webp" alt="" draggable="false" style="width:100%;height:100%;display:block;object-fit:contain;transform:scaleX(-1)">`,
+  pato: () => `<img class="bicho-img bicho-pato" src="./media/img/3d-pato.webp" alt="" draggable="false" style="width:100%;height:100%;display:block;object-fit:contain;transform:scaleX(-1)">`,
 
   abelha: (c = '#F5C344') => `
     <svg viewBox="0 0 100 80" class="bicho bicho-abelha">

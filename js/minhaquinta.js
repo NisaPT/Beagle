@@ -84,7 +84,8 @@ const G = (id, c, k1 = .2, k2 = -.2) =>
   `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tom(c, k1)}"/><stop offset="1" stop-color="${tom(c, k2)}"/></linearGradient>`;
 const sombra = (cx = 100, cy = 130, rx = 72) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="9" fill="#3a2410" opacity=".18"/>`;
 const tel = (id, cor, d, extra = '') => `<path d="${d}" fill="url(#${id})" stroke="${cor}" stroke-width="7" stroke-linejoin="round" ${extra}/>`;
-const img = (nome, x, y, w) => `<image href="./media/img/${nome}.webp" x="${x}" y="${y}" width="${w}" height="${w}" preserveAspectRatio="xMidYMid meet"/>`;
+const imgSrc = id => ['cao', 'gato', 'vaca', 'pato'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
+const img = (nome, x, y, w) => `<image href="${imgSrc(nome)}" x="${x}" y="${y}" width="${w}" height="${w}" preserveAspectRatio="xMidYMid meet"/>`;
 
 const ARTE = {
   casa(p){ return `<defs>${G(p+'p','#FFF1DC',.1,-.08)}${G(p+'t','#D9503C')}${G(p+'d','#C98F55')}</defs>
@@ -226,7 +227,7 @@ export function desenhaQuinta(raiz, itens, novo){
       const [x, y] = pos[i % pos.length];
       const w = tamanhoBicho(b.id) * 100;
       return `<button class="bicho" data-b="${b.id}" style="--x:${x}%;--y:${y}%;--w:${w}%;--d:${(2.4 + (i * 0.7) % 2).toFixed(1)}s;--a:${(i * -.8).toFixed(1)}s;--z:${Math.round(y)}" aria-label="${b.nome}">
-        <img src="./media/img/${b.id}.webp" alt="" draggable="false"></button>`;
+        <img src="${imgSrc(b.id)}" alt="" draggable="false"></button>`;
     }).join('');
     return `<div class="lote ${novo === e.id ? 'novo' : ''}" data-ed="${e.id}">
       <button class="lote-arte" data-edificio="${e.id}" aria-label="${e.nome}">${arteEdificio(e.id)}</button>
@@ -254,7 +255,7 @@ export function desenhaLoja(raiz, itens, saldo, aba){
       else rotulo = 'Comprar';
     }
     const miniatura = (aba === 'bichos' || aba === 'amigos')
-      ? `<img src="./media/img/${x.id}.webp" alt="" draggable="false">`
+      ? `<img src="${imgSrc(x.id)}" alt="" draggable="false">`
       : arteEdificio(x.id);
     return `<div class="item-loja ${estado}" data-id="${x.id}">
       <div class="item-arte">${miniatura}</div>

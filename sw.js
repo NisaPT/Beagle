@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.17.0';
+const VERSAO = 'eab-4.17.2';
 const FICHEIROS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -133,6 +133,10 @@ const FICHEIROS = [
   './media/img/urso.webp',
   './media/img/uvas.webp',
   './media/img/vaca.webp',
+  './media/img/3d-cao.webp',
+  './media/img/3d-gato.webp',
+  './media/img/3d-vaca.webp',
+  './media/img/3d-pato.webp',
   './media/img/zebra.webp',
   './modelos/ava.js',
   './modelos/avo.js'
@@ -141,7 +145,7 @@ const FICHEIROS = [
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(VERSAO)
-      .then(c => c.addAll(FICHEIROS))
+      .then(c => Promise.all(FICHEIROS.map(f => c.add(new Request(f, { cache: 'reload' })))))   /* 'reload': ignora a cache HTTP, para as imagens novas não ficarem velhas */
       .then(() => self.skipWaiting())
   );
 });
@@ -184,7 +188,7 @@ self.addEventListener('fetch', e => {
   /* restantes ficheiros: cache primeiro e atualização em segundo plano */
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(emCache => {
-      const rede = fetch(req).then(r => {
+      const rede = fetch(req, { cache: 'no-cache' }).then(r => {
         if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); }
         return r;
       }).catch(() => emCache);

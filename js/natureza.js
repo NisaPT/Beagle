@@ -2,6 +2,7 @@
    Cada item: [ficheiro, nome, artigo, nível (1 = mais conhecido), extras].
    O nível e os modos de jogo dependem da idade (ver idades.js). */
 
+const imgSrc = id => ['cao', 'gato', 'vaca', 'pato'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
 const rnd = n => Math.floor(Math.random() * n);
 /* animais com modelo 3D (animais3d.js): nas cartas ganham vida — andam no lugar e saltam ao toque */
 const A3D = new Set(['cao', 'gato', 'vaca', 'pato']);
@@ -79,7 +80,7 @@ const LEGUMES = [
 
 const fazItens = lista => lista.map(([id, nome, art, nivel, x]) => ({ id, nome, art, nivel, ...(x || {}) }));
 export const ITENS = { animais:fazItens(ANIMAIS), frutas:fazItens(FRUTAS), legumes:fazItens(LEGUMES) };
-export const TODAS_AS_IMAGENS = [...ANIMAIS, ...FRUTAS, ...LEGUMES].map(x => `./media/img/${x[0]}.webp`);
+export const TODAS_AS_IMAGENS = [...ANIMAIS, ...FRUTAS, ...LEGUMES].map(x => imgSrc(x[0]));
 
 const plural = it => it.art === 'os' || it.art === 'as';
 const masc = it => it.art === 'o' || it.art === 'os';
@@ -125,7 +126,7 @@ export function rondaNatureza(jogo, cat){
     const cols = opcoes.length <= 3 ? opcoes.length : opcoes.length === 4 ? 2 : 3;
     jogo.ctx.raiz.innerHTML = `<div class="cartas-nat" style="--cols:${cols}" data-n="${opcoes.length}">${opcoes.map((it, i) =>
       `<button class="carta-nat" data-id="${it.id}" aria-label="${it.nome}" style="--atraso:${i * 90}ms">
-         <img src="./media/img/${it.id}.webp" alt="" draggable="false" decoding="async"${atr3d(it.id)}>
+         <img src="${imgSrc(it.id)}" alt="" draggable="false" decoding="async"${atr3d(it.id)}>
          ${legenda ? `<span class="legenda-nat">${it.nome}</span>` : ''}
        </button>`).join('')}</div>`;
     vida3d(jogo.ctx.raiz);
@@ -232,7 +233,7 @@ export function rondaNatureza(jogo, cat){
     const porLinha = n <= 3 ? n : n <= 6 ? 3 : 5;
     jogo.ctx.raiz.innerHTML = `<div class="contagem-nat">
         <div class="grupo-nat" style="--por:${porLinha}">${Array.from({length:n}, (_, i) =>
-          `<img src="./media/img/${it.id}.webp" alt="" draggable="false"${n <= 4 ? atr3d(it.id) : ''} style="--giro:${rnd(30) - 15}deg;--atraso:${i * 70}ms">`).join('')}</div>
+          `<img src="${imgSrc(it.id)}" alt="" draggable="false"${n <= 4 ? atr3d(it.id) : ''} style="--giro:${rnd(30) - 15}deg;--atraso:${i * 70}ms">`).join('')}</div>
         <div class="opcoes-logica opcoes-num" style="--cols:${op.length > 3 ? 4 : op.length}">${op.map(v =>
           `<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
     vida3d(jogo.ctx.raiz);
@@ -255,7 +256,7 @@ export function rondaNatureza(jogo, cat){
     if(pot.length < 4) return false;
     const it = escolheResposta(pot);
     jogo.ctx.raiz.innerHTML = `<div class="contagem-nat tipo-nat">
-        <div class="grupo-nat um"><img src="./media/img/${it.id}.webp" alt="" draggable="false"></div>
+        <div class="grupo-nat um"><img src="${imgSrc(it.id)}" alt="" draggable="false"></div>
         <div class="opcoes-logica opcoes-tipo">
           <button class="botao opcao-logica" data-v="fruta">🍎 Fruta</button>
           <button class="botao opcao-logica" data-v="legume">🥕 Legume</button>
