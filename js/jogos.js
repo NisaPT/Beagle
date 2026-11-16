@@ -35,6 +35,14 @@ export class Jogo {
     this.ctx = ctx;
     this.aDecorrer = false;
     this.limpezas = [];
+    this.temporizadores = new Set();
+  }
+
+  /* setTimeout que morre com a ronda: sair do nivel nunca deixa avancar o jogo seguinte */
+  espera(fn, ms){
+    const id = setTimeout(() => { this.temporizadores.delete(id); if(this.aDecorrer) fn(); }, ms);
+    this.temporizadores.add(id);
+    return id;
   }
 
   comeca(nivel, info){
@@ -57,7 +65,10 @@ export class Jogo {
     delete document.body.dataset.jogo;
   }
 
-  desliga(){ this.limpezas.forEach(f => f()); this.limpezas = []; }
+  desliga(){
+    this.limpezas.forEach(f => f()); this.limpezas = [];
+    this.temporizadores.forEach(clearTimeout); this.temporizadores.clear();
+  }
 
   proxima(){
     if(!this.aDecorrer) return;
@@ -65,7 +76,9 @@ export class Jogo {
     if(this.ronda >= RONDAS) return this.acaba();
     this.ronda++;
     this.aEsperar = false;
+    this.errosRonda = 0;
     if(this.tipo === 'letras' && !(this.info.letraOpcoes > 0)) this.tipo = 'cores';   /* 3 e 4 anos: sem letras */
+    if(this.tipo === 'somas' && !(this.info.somaMax > 0)) this.tipo = 'contar';       /* so a partir dos 6 anos */
     if(this.tipo === 'cores')  this.rondaCores();
     if(this.tipo === 'contar') this.rondaContar();
     if(this.tipo === 'formas') this.rondaFormas();
@@ -77,7 +90,7 @@ export class Jogo {
     if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes'].includes(this.tipo)) this.rondaCores();
   }
 
-  diz(texto, aoFim, pista){ this.ctx.voz.diz(texto, aoFim, pista); }
+  diz(texto, aoFim, pista, falado){ this.ctx.voz.diz(texto, aoFim, pista, falado); }
   som(nome, n){ if(this.ctx.som) this.ctx.som.efeito(nome, n); }
   pose(p){ this.ctx.mascote.faz(p); }
 
@@ -147,7 +160,7 @@ export class Jogo {
         conta.classList.remove('bate'); void conta.offsetWidth; conta.classList.add('bate');
         this.som('conta', contados);
         this.ctx.voz.diz(NUM[contados] || String(contados));
-        if(contados === n) setTimeout(() => this.perguntaQuantos(n), 700);
+        if(contados === n) this.espera(() => this.perguntaQuantos(n), 700);
       };
       b.addEventListener('click', aoClicar);
       this.limpezas.push(() => b.removeEventListener('click', aoClicar));
@@ -158,9 +171,12 @@ export class Jogo {
     if(!this.aDecorrer) return;
     const caixa = this.ctx.raiz.querySelector('#numeros');
     if(!caixa) return;
-    const max = Math.min(10, Math.max(5, n + 2));
-    caixa.innerHTML = Array.from({length:max}, (_, i) =>
-      `<button class="num" data-n="${i + 1}">${i + 1}</button>`).join('');
+    /* poucas opcoes para os pequenos: 3 (3-4 anos), 4, 5, 6 -- sempre com a certa e em ordem */
+    const teto = Math.max(n, Math.min(10, this.info.maxConta || 5));
+    const quantas = Math.max(2, Math.min(this.info.numOpcoes || 5, teto));
+    const outros = baralha(Array.from({length:teto}, (_, i) => i + 1).filter(v => v !== n)).slice(0, quantas - 1);
+    const valores = [n, ...outros].sort((a, b) => a - b);
+    caixa.innerHTML = valores.map(v => `<button class="num" data-n="${v}">${v}</button>`).join('');
     caixa.hidden = false;
     this.pose('apontar');
     this.diz('Então, quantos biscoitos eram?');
@@ -209,7 +225,7 @@ export class Jogo {
   ligaArrasto(peca, formaCerta, cor){
     if(!peca) return;
     const buracos = [...this.ctx.raiz.querySelectorAll('.buraco')];
-    let a_arrastar = false, dx = 0, dy = 0, idPonteiro = null;
+    let a_arrastar = false, dx = 0, dy = 0, idPonteiro = null, base = null;
 
     const centro = el => {
       const r = el.getBoundingClientRect();
@@ -220,6 +236,7 @@ export class Jogo {
       if(this.aEsperar || a_arrastar) return;
       a_arrastar = true; idPonteiro = e.pointerId;
       const c = centro(peca);
+      base = c;                                   /* centro de repouso, medido antes de qualquer transformacao */
       dx = e.clientX - c.x; dy = e.clientY - c.y;
       peca.classList.add('a-arrastar');
       try{ peca.setPointerCapture(e.pointerId); }catch(err){}
@@ -227,14 +244,8 @@ export class Jogo {
     const move = e => {
       if(!a_arrastar || e.pointerId !== idPonteiro) return;
       e.preventDefault();
-      const base = peca.dataset.base ? JSON.parse(peca.dataset.base) : null;
-      if(!base){
-        const c = centro(peca);
-        peca.dataset.base = JSON.stringify({ x:c.x, y:c.y });
-      }
-      const b = JSON.parse(peca.dataset.base);
       peca.style.transform =
-        `translate(${e.clientX - dx - b.x}px, ${e.clientY - dy - b.y}px) scale(1.08) rotate(0deg)`;
+        `translate(${e.clientX - dx - base.x}px, ${e.clientY - dy - base.y}px) scale(1.08) rotate(0deg)`;
     };
     const cima = e => {
       if(!a_arrastar || e.pointerId !== idPonteiro) return;
@@ -252,17 +263,17 @@ export class Jogo {
       const limite = Math.max(70, peca.getBoundingClientRect().width * .75);
       if(maisPerto && menor < limite && maisPerto.dataset.forma === formaCerta){
         const cb = centro(maisPerto);
-        const b = JSON.parse(peca.dataset.base || '{"x":0,"y":0}');
+        const b = base || { x:c.x, y:c.y };
         peca.style.transition = 'transform .22s cubic-bezier(.34,1.4,.64,1)';
         peca.style.transform = `translate(${cb.x - b.x}px, ${cb.y - b.y}px) scale(.82)`;
         this.som('encaixe');
-        setTimeout(() => { peca.classList.add('encaixada'); maisPerto.classList.add('cheio'); }, 180);
+        this.espera(() => { peca.classList.add('encaixada'); maisPerto.classList.add('cheio'); }, 180);
         this.responde(maisPerto, true,
           [pick(BEM), `É ${FORMAS[formaCerta].artigo} ${FORMAS[formaCerta].nome}.`], cor);
       }else{
         peca.style.transition = 'transform .3s cubic-bezier(.34,1.5,.64,1)';
         peca.style.transform = '';
-        setTimeout(() => peca.style.transition = '', 320);
+        this.espera(() => peca.style.transition = '', 320);
         if(maisPerto && menor < limite){
           this.responde(maisPerto, false,
             `Esse buraco não é. Procura ${FORMAS[formaCerta].artigo} ${FORMAS[formaCerta].nome}.`, cor);
@@ -295,14 +306,61 @@ export class Jogo {
     this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?[pick(BEM),`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra.toLowerCase()}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
 
+  /* 3-4 anos: "Encontra o igual" -- um modelo e 2 ou 3 objetos, sem cartas viradas.
+     5 anos ou mais: memoria de cartas (3, 4 e 5 pares). */
   rondaMemoria(){
-    const icons=baralha(['🍎','🐝','🌻','🚲','🐟','⭐']).slice(0,Math.max(2,Math.min(this.info.paresMax||6,this.info.pares||4))), seq=baralha([...icons,...icons]);
-    this.ctx.raiz.innerHTML=`<div class="memoria-grelha">${seq.map((v,i)=>`<button class="carta-memoria" data-i="${i}" data-v="${v}" aria-label="Carta ${i+1}">❔</button>`).join('')}</div><p class="instrucao-memoria">Encontra os pares iguais.</p>`;
-    let aberto=null, bloqueado=false, paresFeitos=0, falhas=0;
+    if(this.info.memoriaIgual > 0) return this.rondaMemoriaIgual();
+    const TODOS = ['🍎','🐝','🌻','🚲','🐟','⭐'];
+    const icons = baralha(TODOS.slice()).slice(0, Math.max(2, Math.min(6, this.info.pares || 3)));
+    const seq = baralha([...icons, ...icons]);
+    this.ctx.raiz.innerHTML = `<div class="memoria-grelha">${seq.map((v, i) =>
+      `<button class="carta-memoria" data-i="${i}" data-v="${v}" aria-label="Carta ${i + 1}">❔</button>`).join('')}</div><p class="instrucao-memoria">Encontra os pares iguais.</p>`;
+    let aberto = null, bloqueado = false, paresFeitos = 0, falhas = 0;
     /* margem justa: cada par pode falhar uma vez (e mais uma de folga) sem perder estrelas */
-    const margem=icons.length+1;
-    const cartas=[...this.ctx.raiz.querySelectorAll('.carta-memoria')]; this.pose('apontar');this.diz('Descobre os pares iguais.');
-    cartas.forEach(b=>{const f=()=>{if(bloqueado||b.classList.contains('virada')||b.classList.contains('par'))return;b.textContent=b.dataset.v;b.classList.add('virada');if(!aberto){aberto=b;return;}if(aberto.dataset.v===b.dataset.v){aberto.classList.add('par');b.classList.add('par');aberto=null;paresFeitos++;this.som('certo');if(paresFeitos===icons.length){this.responde(b,true,'Encontraste todos os pares!','#8E6BC8');}}else{falhas++;if(falhas>margem){if(this.ctx.aoErro)this.ctx.aoErro(this.tipo);this.erros++;}bloqueado=true;const anterior=aberto;aberto=null;setTimeout(()=>{anterior.textContent='❔';b.textContent='❔';anterior.classList.remove('virada');b.classList.remove('virada');bloqueado=false;},850);}};b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
+    const margem = icons.length + 1;
+    const cartas = [...this.ctx.raiz.querySelectorAll('.carta-memoria')];
+    this.pose('apontar'); this.diz('Descobre os pares iguais.');
+    cartas.forEach(b => {
+      const f = () => {
+        if(bloqueado || b.classList.contains('virada') || b.classList.contains('par')) return;
+        b.textContent = b.dataset.v; b.classList.add('virada');
+        if(!aberto){ aberto = b; return; }
+        if(aberto.dataset.v === b.dataset.v){
+          aberto.classList.add('par'); b.classList.add('par'); aberto = null; paresFeitos++; this.som('certo');
+          if(paresFeitos === icons.length) this.responde(b, true, 'Encontraste todos os pares!', '#8E6BC8');
+        }else{
+          falhas++;
+          if(falhas > margem){ if(this.ctx.aoErro) this.ctx.aoErro(this.tipo); this.erros++; }
+          bloqueado = true;
+          const anterior = aberto; aberto = null;
+          this.espera(() => {
+            anterior.textContent = '❔'; b.textContent = '❔';
+            anterior.classList.remove('virada'); b.classList.remove('virada');
+            bloqueado = false;
+          }, 850);
+        }
+      };
+      b.addEventListener('click', f);
+      this.limpezas.push(() => b.removeEventListener('click', f));
+    });
+  }
+
+  rondaMemoriaIgual(){
+    const TODOS = ['🍎','🐝','🌻','🚲','🐟','⭐','🐶','🚗'];
+    const n = Math.max(2, Math.min(3, this.info.memoriaIgual));
+    const [modelo, ...outros] = baralha(TODOS.slice());
+    const opcoes = baralha([modelo, ...outros.slice(0, n - 1)]);
+    this.ctx.raiz.innerHTML = `<div class="desafio-texto"><div class="modelo-igual" style="font-size:clamp(3.4rem,18vw,5.5rem);line-height:1.1">${modelo}</div>
+      <p>Encontra o igual.</p>
+      <div class="opcoes-logica">${opcoes.map(v => `<button class="botao opcao-logica" data-v="${v}" style="font-size:clamp(2.2rem,12vw,3.6rem)">${v}</button>`).join('')}</div></div>`;
+    this.pose('apontar');
+    /* a voz dos avos nao muda: usa-se a frase que ja existe gravada */
+    this.diz('Encontra o igual.', () => { if(this.aDecorrer) this.pose('repouso'); }, `<span style="font-size:2rem">${modelo}</span>`, 'Descobre os pares iguais.');
+    this.ctx.raiz.querySelectorAll('[data-v]').forEach(b => {
+      const f = () => this.responde(b, b.dataset.v === modelo, b.dataset.v === modelo ? [pick(BEM)] : 'Pensa outra vez. Olha bem para a imagem.', '#8E6BC8');
+      b.addEventListener('click', f);
+      this.limpezas.push(() => b.removeEventListener('click', f));
+    });
   }
 
   rondaLogica(){
@@ -350,18 +408,25 @@ export class Jogo {
       confete(document.body, r.left + r.width / 2, r.top + r.height / 2,
               [cor || '#F5B921', '#F7C21B', '#fff', '#2C6FD6']);
       this.pose('festejar');
-      this.ctx.aoAcertar(this.tipo);
-      this.diz(elogio(), () => {
+      this.ctx.aoAcertar(this.tipo, this.errosRonda === 0);
+      /* de duas em duas rondas repete-se o nome do alvo ("É o balão vermelho"), mas só com frases
+         que ja existem gravadas na voz dos avos: nunca se troca por outra voz */
+      let fala = elogio();
+      if(Array.isArray(texto) && texto.length > 1 && this.ronda % 2 === 1){
+        const lista = [fala, ...texto.slice(1)];
+        if(this.ctx.som && this.ctx.som.temClips && this.ctx.som.temClips(lista)) fala = lista;
+      }
+      this.diz(fala, () => {
         if(!this.aDecorrer) return;
         this.pose('repouso');
-        setTimeout(() => this.proxima(), 300);
+        this.espera(() => this.proxima(), 300);
       });
     }else{
-      this.erros++;
+      this.erros++; this.errosRonda++;
       if(this.ctx.aoErro) this.ctx.aoErro(this.tipo);
       this.som('errado');
       elemento.classList.add('errado');
-      setTimeout(() => elemento.classList.remove('errado'), 420);
+      this.espera(() => elemento.classList.remove('errado'), 420);
       this.pose('encorajar');
       this.diz(texto, () => { if(this.aDecorrer) this.pose('apontar'); });
     }
@@ -371,7 +436,7 @@ export class Jogo {
     this.aDecorrer = false;
     this.desliga();
     delete document.body.dataset.jogo;
-    const estrelas = this.erros <= 1 ? 3 : this.erros <= 3 ? 2 : 1;
+    const estrelas = Math.max(this.erros <= 1 ? 3 : this.erros <= 3 ? 2 : 1, this.info.estrelasMin || 1);   /* 3-4 anos: nunca menos de 2 */
     this.ctx.raiz.innerHTML = '';
     this.pose('festejar');
     this.ctx.aoAcabar(this.nivel, estrelas);

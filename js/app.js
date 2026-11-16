@@ -119,7 +119,13 @@ const Estado = {
     if(!this.amigos) this.amigos = [];
     this.guarda();
   },
+  guardaLogo(){                      /* agrupa gravacoes seguidas (cada resposta) numa so */
+    if(this.apagando) return;
+    clearTimeout(this._tg); this._tg = setTimeout(() => this.guarda(), 800);
+  },
   guarda(){
+    if(this.apagando) return;
+    clearTimeout(this._tg); this._tg = 0;
     const dados = {
       nivel:this.nivel, estrelas:this.estrelas, quinta:this.quinta, companheiro:this.companheiro,
       codigo:this.codigo, amigos:this.amigos, removidos:this.removidos || [], nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
@@ -190,10 +196,18 @@ document.addEventListener('freeze', silencio);
 addEventListener('resize', redimensiona);
 addEventListener('orientationchange', () => setTimeout(redimensiona, 160));
 
+let acumulado = 0;
 function anima(){
   requestAnimationFrame(anima);
-  const dt = Math.min(relogio.getDelta(), .05);
+  const bruto = relogio.getDelta();
   if(pausado) return;
+  /* nos menus 30 imagens por segundo chegam; nos jogos mantém-se o ritmo total */
+  const ecraAtual = document.body.dataset.ecra;
+  if(ecraAtual && ecraAtual !== 'jogo' && ecraAtual !== 'escolher'){
+    acumulado += bruto;
+    if(acumulado < .030) return;
+  }
+  const dt = Math.min(acumulado || bruto, .05); acumulado = 0;
   const t = relogio.elapsedTime;
   const k = 1 - Math.exp(-3.4 * dt);
   /* ecrã estreito (telemóvel na vertical): afasta a câmara para os dois avós caberem */
@@ -213,8 +227,8 @@ function anima(){
   }
   vistaPos.lerp(posAlvo, k); vistaAlvo.lerp(alvoOlhar, k);
   camara.position.copy(vistaPos); camara.lookAt(vistaAlvo);
-  if(avo) avo.atualiza(dt, t);
-  if(ava) ava.atualiza(dt, t);
+  if(avo && avo.grupo.visible) avo.atualiza(dt, t);      /* o que está escondido não se anima */
+  if(ava && ava.grupo.visible) ava.atualiza(dt, t);
   if(!modoSem3D) renderizador.render(cena, camara);
 }
 
@@ -224,7 +238,7 @@ function mostra(id){
   document.querySelectorAll('.ecra').forEach(s => s.classList.remove('on'));
   if(id) $(id).classList.add('on');
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
-  pausado = id === '#ecra-carregar' || id === '#ecra-quinta';   /* nos outros menus o avô/avó faz companhia num canto */
+  pausado = id === '#ecra-carregar' || id === '#ecra-quinta' || id === '#ecra-porta' || id === '#ecra-pais';   /* nos outros menus o avô/avó faz companhia num canto */
   if(id === '#ecra-inicio' || id === '#ecra-nome' || id === '#ecra-idade') vista = VISTAS.dois;      /* os dois avós */
   else if(id === '#ecra-mundos' || id === '#ecra-mapa' || id === '#ecra-ranking') vista = VISTAS.um;                           /* o que foi escolhido */
   if(Q3D) Q3D.ativa(id === '#ecra-quinta');
@@ -298,12 +312,16 @@ $('#lista-mundos').onclick = e => {
 
 /* ================================================= AMIGOS (cloud) ========= */
 /* códigos dos perfis deste aparelho: não contam como amigos (já aparecem como perfis) */
+let _cacheLocais = null, _chaveLocais = '';
 function codigosLocais(){
+  const chave = (localStorage.getItem('eab-perfis') || '') + '|' + Estado.codigo + '|' + Estado.perfilId;
+  if(_cacheLocais && chave === _chaveLocais) return _cacheLocais;
   const s = new Set([Estado.codigo]);
   for(const p of Estado.listaPerfis()){
     if(p.id === Estado.perfilId) continue;
     try{ const d = JSON.parse(localStorage.getItem('eab-perfil-' + p.id) || 'null'); if(d && d.codigo) s.add(d.codigo); }catch(e){}
   }
+  _cacheLocais = s; _chaveLocais = chave;
   return s;
 }
 function limpaAmigosLocais(){
@@ -444,6 +462,7 @@ function atualizaMissao(){
 }
 
 function abreMapa(suave, mundo){
+  if(limiteAtingido()) setTimeout(mostraAvisoLimite, 300);
   mundoVisto = mundo !== undefined ? mundo : mundoDoNivel(Estado.nivel);
   desenhaMapa(telaMapa, Estado, amigosNoMapa(), mundoVisto);
   $('#faixa-mundo').textContent = MUNDOS[mundoVisto].nome;
@@ -462,15 +481,28 @@ telaMapa.addEventListener('click', e => {
 
 /* Registo local e adaptativo: apenas contagens agregadas por competência. */
 function atualizaTempoUso(){
-  const agora=Date.now(), delta=Math.max(0,Math.min(300,Math.round((agora-(Estado.inicioSessao||agora))/1000)));
-  Estado.tempoHoje=(Estado.tempoHoje||0)+delta; Estado.inicioSessao=agora; Estado.diaUso=chaveDia(); Estado.guarda();
+  const agora=Date.now(), hoje=chaveDia();
+  if(Estado.diaUso && Estado.diaUso !== hoje) Estado.tempoHoje = 0;          /* novo dia, contagem a zeros */
+  const delta=Math.max(0,Math.min(300,Math.round((agora-(Estado.inicioSessao||agora))/1000)));
+  Estado.tempoHoje=(Estado.tempoHoje||0)+delta; Estado.inicioSessao=agora; Estado.diaUso=hoje;
+  if(delta) Estado.guardaLogo();
+  /* o aviso nunca interrompe uma ronda: espera pelo mapa, pelos menus ou pela quinta */
+  if(limiteAtingido() && ['mundos','mapa','ranking','quinta'].includes(document.body.dataset.ecra)) mostraAvisoLimite();
+}
+function limiteAtingido(){
+  return Estado.limiteMinutos > 0 && (Estado.tempoHoje || 0) >= Estado.limiteMinutos * 60;
 }
 function mostraAvisoLimite(){
-  const aviso=document.createElement('div'); aviso.className='aviso-limite';
-  aviso.innerHTML='<strong>🌿 Hora de descansar!</strong><p>O tempo de aprendizagem definido pelos adultos foi atingido. Amanhã há mais aventuras.</p><button class="botao" type="button">Voltar ao mapa</button>';
-  document.body.append(aviso); aviso.querySelector('button').onclick=()=>{aviso.remove();abreMapa(false);};
+  if(document.querySelector('.aviso-limite')) return;
+  Voz.cala(); Fala.esconde();
+  const aviso=document.createElement('div'); aviso.className='aviso-limite'; aviso.setAttribute('role','alertdialog');
+  aviso.innerHTML='<strong>🌿 Hora de descansar!</strong><p>O tempo de aprendizagem definido pelos adultos foi atingido. Amanhã há mais aventuras.</p><button class="botao" type="button" data-a="quinta">🏡 Ver a minha quinta</button> <button class="botao calma" type="button" data-a="pais">⚙ Área dos pais</button>';
+  document.body.append(aviso);
+  aviso.querySelector('[data-a=quinta]').onclick=()=>{aviso.remove();abreQuinta();};
+  aviso.querySelector('[data-a=pais]').onclick=()=>{aviso.remove();$('#btn-pais').click();};
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden) atualizaTempoUso();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){ atualizaTempoUso(); Estado.guarda(); }});
+addEventListener('pagehide',()=>{ Estado.guarda(); });
 setInterval(()=>{if(!document.hidden) atualizaTempoUso();},30000);
 
 /* ===================================================== JOGO ============== */
@@ -497,14 +529,18 @@ const jogo = new Jogo({
   voz: Voz,
   som: Som,
   mascote: { faz: p => activo && activo.faz(p) },
-  aoAcertar: tipo => {
+  aoAcertar: (tipo, aPrimeira) => {
     const k=tipo||jogo.tipo; if(!Estado.aprendizagem[k]) Estado.aprendizagem[k]={certas:0,erros:0};
-    Estado.aprendizagem[k].certas++; Estado.guarda();
+    const ap = Estado.aprendizagem[k];
+    ap.certas++;
+    /* ultimas 20 rondas: 1 = acertou logo, 0 = precisou de mais tentativas (a dificuldade reage a isto) */
+    ap.rec = (ap.rec || []).concat(aPrimeira === false ? 0 : 1).slice(-20);
+    Estado.guardaLogo();
     $('#conta-estrelas').textContent = Estado.saldo();
   },
   aoErro: tipo => {
     const k=tipo||jogo.tipo; if(!Estado.aprendizagem[k]) Estado.aprendizagem[k]={certas:0,erros:0};
-    Estado.aprendizagem[k].erros++; Estado.guarda();
+    Estado.aprendizagem[k].erros++; Estado.guardaLogo();
   },
   aoSair: () => voltaAoMapa(),
   aoAcabar: (nivel, estrelas) => {
@@ -518,18 +554,20 @@ const jogo = new Jogo({
 });
 
 function comecaNivel(n){
+  if(limiteAtingido()){ mostraAvisoLimite(); return; }
   const P = perfilIdade(Estado.idade);
   const info = {...infoNivel(n)};       /* o tipo vem da rotação da idade (mapa.js) */
   const chave = info.tipo;
   const m = Estado.aprendizagem[chave] || {certas:0,erros:0};
-  const total = m.certas + m.erros, taxa = total ? m.certas / total : .7;
-  const ajuste = total >= 5 ? (taxa >= .85 ? 1 : taxa <= .5 ? -1 : 0) : 0;
+  const rec = Array.isArray(m.rec) ? m.rec : [];
+  const taxa = rec.length ? rec.reduce((a, b) => a + b, 0) / rec.length : .7;
+  const ajuste = rec.length >= 5 ? (taxa >= .85 ? 1 : taxa <= .5 ? -1 : 0) : 0;   /* janela das ultimas rondas, nao toda a vida */
   info.dificuldade = Math.max(1, Math.min(4, (info.dificuldade||1) + ajuste));
   info.opcoes   = Math.max(2, Math.min(P.opcoes,   (info.opcoes||3) + ajuste));
   info.maxConta = Math.max(3, Math.min(P.maxConta, (info.maxConta||5) + ajuste));
   info.formas   = Math.min(info.formas || 2, P.formas);
   info.paleta   = Math.min(info.paleta || 4, P.paleta);
-  info.pares = P.pares; info.paresMax = P.pares; info.numOpcoes = P.numOpcoes; info.memoriaIgual = P.memoriaIgual; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
+  info.pares = P.pares; info.numOpcoes = P.numOpcoes; info.memoriaIgual = P.memoriaIgual; info.estrelasMin = P.estrelasMin || 1; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
   info.somaMax = P.somaMax ? P.somaMax + (ajuste > 0 ? 5 : 0) : 0;
   info.imagens = P.imagens;
   info.nat = P.nat;
@@ -538,7 +576,6 @@ function comecaNivel(n){
   $('#barra').hidden = false;
   vista = VISTAS.um;
   Som.efeito('nivel');
-  Voz.diz(`Nível ${info.noMundo}!`, null, null, 'Vamos lá!');
   jogo.comeca(n, info);
 }
 
@@ -717,6 +754,7 @@ function desenhaPais(){
     selPerfil.value = Estado.perfilId;
   }
   const selIdade=$('#idade-crianca'); if(selIdade) selIdade.value=String(Estado.idade||5);
+  const selLimite=$('#limite-tempo'); if(selLimite) selLimite.value=String(Estado.limiteMinutos);
   const endpoint=$('#tts-endpoint'); if(endpoint) endpoint.value=Som.endpointNeural||'';
   desenhaVoz();
   desenhaConta();
@@ -807,7 +845,9 @@ $('#limite-tempo')?.addEventListener('change',e=>{Estado.limiteMinutos=Math.max(
 $('#btn-apagar-perfil')?.addEventListener('click',()=>{
   if(!confirm('Apagar permanentemente o progresso deste perfil neste dispositivo?')) return;
   try{ const ap=JSON.parse(localStorage.getItem('eab-apagados')||'[]'); ap.push(Estado.perfilId); localStorage.setItem('eab-apagados',JSON.stringify(ap)); }catch(e){}
+  Estado.apagando = true; clearTimeout(Estado._tg);          /* nada volta a gravar o perfil apagado */
   localStorage.removeItem('eab-perfil-'+Estado.perfilId);
+  localStorage.removeItem('eab');                              /* copia antiga que ressuscitava o progresso */
   const ps=Estado.listaPerfis().filter(p=>p.id!==Estado.perfilId);
   if(!ps.length) ps.push({id:'principal',nome:'Criança 1'});
   localStorage.setItem('eab-perfis',JSON.stringify(ps));

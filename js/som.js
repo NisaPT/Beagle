@@ -242,6 +242,13 @@ export const Som = {
 
   get vozPronta(){ return !!this.pacotes[this.personagem]; },
 
+  /* todas as frases existem gravadas na voz dos avós? (com voz do aparelho ou neural, qualquer frase serve) */
+  temClips(lista){
+    if(this.modo === 'aparelho' || this.endpointNeural) return true;
+    const v = this.pacotes[this.personagem];
+    return !!v && lista.every(t => v[t]);
+  },
+
   async buffer(texto){
     const p = this.personagem;
     const chave = p + '|' + texto;
@@ -257,6 +264,9 @@ export const Som = {
         if(r && r.then) r.then(ok, erro);
       });
       this.buffers[chave] = buf;
+      /* no maximo ~80 frases descodificadas em memoria; as mais antigas saem primeiro */
+      const chaves = Object.keys(this.buffers);
+      if(chaves.length > 80) delete this.buffers[chaves[0]];
       return buf;
     }catch(e){ return null; }
   },

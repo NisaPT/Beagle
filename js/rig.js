@@ -343,7 +343,7 @@ export class Rig {
 /* ---------- cena partilhada ---------- */
 export function criaCena(lona){
   const renderizador = new THREE.WebGLRenderer({ canvas:lona, antialias:true, alpha:true });
-  renderizador.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+  renderizador.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   renderizador.outputColorSpace = THREE.SRGBColorSpace;
   renderizador.toneMapping = THREE.ACESFilmicToneMapping;
   renderizador.toneMappingExposure = 1.12;

@@ -47,7 +47,7 @@ const DEGRAUS = [
 ];
 
 export function infoNivel(g){
-  const degrau = Math.min(DEGRAUS.length - 1, Math.floor((g - 1) / 55));
+  const degrau = Math.min(DEGRAUS.length - 1, Math.floor((g - 1) / 50));
   return {
     n: g,
     tipo: TIPOS[(g - 1) % TIPOS.length],

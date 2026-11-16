@@ -1117,10 +1117,13 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.17.2"></script>
+<script type="module" src="./js/app.js?v=4.18.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
-  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW',e)));
+  addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{
+    /* vozes, modelos e imagens descarregam-se depois do arranque, sem atrasar o jogo */
+    setTimeout(()=>{ try{ (r.active||navigator.serviceWorker.controller).postMessage({tipo:'precarrega'}); }catch(e){} }, 4000);
+  }).catch(e=>console.warn('SW',e)));
 }
 </script>
 </body>

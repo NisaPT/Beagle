@@ -1,7 +1,7 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.17.2';
-const FICHEIROS = [
+const VERSAO = 'eab-4.18.0';
+const FICHEIROS_TODOS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
   './fonts/fredoka-latin-500-normal.woff2',
@@ -142,10 +142,17 @@ const FICHEIROS = [
   './modelos/avo.js'
 ];
 
+/* Duas fases: o essencial (pequeno) instala-se já e bloqueia a instalação se falhar;
+   o resto (vozes, modelos, imagens ~30 MB) descarrega-se em segundo plano e tolera falhas.
+   Nada disto altera os ficheiros de voz: só a forma de os guardar em cache. */
+const PESADO = /^\.\/(js\/voz_[fm]\.js|modelos\/|media\/img\/|media\/ava-intro)/;
+const ESSENCIAL = FICHEIROS_TODOS.filter(f => !PESADO.test(f));
+const RESTO = FICHEIROS_TODOS.filter(f => PESADO.test(f));
+
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(VERSAO)
-      .then(c => Promise.all(FICHEIROS.map(f => c.add(new Request(f, { cache: 'reload' })))))   /* 'reload': ignora a cache HTTP, para as imagens novas não ficarem velhas */
+      .then(c => Promise.all(ESSENCIAL.map(f => c.add(new Request(f, { cache: 'reload' })))))
       .then(() => self.skipWaiting())
   );
 });
@@ -157,6 +164,31 @@ self.addEventListener('activate', e => {
       .then(() => self.clients.claim())
   );
 });
+
+/* A página pede o resto em segundo plano depois de arrancar (assim a ativação não fica presa a 30 MB).
+   Uma a uma, sem rebentar com a rede; as que já estão na cache saltam-se. */
+self.addEventListener('message', e => {
+  if(!e.data || e.data.tipo !== 'precarrega') return;
+  e.waitUntil(caches.open(VERSAO).then(async c => {
+    for(const f of RESTO){
+      try{ if(!(await c.match(f))) await c.add(new Request(f, { cache: 'reload' })); }catch(err){}
+    }
+  }));
+});
+
+/* rede primeiro, mas com limite de tempo: com Wi-Fi mau cai logo para a cache */
+function redePrimeiro(req, ms){
+  return new Promise(resolve => {
+    let feito = false;
+    const cai = () => caches.match(req, { ignoreSearch: true }).then(r => { if(!feito && r){ feito = true; resolve(r); } });
+    const t = setTimeout(cai, ms);
+    fetch(req).then(r => {
+      clearTimeout(t);
+      if(r && r.ok){ const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); }
+      if(!feito){ feito = true; resolve(r); }
+    }).catch(() => { clearTimeout(t); cai().then(() => { if(!feito){ feito = true; resolve(Response.error()); } }); });
+  });
+}
 
 self.addEventListener('fetch', e => {
   const req = e.request;
@@ -175,20 +207,28 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  /* código (js/html/css): rede primeiro, para a versão nova aparecer logo após publicar; cache se offline */
-  if (/\.(js|html|css|webmanifest)$/.test(url.pathname) && !url.pathname.startsWith('/lib/')) {
+  /* ficheiros pesados e versionados (vozes, modelos, imagens, bibliotecas): cache primeiro e SEM revalidar.
+     A VERSAO nova volta a descarregá-los; assim não se reescrevem ~20 MB a cada arranque. */
+  if (/\/(js\/voz_[fm]\.js|modelos\/|media\/|lib\/|fonts\/|icons\/)/.test(url.pathname)) {
     e.respondWith(
-      fetch(req)
-        .then(r => { if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); } return r; })
-        .catch(() => caches.match(req, { ignoreSearch: true }))
+      caches.match(req, { ignoreSearch: true }).then(emCache => emCache || fetch(req).then(r => {
+        if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); }
+        return r;
+      }))
     );
     return;
   }
 
-  /* restantes ficheiros: cache primeiro e atualização em segundo plano */
+  /* código (js/html/css): rede primeiro com limite de 3 s, para a versão nova aparecer logo após publicar */
+  if (/\.(js|html|css|webmanifest)$/.test(url.pathname)) {
+    e.respondWith(redePrimeiro(req, 3000));
+    return;
+  }
+
+  /* restantes ficheiros: cache primeiro, com atualização em segundo plano */
   e.respondWith(
     caches.match(req, { ignoreSearch: true }).then(emCache => {
-      const rede = fetch(req, { cache: 'no-cache' }).then(r => {
+      const rede = fetch(req).then(r => {
         if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); }
         return r;
       }).catch(() => emCache);
