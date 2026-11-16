@@ -3,6 +3,10 @@
    O nível e os modos de jogo dependem da idade (ver idades.js). */
 
 const rnd = n => Math.floor(Math.random() * n);
+/* animais com modelo 3D (animais3d.js): nas cartas ganham vida — andam no lugar e saltam ao toque */
+const A3D = new Set(['cao', 'gato', 'vaca', 'pato']);
+const atr3d = id => A3D.has(id) ? ` data-a3d="${id}"` : '';
+const vida3d = raiz => { if(raiz.querySelector('img[data-a3d]')) import('./animais3d.js').then(m => m.ativaCartas(raiz)).catch(e => console.warn('Animais 3D indisponíveis', e)); };
 const pick = a => a[rnd(a.length)];
 function baralha(a){
   for(let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; }
@@ -121,9 +125,10 @@ export function rondaNatureza(jogo, cat){
     const cols = opcoes.length <= 3 ? opcoes.length : opcoes.length === 4 ? 2 : 3;
     jogo.ctx.raiz.innerHTML = `<div class="cartas-nat" style="--cols:${cols}" data-n="${opcoes.length}">${opcoes.map((it, i) =>
       `<button class="carta-nat" data-id="${it.id}" aria-label="${it.nome}" style="--atraso:${i * 90}ms">
-         <img src="./media/img/${it.id}.webp" alt="" draggable="false" decoding="async">
+         <img src="./media/img/${it.id}.webp" alt="" draggable="false" decoding="async"${atr3d(it.id)}>
          ${legenda ? `<span class="legenda-nat">${it.nome}</span>` : ''}
        </button>`).join('')}</div>`;
+    vida3d(jogo.ctx.raiz);
     jogo.pose('apontar');
     jogo.diz(textoPergunta, () => { if(jogo.aDecorrer) jogo.pose('repouso'); }, pista);
     jogo.ctx.raiz.querySelectorAll('.carta-nat').forEach(b => {
@@ -227,9 +232,10 @@ export function rondaNatureza(jogo, cat){
     const porLinha = n <= 3 ? n : n <= 6 ? 3 : 5;
     jogo.ctx.raiz.innerHTML = `<div class="contagem-nat">
         <div class="grupo-nat" style="--por:${porLinha}">${Array.from({length:n}, (_, i) =>
-          `<img src="./media/img/${it.id}.webp" alt="" draggable="false" style="--giro:${rnd(30) - 15}deg;--atraso:${i * 70}ms">`).join('')}</div>
+          `<img src="./media/img/${it.id}.webp" alt="" draggable="false"${n <= 4 ? atr3d(it.id) : ''} style="--giro:${rnd(30) - 15}deg;--atraso:${i * 70}ms">`).join('')}</div>
         <div class="opcoes-logica opcoes-num" style="--cols:${op.length > 3 ? 4 : op.length}">${op.map(v =>
           `<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+    vida3d(jogo.ctx.raiz);
     jogo.pose('pensar');
     const pergunta = `Quantas ${it.pl} há?`.replace('Quantas', masc(it) ? 'Quantos' : 'Quantas');
     jogo.diz(pergunta, () => { if(jogo.aDecorrer) jogo.pose('repouso'); });

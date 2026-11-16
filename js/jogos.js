@@ -285,7 +285,7 @@ export class Jogo {
 
   /* Jogos novos: letras, memória e raciocínio lógico, com instruções PT-PT. */
   rondaLetras(){
-    const pares=[['A','ABELHA','🐝'],['B','BOLA','⚽'],['C','CASA','🏠'],['D','DADO','🎲'],['F','FLOR','🌸'],['G','GATO','🐱'],['L','LUA','🌙'],['M','MACACO','🐵'],['P','PATO','🦆'],['S','SOL','☀️']];
+    const pares=[['A','ABELHA','🐝'],['B','BOLA','⚽'],['C','CASA','🏠'],['D','DADO','🎲'],['F','FLOR','🌸'],['G','GATO','<img src="./media/img/gato.webp" alt="" draggable="false">'],['L','LUA','🌙'],['M','MACACO','🐵'],['P','PATO','<img src="./media/img/pato.webp" alt="" draggable="false">'],['S','SOL','☀️']];
     const n=Math.max(2,Math.min(4,this.info.letraOpcoes||4));
     const certo=pick(pares), letra=certo[0], palavra=certo[1];
     const lista=baralha([certo,...baralha(pares.filter(x=>x[0]!==letra)).slice(0,n-1)]);

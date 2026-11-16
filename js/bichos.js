@@ -83,17 +83,8 @@ export const BICHOS = {
       <circle cx="80" cy="37" r="2.2" fill="#2A2018"/>
     </svg>`,
 
-  pato: (c = '#F5D96B') => `
-    <svg viewBox="0 0 100 80" class="bicho bicho-pato">
-      <ellipse cx="50" cy="74" rx="22" ry="4" fill="#2F4A1F" opacity=".16"/>
-      <g class="patas">${pata(44, 58, 7, 13, '#E8873C')}${pata(57, 58, 7, 13, '#E8873C')}</g>
-      <path d="M24 42q-7-9 1-13 5 8 11 9z" fill="${tom(c, -.16)}"/>
-      <ellipse cx="50" cy="47" rx="25" ry="17" fill="${c}"/>
-      <ellipse cx="52" cy="51" rx="15" ry="9" fill="${tom(c, .25)}"/>
-      <circle cx="71" cy="31" r="12" fill="${c}"/>
-      <path d="M81 30q13 0 13 5t-13 4z" fill="#F08A2C"/>
-      <circle cx="75" cy="28" r="2.4" fill="#2A2018"/>
-    </svg>`,
+  /* o pato é agora o pato 3D (imagem tirada do modelo); como os outros bichos olha para a direita */
+  pato: () => `<img class="bicho-img bicho-pato" src="./media/img/pato.webp" alt="" draggable="false" style="width:100%;height:100%;display:block;object-fit:contain;transform:scaleX(-1)">`,
 
   abelha: (c = '#F5C344') => `
     <svg viewBox="0 0 100 80" class="bicho bicho-abelha">

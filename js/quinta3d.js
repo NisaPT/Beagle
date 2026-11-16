@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { EDIFICIOS, BICHOS } from './minhaquinta.js';
 import { Amigos } from './amigos3d.js';
+import { TEM3D, CONFIG as CFG3D, carrega as carrega3D, pronto as pronto3D, preCarrega as preCarrega3D, criaModelo as criaModelo3D } from './animais3d.js';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -282,18 +283,39 @@ const FEITIOS = {
   },
 };
 
+/* o cão, o gato, a vaca e o pato são modelos 3D com esqueleto (animais3d.js);
+   os outros continuam a ser formas moles. Se o modelo ainda não chegou, o animal
+   aparece assim que ele for descarregado (e, se falhar, volta à forma mole). */
+function feitio3D(id, dados){
+  const m = criaModelo3D(id, dados), w = new THREE.Group(); w.add(m.g);
+  return { g: w, pernas: m.pernas, cab: m.cab, cauda: m.cauda, andar: m.andar, tam: m.tam, salto: m.salto, balanco: m.balanco, alegre: m.alegre, nada: m.nada };
+}
+
 class Animal {
   constructor(id){
     this.id = id;
-    const f = FEITIOS[id]();
-    this.g = new THREE.Group(); this.g.add(f.g);
-    this.corpo = f.g; this.pernas = f.pernas; this.cab = f.cab; this.cauda = f.cauda;
-    this.salta = !!f.salta; this.nada = !!f.nada; this.vel = (f.andar || 1) * .9; this.tam = f.tam;
+    this.g = new THREE.Group(); this.corpo = new THREE.Group(); this.g.add(this.corpo);
+    const dados = TEM3D.has(id) ? pronto3D(id) : null;
+    const c3 = CFG3D[id];
+    this.adota(dados ? feitio3D(id, dados) : TEM3D.has(id) ? { g: new THREE.Group(), pernas: [], cab: null, cauda: null, andar: c3.andar, tam: c3.tam, nada: !!c3.nada } : FEITIOS[id]());
     this.sombra = sombra(this.tam * .8, this.tam * 1.05, .3); this.g.add(this.sombra);
     this.fase = Math.random() * 6; this.pausa = rnd(.2, 2); this.dest = null; this.t = 0; this.pulo = 0;
-    this.toque = 0; this.cabBase = this.cab ? this.cab.rotation.x : 0; this.yBase = 0;
-    this.g.traverse(o => { if(o.isMesh) o.userData.animal = this; });
+    this.toque = 0; this.yBase = 0;
     this.g.rotation.y = rnd(0, 6.28);
+    if(TEM3D.has(id) && !dados){
+      carrega3D(id).then(d => { this.adota(feitio3D(id, d)); })
+        .catch(() => { this.adota(FEITIOS[id]()); });
+    }
+  }
+  /* (re)põe o corpo: f = { g, pernas, cab, cauda, andar, tam, ... } */
+  adota(f){
+    if(this.corpo.parent) this.corpo.parent.remove(this.corpo);
+    this.corpo = f.g; this.g.add(this.corpo);
+    this.pernas = f.pernas; this.cab = f.cab; this.cauda = f.cauda;
+    this.salta = !!f.salta; this.nada = !!f.nada; this.vel = (f.andar || 1) * .9; this.tam = f.tam;
+    this.salto = f.salto || null; this.balanco = f.balanco || 0; this.alegre = f.alegre || 0;
+    this.cabBase = this.cab ? this.cab.rotation.x : 0;
+    this.corpo.traverse(o => { if(o.isMesh) o.userData.animal = this; });
   }
   boing(){ this.toque = 1; }
   atualiza(dt, t, ed){
@@ -309,7 +331,7 @@ class Animal {
       const alvoRot = Math.atan2(dx, dz);
       let da = alvoRot - g.rotation.y; da = Math.atan2(Math.sin(da), Math.cos(da));
       g.rotation.y += da * Math.min(1, dt * 6);
-      if(dist < .12){ this.pausa = this.salta ? rnd(.4, 1.8) : rnd(1, 3.5); this.dest = null; }
+      if(dist < .12){ this.pausa = this.salta ? rnd(.4, 1.8) : rnd(1, 3.5); this.dest = null; if(this.alegre && Math.random() < this.alegre){ this.toque = 1; this.pausa += .6; } }
       else if(this.salta){
         this.pulo += dt / .5;
         const p = this.pulo % 1;
@@ -323,9 +345,11 @@ class Animal {
         this.fase += dt * this.vel * 7 / Math.max(.5, this.tam * 1.2);
         for(let i = 0; i < this.pernas.length; i++) this.pernas[i].rotation.x = Math.sin(this.fase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * .55;
         y += Math.abs(Math.sin(this.fase)) * .025;
+        if(this.balanco) this.corpo.rotation.z = Math.sin(this.fase) * this.balanco;
       }
     }else{
       for(const p of this.pernas) p.rotation.x *= .9;
+      this.corpo.rotation.z *= .9;
     }
     if(this.nada) y += Math.sin(t * 2 + this.fase) * .012;
     /* pequenos gestos de quem está parado */
@@ -339,6 +363,8 @@ class Animal {
       y += s * (.25 + this.tam * .18);
       this.corpo.scale.set(1 - s * .06, 1 + s * .1, 1 - s * .06);
       if(this.cab) this.cab.rotation.x = this.cabBase - s * .5;
+      if(this.salto) for(let i = 0; i < this.pernas.length; i++) this.pernas[i].rotation.x = (this.salto[i] || 0) * s * .85;   /* pernas encolhem no ar */
+      if(this.cauda) this.cauda.rotation.y = Math.sin(t * 14) * .5;
     }else this.corpo.scale.set(1, 1, 1);
     g.position.y = y + ed.chaoY;
     this.sombra.position.y = .03 - y;
@@ -728,6 +754,7 @@ export class Quinta3D {
     this.r.outputColorSpace = THREE.SRGBColorSpace;
     this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     this.cena = new THREE.Scene();
+    preCarrega3D();                         /* cão, gato, vaca e pato 3D: descarrega já, para estarem prontos */
     this.cam = new THREE.PerspectiveCamera(40, 1, .5, 400);
     this.relogio = new THREE.Clock();
     this.t = 0; this.ligada = false;
