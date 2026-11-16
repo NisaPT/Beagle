@@ -664,6 +664,26 @@ body[data-saudacao="ava"] .intro-video{display:block}
 .bolha.estoira{animation:bolha-pop .2s ease forwards!important}
 @keyframes bolha-sobe{from{transform:translateY(0)}to{transform:translateY(calc(-100vh - 140px))}}
 @keyframes bolha-pop{to{transform:scale(1.6);opacity:0}}
+.carta-nat.sombra img,.carta-nat.sombra canvas{filter:brightness(0) opacity(.8)}
+.carta-nat img{transition:filter .35s}
+.colheita{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.5rem;max-width:36rem;margin:0 auto;padding:.4rem}
+.canteiro{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.canteiro .planta{position:absolute;left:8%;right:8%;top:0;bottom:30%;overflow:hidden;display:block}
+.canteiro .planta img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;clip-path:inset(0 0 38% 0);transition:transform .35s cubic-bezier(.34,1.5,.64,1),clip-path .35s}
+.canteiro .terra-c{position:absolute;left:0;right:0;bottom:0;height:42%;border-radius:45% 45% 30% 30%;background:linear-gradient(#8a5a2b,#6b4423);box-shadow:inset 0 6px 0 #a9743c}
+.canteiro.colhido .planta img{clip-path:inset(0);transform:translateY(-30%) scale(1.15)}
+.canteiro.colhido{animation:colhe .5s ease .25s forwards;pointer-events:none}
+@keyframes colhe{to{transform:translateY(-120%) scale(.6);opacity:0}}
+.canteiro.errado .planta{animation:abana .4s ease}
+.cesta-cont{text-align:center;font-size:1.4rem;margin-top:.4rem}
+.flores-jardim{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.4rem;max-width:36rem;margin:0 auto;padding:.4rem}
+.f-canteiro{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer}
+.f-canteiro .f-terra{position:absolute;left:12%;right:12%;bottom:4%;height:18%;border-radius:50%;background:#7a5632;box-shadow:0 3px 0 #5a3f22}
+.f-canteiro .f-flor{position:absolute;inset:0 8% 14% 8%;transform:scale(0);transform-origin:50% 100%;transition:transform .6s cubic-bezier(.34,1.6,.64,1)}
+.f-canteiro .f-flor svg{width:100%;height:100%}
+.f-canteiro.nasce .f-flor{transform:scale(1)}
+.f-canteiro.apanhada .f-flor{transform:scale(1.4);opacity:0;transition:transform .3s,opacity .3s}
+.f-canteiro.errado .f-flor{animation:abana .4s ease}
 .carta-nat.tapada{background:#8fcf86;border-color:#5aa653;position:relative}
 .carta-nat.tapada img,.carta-nat.tapada canvas,.carta-nat.tapada .legenda-nat{visibility:hidden}
 .carta-nat.tapada::after{content:"🌿";position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(2.4rem,9vh,4rem)}
@@ -1181,7 +1201,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.22.0"></script>
+<script type="module" src="./js/app.js?v=4.23.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

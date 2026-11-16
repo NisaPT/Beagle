@@ -124,7 +124,9 @@ export function rondaNatureza(jogo, cat){
     contagem:() => modoContagem(),
     tipo:   () => modoTipo(),
     escondidos: () => modoEscondidos(),
-    chuva:  () => modoChuva(),
+    chuva:  () => modoChuva('cai'),
+    sobe:   () => modoChuva('sobe'),
+    sombras: () => modoSombras(),
   };
 
   /* ----------------------------------------------------- desenho comum */
@@ -164,7 +166,7 @@ export function rondaNatureza(jogo, cat){
 
   /* ---------------------------------------------------- 1c. chuva */
   /* os itens caem do céu e é preciso apanhar os certos a tempo: perguntas e respostas do modo "nome" */
-  function modoChuva(){
+  function modoChuva(direcao){
     const certa = escolheResposta(pool);
     const outros = baralha(pool.filter(x => x.id !== certa.id)).slice(0, 4);
     if(outros.length < 2) return false;
@@ -176,10 +178,23 @@ export function rondaNatureza(jogo, cat){
     jogo.pose('apontar');
     jogo.diz(`Toca ${EM[certa.art]} ${certa.nome}.`, () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
     campoMovel(jogo, {
-      elementos, modo: 'cai', alvos,
+      elementos, modo: direcao || 'cai', alvos,
       aoErrar: b => errado(b, `Procura ${com(certa)}.`),
       aoAcertarFinal: b => certo(b, certa, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921'),
     });
+  }
+
+  /* ------------------------------------------------- 1d. sombras */
+  /* só se vê a silhueta: ao tocar, a sombra ganha cor. Mesmas perguntas e respostas do modo "nome" */
+  function modoSombras(){
+    const certa = escolheResposta(pool);
+    const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
+    desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
+      b.classList.remove('sombra');
+      if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
+      else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
+    }, false);
+    jogo.ctx.raiz.querySelectorAll('.carta-nat').forEach(b => b.classList.add('sombra'));
   }
 
   /* ------------------------------------------------ 1b. escondidos */

@@ -57,7 +57,7 @@ function arrasta(jogo, el, destinos, aoSoltar){
 /* os bichos espreitam dos buracos: toca no que foi pedido quando aparecer. Nunca falha por demorar. */
 export function rondaToupeiras(jogo){
   const info = jogo.info;
-  const cat = pick(CATS);
+  const cat = info.mundo === 0 ? pick(['legumes', 'legumes', 'frutas']) : pick(CATS);   /* na Horta saem legumes e frutas da terra */
   const todos = pool(jogo, cat);
   const certa = pick(todos);
   const outros = baralha(todos.filter(x => x.id !== certa.id)).slice(0, 3);
@@ -182,5 +182,41 @@ export function rondaPuzzle(jogo){
       if(postas >= n) jogo.responde(destino, true, [pick(BEM), `${esse(it)} ${com(it)}.`], '#F5B921');
       return true;
     });
+  });
+}
+
+/* ============================================================ COLHEITA */
+/* os legumes estão meio enterrados no canteiro: colhe os que foram pedidos (puxam-se para fora).
+   Mesmas perguntas e respostas do modo "nome". */
+export function rondaColheita(jogo){
+  const info = jogo.info;
+  const cat = Math.random() < .75 ? 'legumes' : 'frutas';
+  const todos = pool(jogo, cat);
+  const certa = pick(todos);
+  const outros = baralha(todos.filter(x => x.id !== certa.id)).slice(0, 3);
+  const jovem = info.estrelasMin >= 2;
+  const n = jovem ? 4 : 6, alvos = jovem ? 2 : 3;
+  const lista = [];
+  for(let k = 0; k < alvos; k++) lista.push({ it: certa, certo: true });
+  while(lista.length < n) lista.push({ it: outros[lista.length % outros.length], certo: false });
+  const ordem = baralha(lista);
+  jogo.ctx.raiz.innerHTML = `<div class="colheita" style="--cols:${jovem ? 2 : 3}">${ordem.map((e, i) =>
+    `<button class="canteiro" type="button" data-i="${i}" aria-label="${e.it.nome}"><span class="planta"><img src="${imgSrc(e.it.id)}" alt="" draggable="false"></span><span class="terra-c"></span></button>`).join('')}</div>
+    <div class="cesta-cont" aria-hidden="true">🧺 <span id="cesta-n">0</span>/${alvos}</div>`;
+  jogo.pose('apontar');
+  jogo.diz(`Toca ${EM[certa.art]} ${certa.nome}.`, () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
+  let feitos = 0;
+  jogo.ctx.raiz.querySelectorAll('.canteiro').forEach(b => {
+    const f = () => {
+      if(jogo.aEsperar || b.classList.contains('colhido')) return;
+      const e = ordem[+b.dataset.i];
+      if(!e.certo){ jogo.responde(b, false, [`${esse(e.it)} ${com(e.it)}.`, `Procura ${com(certa)}.`]); return; }
+      feitos++;
+      const c = jogo.ctx.raiz.querySelector('#cesta-n'); if(c) c.textContent = feitos;
+      if(feitos >= alvos){ jogo.responde(b, true, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921'); return; }
+      jogo.som('pop'); b.classList.add('colhido');
+    };
+    b.addEventListener('click', f);
+    jogo.limpezas.push(() => b.removeEventListener('click', f));
   });
 }

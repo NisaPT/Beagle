@@ -1,7 +1,7 @@
 import { balao, flor, biscoito, peca, buraco, FORMAS, confete } from './arte.js';
 import { rondaNatureza } from './natureza.js';
 import { campoMovel } from './movimento.js';
-import { rondaToupeiras, rondaCesto, rondaPuzzle } from './jogos2.js';
+import { rondaToupeiras, rondaCesto, rondaPuzzle, rondaColheita } from './jogos2.js';
 
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
@@ -102,8 +102,10 @@ export class Jogo {
     if(['animais','frutas','legumes'].includes(this.tipo)) rondaNatureza(this, this.tipo);
     if(this.tipo === 'toupeiras') rondaToupeiras(this);
     if(this.tipo === 'puzzle') rondaPuzzle(this);
+    if(this.tipo === 'colheita') rondaColheita(this);
+    if(this.tipo === 'flores') this.rondaFlores();
     if(this.tipo === 'cesto' && rondaCesto(this) === false) this.rondaCores();
-    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes','toupeiras','puzzle','cesto'].includes(this.tipo)) this.rondaCores();
+    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes','toupeiras','puzzle','cesto','colheita','flores'].includes(this.tipo)) this.rondaCores();
   }
 
   diz(texto, aoFim, pista, falado){ this.ctx.voz.diz(texto, aoFim, pista, falado); }
@@ -142,6 +144,40 @@ export class Jogo {
       };
       b.addEventListener('click', aoClicar);
       this.limpezas.push(() => b.removeEventListener('click', aoClicar));
+    });
+  }
+
+  /* as flores nascem uma a uma no canteiro: toca nas da cor pedida (as mesmas frases das flores de cores) */
+  rondaFlores(){
+    const i = this.info, jovem = i.estrelasMin >= 2;
+    const paleta = CORES.slice(0, i.paleta);
+    const certa = pick(paleta);
+    const outras = paleta.filter(c => c.id !== certa.id);
+    const n = jovem ? 6 : 8, alvos = jovem ? 2 : 3;
+    const lista = [];
+    for(let k = 0; k < alvos; k++) lista.push({ c: certa, certo: true });
+    while(lista.length < n) lista.push({ c: outras[lista.length % outras.length], certo: false });
+    const ordem = baralha(lista);
+    this.ctx.raiz.innerHTML = `<div class="flores-jardim" style="--cols:${jovem ? 3 : 4}">${ordem.map((e, k) =>
+      `<button class="f-canteiro" type="button" data-k="${k}" aria-label="${e.c.f}"><span class="f-terra"></span><span class="f-flor">${flor(e.c.hex)}</span></button>`).join('')}</div>`;
+    const bs = [...this.ctx.raiz.querySelectorAll('.f-canteiro')];
+    this.pose('apontar');
+    this.diz(`Toca na flor ${certa.f}.`, () => { if(this.aDecorrer) this.pose('repouso'); },
+             `<i class="pista-cor" style="background:${certa.hex}"></i>`);
+    /* nascem uma a uma, em ordem aleatória */
+    baralha(bs.slice()).forEach((b, k) => this.espera(() => b.classList.add('nasce'), 250 + k * 380));
+    let feitos = 0;
+    bs.forEach(b => {
+      const f = () => {
+        if(this.aEsperar || !b.classList.contains('nasce') || b.classList.contains('apanhada')) return;
+        const e = ordem[+b.dataset.k];
+        if(!e.certo){ this.responde(b, false, `Essa não é. Procura a flor ${certa.f}.`); return; }
+        feitos++;
+        if(feitos >= alvos){ this.responde(b, true, [pick(BEM), `É a flor ${certa.f}.`], certa.hex); return; }
+        this.som('pop'); b.classList.add('apanhada');
+      };
+      b.addEventListener('click', f);
+      this.limpezas.push(() => b.removeEventListener('click', f));
     });
   }
 

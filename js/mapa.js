@@ -26,10 +26,14 @@ export const TOTAL_NIVEIS = MUNDOS.length * POR_MUNDO;
 
 let TIPOS = ['cores', 'contar', 'formas', 'letras', 'memoria', 'logica'];
 /* a idade da criança decide que jogos entram na rotação */
-export function defineTipos(lista){ if(lista && lista.length) TIPOS = lista.slice(); }
+export function defineTipos(lista, porMundo){
+  if(lista && lista.length) TIPOS = lista.slice();
+  TIPOS_MUNDO = porMundo || {};          /* ex.: { 0: [...] } = jogos próprios da Horta */
+}
+let TIPOS_MUNDO = {};
 export const COR_TIPO = { cores:'#D93A32', contar:'#4A90D9', formas:'#5BAF6A',
   letras:'#F3822B', memoria:'#8E6BC8', logica:'#2AA6A0', somas:'#C98F55',
-  animais:'#E08A3C', frutas:'#E0457B', legumes:'#4FA14F',
+  animais:'#E08A3C', frutas:'#E0457B', legumes:'#4FA14F', colheita:'#6BAA3E', flores:'#D860A8',
   toupeiras:'#A0693A', cesto:'#E0A12B', puzzle:'#5B7FD1' };
 
 /* ---------------------------------------------------- curva de dificuldade */
@@ -50,22 +54,30 @@ const DEGRAUS = [
 /* A rotação dos jogos é baralhada em cada bloco (sempre igual para o mesmo nível)
    e nunca repete o mesmo jogo duas vezes seguidas. */
 const _cacheBloco = {};
-function ordemBloco(b){
-  const chave = TIPOS.join() + '|' + b;
+function ordemBloco(b, lista = TIPOS, semente = 0){
+  const chave = lista.join() + '|' + b + '|' + semente;
   if(_cacheBloco[chave]) return _cacheBloco[chave];
-  let s = (b + 1) * 2654435761 % 4294967296;
+  let s = (b + 1 + semente * 7919) * 2654435761 % 4294967296;
   const r = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
-  const a = TIPOS.slice();
+  const a = lista.slice();
   for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
-  if(b > 0 && a.length > 1 && a[0] === ordemBloco(b - 1)[a.length - 1]) [a[0], a[1]] = [a[1], a[0]];
+  if(b > 0 && a.length > 1 && a[0] === ordemBloco(b - 1, lista, semente)[a.length - 1]) [a[0], a[1]] = [a[1], a[0]];
   if(Object.keys(_cacheBloco).length > 60) for(const k in _cacheBloco) delete _cacheBloco[k];
   return (_cacheBloco[chave] = a);
+}
+function tipoDoNivel(g){
+  const mundo = Math.floor((g - 1) / POR_MUNDO), lista = TIPOS_MUNDO[mundo];
+  if(lista && lista.length > 1){
+    const i = (g - 1) % POR_MUNDO;                       /* posição dentro do mundo */
+    return ordemBloco(Math.floor(i / lista.length), lista, mundo + 1)[i % lista.length];
+  }
+  return TIPOS.length > 1 ? ordemBloco(Math.floor((g - 1) / TIPOS.length))[(g - 1) % TIPOS.length] : TIPOS[0];
 }
 export function infoNivel(g){
   const degrau = Math.min(DEGRAUS.length - 1, Math.floor((g - 1) / 50));
   return {
     n: g,
-    tipo: TIPOS.length > 1 ? ordemBloco(Math.floor((g - 1) / TIPOS.length))[(g - 1) % TIPOS.length] : TIPOS[0],
+    tipo: tipoDoNivel(g),
     mundo: Math.floor((g - 1) / POR_MUNDO),
     noMundo: ((g - 1) % POR_MUNDO) + 1,
     dificuldade: degrau,

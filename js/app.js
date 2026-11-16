@@ -157,7 +157,7 @@ const Estado = {
 };
 
 /* a idade decide que jogos entram e quão difíceis podem ficar */
-function aplicaIdade(){ defineTipos(perfilIdade(Estado.idade).tipos); }
+function aplicaIdade(){ const P = perfilIdade(Estado.idade); defineTipos(P.tipos, P.tiposHorta ? { 0: P.tiposHorta } : {}); }
 
 /* ====================================================== 3D =============== */
 // Arranque resiliente: se o navegador não disponibilizar WebGL, a aplicação
@@ -606,7 +606,7 @@ function comecaNivel(n){
   info.pares = P.pares; info.numOpcoes = P.numOpcoes; info.memoriaIgual = P.memoriaIgual; info.estrelasMin = P.estrelasMin || 1; info.padroes = P.padroes; info.letraOpcoes = P.letraOpcoes;
   info.somaMax = P.somaMax ? P.somaMax + (ajuste > 0 ? 5 : 0) : 0;
   info.imagens = P.imagens;
-  info.nat = P.nat;
+  info.nat = P.nat; info.mundo = Math.floor((n - 1) / POR_MUNDO);
   mostra(null);
   $('#tabuleiro').innerHTML = '';
   $('#barra').hidden = false;
@@ -781,7 +781,7 @@ function desenhaPais(){
   const concluidos = Object.keys(Estado.estrelas).length;
   $('#relatorio-aprendizagem').innerHTML =
     `<p><strong>${concluidos}</strong> níveis concluídos · <strong>${Estado.totalEstrelas()}</strong> estrelas conquistadas</p>` +
-    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes',toupeiras:'Toupeiras',cesto:'Cesto',puzzle:'Puzzle'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
+    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes',toupeiras:'Toupeiras',cesto:'Cesto',puzzle:'Puzzle',colheita:'Colheita',flores:'Flores'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
     `<p class="aviso">Dados agregados guardados apenas neste dispositivo. A percentagem orienta a adaptação da dificuldade; não é uma avaliação clínica ou escolar.</p>`;
   const selPerfil = $('#perfil-ativo');
   if(selPerfil){
