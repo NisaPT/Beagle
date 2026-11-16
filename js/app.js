@@ -1114,7 +1114,13 @@ async function iniciaQ3D(){
     $('#q3d').hidden = false; ecra.classList.add('com3d');
     redesenhaQuinta();
     if(document.body.dataset.ecra === 'quinta') Q3D.ativa(true);
-  }catch(e){ console.warn('Quinta 3D indisponível; a usar a grelha 2D.', e); Q3D = null; }
+  }catch(e){
+    /* se a 3D falhar a meio, volta-se mesmo à grelha 2D (antes ficava um ecrã azul vazio) */
+    console.error('Quinta 3D indisponível; a usar a grelha 2D.', e);
+    try{ if(Q3D && Q3D.ativa) Q3D.ativa(false); }catch(_){}
+    Q3D = null;
+    try{ $('#q3d').hidden = true; $('#ecra-quinta').classList.remove('com3d', 'dentro'); redesenhaQuinta(); }catch(_){}
+  }
 }
 
 function redesenhaQuinta(){

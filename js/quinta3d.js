@@ -750,9 +750,9 @@ export class Quinta3D {
 
   constructor(canvas, cb = {}){
     this.canvas = canvas; this.cb = cb;
-    this.r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'default' });
+    this.r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
     this.r.outputColorSpace = THREE.SRGBColorSpace;
-    this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+    this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     this.cena = new THREE.Scene();
     preCarrega3D();                         /* cão, gato, vaca e pato 3D: descarrega já, para estarem prontos */
     this.cam = new THREE.PerspectiveCamera(40, 1, .5, 400);
