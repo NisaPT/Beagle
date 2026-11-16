@@ -65,8 +65,16 @@ function escreveLocal(r){
 }
 
 /* ------------------------------------------------------------ estado */
+/* Versão Google Play (apps para crianças): a partilha com amigos é OPT-IN dos pais.
+   Enquanto os pais não aceitarem (Área dos Pais), nada é carregado nem enviado.
+   Depois de aceitarem: login anónimo (sem email, sem Google) e só se publica um resumo
+   mínimo (alcunha, estrelas, níveis, personagens). O progresso completo NÃO vai para a cloud. */
+const CLOUD_ATIVA = true;
+const CHAVE_PARTILHA = 'eab-partilha';
+const consentimentoDado = () => { try{ return localStorage.getItem(CHAVE_PARTILHA) === '1'; }catch(e){ return false; } };
 export const Nuvem = {
-  configurada: !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey),
+  configurada: CLOUD_ATIVA && !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey),
+  consentida: consentimentoDado(),
   utilizador: null,
   ultimaSync: null,
   aMudar: () => {},          /* a interface redesenha-se */
@@ -75,16 +83,17 @@ export const Nuvem = {
   aposSync: () => {},        /* a app atualiza os amigos depois de sincronizar */
 
   async inicia(){
-    if(!this.configurada) return;
+    if(!this.configurada || !this.consentida || fb) return;
     try{
       fb = await import('../lib/firebase.js');
       const app = fb.initializeApp(FIREBASE_CONFIG);
       auth = fb.getAuth(app);
       db = fb.getFirestore(app);
       fb.onAuthStateChanged(auth, async u => {
-        this.utilizador = u ? { email: u.email, uid: u.uid } : null;
+        this.utilizador = u ? { uid: u.uid } : null;
         this.aMudar();
         if(u) await this.sincroniza();
+        else if(this.consentida) fb.signInAnonymously(auth).catch(e => { this.erro = 'Não foi possível ligar. Tente mais tarde.'; this.aMudar(); });
       });
       addEventListener('online', () => this.agenda(500));
     }catch(e){
@@ -94,11 +103,25 @@ export const Nuvem = {
     }
   },
 
-  async entraGoogle(){ await fb.signInWithPopup(auth, new fb.GoogleAuthProvider()); },
-  async entraEmail(email, pw){ await fb.signInWithEmailAndPassword(auth, email, pw); },
-  async criaConta(email, pw){ await fb.createUserWithEmailAndPassword(auth, email, pw); },
-  async recupera(email){ await fb.sendPasswordResetEmail(auth, email); },
-  async sai(){ await fb.signOut(auth); this.ultimaSync = null; this.aMudar(); },
+  /* os pais aceitam a partilha */
+  async ativa(){
+    try{ localStorage.setItem(CHAVE_PARTILHA, '1'); }catch(e){}
+    this.consentida = true; this.erro = '';
+    await this.inicia();
+    this.aMudar();
+  },
+  /* os pais retiram a partilha: apaga o que foi publicado e a identidade anónima */
+  async desativa(codigos = []){
+    this.consentida = false;
+    try{ localStorage.removeItem(CHAVE_PARTILHA); }catch(e){}
+    try{
+      if(fb && db && auth && auth.currentUser){
+        for(const c of codigos) await fb.deleteDoc(fb.doc(db, 'ranking', c)).catch(() => {});
+        await fb.deleteUser(auth.currentUser).catch(() => fb.signOut(auth));
+      }
+    }catch(e){ console.warn('Não foi possível apagar tudo da cloud', e); }
+    this.utilizador = null; this.ultimaSync = null; this.aMudar();
+  },
 
   /* chamado sempre que o progresso é guardado */
   agenda(ms = 2500){
@@ -107,28 +130,13 @@ export const Nuvem = {
     temporizador = setTimeout(() => this.sincroniza(), ms);
   },
 
+  /* já não há cópia do progresso na cloud: só o resumo mínimo para os amigos */
   async sincroniza(){
     if(!this.utilizador || aSincronizar || !navigator.onLine) return;
     aSincronizar = true;
     try{
-      const ref = fb.doc(db, COLECAO, this.utilizador.uid);
-      const snap = await fb.getDoc(ref);
-      const nuvem = snap.exists() ? snap.data() : { perfis: [], dados: {}, apagados: [] };
-      const local = lerLocal();
-      const r = fundeTudo(local, nuvem);
-      const mudouLocal = JSON.stringify(r.dados) !== JSON.stringify(local.dados) ||
-                         JSON.stringify(r.perfis) !== JSON.stringify(local.perfis);
-      if(mudouLocal) escreveLocal(r);
-      await fb.setDoc(ref, limpa({ perfis: r.perfis, dados: r.dados, apagados: r.apagados, atualizado: Date.now(), v: 1 }));
-      this.ultimaSync = Date.now();
-      this.erro = '';
-      this.aMudar();
-      if(mudouLocal) this.aoTrazerDados();
+      this.ultimaSync = Date.now(); this.erro = ''; this.aMudar();
       this.publica().finally(() => this.aposSync());
-    }catch(e){
-      console.warn('Sincronização falhou', e);
-      this.erro = 'Não foi possível guardar na cloud agora. Vai tentar outra vez.';
-      this.aMudar();
     }finally{ aSincronizar = false; }
   },
 
@@ -143,7 +151,10 @@ export const Nuvem = {
       if(!this.ligada || !this.resumo) return false;
       const r = this.resumo();
       if(!r || !r.codigo) return false;
+      const chave = JSON.stringify(r) + this.utilizador.uid;
+      if(chave === this._ultimaPub) return true;             /* nada mudou: não escreve outra vez */
       await fb.setDoc(fb.doc(db, 'ranking', r.codigo), limpa({ ...r, uid: this.utilizador.uid, atualizado: Date.now() }));
+      this._ultimaPub = chave;
       return true;
     }catch(e){ console.warn('Não foi possível publicar o resumo', e); return false; }
   },

@@ -534,6 +534,8 @@ h1 .linha2{display:block;color:var(--madeira-escura)}
 .quinta-conquistas{position:absolute;z-index:3;top:.5rem;left:.5rem;display:flex;gap:.35rem;flex-wrap:wrap;pointer-events:none}
 .quinta-conquistas span{font-size:.78rem;font-weight:700;background:#fffdf0e8;border:1px solid #d5c59a;border-radius:1rem;padding:.25rem .5rem;box-shadow:0 2px 6px #0002}
 .aviso-limite{position:fixed;z-index:1000;inset:0;background:#183d35eF;color:white;display:grid;place-content:center;text-align:center;padding:2rem}
+[data-bonus="1"]{position:relative}
+[data-bonus="1"]::before{content:"⭐ Ronda bónus";position:absolute;top:.4rem;left:50%;transform:translateX(-50%);background:#F5C344;color:#4a3300;font-weight:700;padding:.2em .8em;border-radius:1em;z-index:5;pointer-events:none}
 .aviso-limite p{max-width:22rem;line-height:1.5}
 @media(max-width:420px){.opcoes-palavra{grid-template-columns:1fr}.memoria-grelha{gap:.35rem;padding:.5rem}}
 
@@ -607,6 +609,18 @@ body[data-saudacao="ava"] .intro-video{display:block}
 .legenda-nat{font-family:inherit;font-weight:700;font-size:clamp(.85rem,3.4vw,1.15rem);color:var(--azul-tinta);line-height:1.1;text-align:center}
 .emoji-palavra img{height:1.35em;width:auto;vertical-align:-.25em;pointer-events:none}
 .carta-nat:active{transform:scale(.94)}
+.carta-nat.tapada{background:#8fcf86;border-color:#5aa653;position:relative}
+.carta-nat.tapada img,.carta-nat.tapada canvas,.carta-nat.tapada .legenda-nat{visibility:hidden}
+.carta-nat.tapada::after{content:"🌿";position:absolute;inset:0;display:grid;place-items:center;font-size:clamp(2.4rem,9vh,4rem)}
+.album-fundo{position:fixed;inset:0;z-index:900;background:#183d35f2;color:#fff;overflow:auto;padding:1rem;text-align:center}
+.album-fundo h2{margin:.2rem 0}
+.album-grelha{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:.5rem;max-width:44rem;margin:.8rem auto}
+.cromo{background:#fff;color:#234;border-radius:.9rem;padding:.35rem;font-size:.78rem;position:relative;min-height:92px}
+.cromo img{width:100%;height:64px;object-fit:contain}
+.cromo.falta img{filter:brightness(0) opacity(.25)}
+.cromo b{position:absolute;top:2px;right:4px;font-size:.7rem;background:#F5C344;color:#4a3300;border-radius:.8em;padding:0 .4em}
+.toast-cromo{position:fixed;left:50%;bottom:12%;transform:translateX(-50%);background:#F5C344;color:#4a3300;font-weight:700;padding:.5em 1em;border-radius:1.4em;z-index:800;pointer-events:none;animation:toast-cromo 2.2s ease forwards}
+@keyframes toast-cromo{0%{opacity:0;transform:translate(-50%,20px)}15%,80%{opacity:1;transform:translate(-50%,0)}100%{opacity:0}}
 .carta-nat:focus-visible{outline:4px solid var(--azul-tinta);outline-offset:3px}
 .carta-nat.certo{animation:salta-nat .55s ease forwards;border-color:#5bb36b;background:#e9f8e8}
 .carta-nat.errado{animation:abana .4s ease}
@@ -888,6 +902,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
     <span class="seta">◀</span><span id="texto-voltar">Mapa</span>
   </button>
   <div class="espaco"></div>
+  <button class="mini" id="btn-album" type="button" aria-label="O meu álbum de cromos">📒</button>
   <button class="mini quinta-atalho" id="btn-quinta-barra" type="button" aria-label="A minha quinta e loja">🏡 <span>Quinta</span></button>
   <div class="estrelas">
     <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l3 6.5 7 .9-5 4.9 1.2 7L12 18l-6.2 3.3L7 14.3l-5-4.9 7-.9z" fill="#F7C21B" stroke="#1B4D8F" stroke-width="1.6"/></svg>
@@ -1012,27 +1027,18 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   <h1>Área dos Pais</h1>
 
   <div class="painel" id="painel-conta">
-    <h2>Conta e cópia na cloud</h2>
+    <h2>Partilha com amigos (opcional)</h2>
     <p id="conta-estado">—</p>
     <div id="conta-fora" hidden>
-      <button class="botao pequeno" id="btn-google" type="button">Entrar com Google</button>
-      <form class="form-conta" id="form-conta" autocomplete="on">
-        <label class="campo-voz" for="conta-email">Email dos pais</label>
-        <input id="conta-email" type="email" autocomplete="email" inputmode="email" placeholder="nome@exemplo.pt">
-        <label class="campo-voz" for="conta-pw">Palavra-passe (mínimo 6 caracteres)</label>
-        <input id="conta-pw" type="password" autocomplete="current-password" minlength="6">
-        <div class="conta-botoes">
-          <button type="submit" class="botao calma pequeno">Entrar</button>
-          <button type="button" class="botao calma pequeno" id="btn-criar-conta">Criar conta</button>
-        </div>
-      </form>
-      <button class="saltar" id="btn-esqueci" type="button">Esqueci a palavra-passe</button>
+      <p>Se ligar, o jogo publica um resumo pequeno da criança — <strong>alcunha, estrelas, níveis e personagens</strong> — para que amigos com o código possam ver a quinta e o ranking. Sem email, sem conta, sem chat e sem nome real: use sempre uma alcunha. Pode desligar e apagar tudo a qualquer momento.</p>
+      <label class="campo-voz"><input type="checkbox" id="consentimento-pais"> Sou o pai, mãe ou responsável e autorizo esta partilha.</label>
+      <button class="botao pequeno" id="btn-ativar-partilha" type="button">Ligar partilha com amigos</button>
     </div>
     <div id="conta-dentro" hidden>
-      <button class="botao calma pequeno" id="btn-sair-conta" type="button">Terminar sessão</button>
+      <button class="botao calma pequeno" id="btn-sair-conta" type="button">Desligar e apagar o que foi partilhado</button>
     </div>
     <p class="aviso-campo" id="aviso-conta" role="status"></p>
-    <p class="aviso">Guardamos apenas o progresso da criança e a alcunha escolhida, ligados ao email dos pais. O jogo continua a funcionar sem conta e sem internet.</p>
+    <p class="aviso">O progresso completo nunca sai do aparelho. O jogo funciona sempre sem internet.</p>
   </div>
 
   <div class="painel">
@@ -1101,9 +1107,11 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
 
   <div class="painel">
     <h2>Privacidade e segurança</h2>
-    <p>O progresso, os perfis e as estatísticas ficam guardados localmente neste dispositivo. Não existe conta na nuvem nem sincronização entre aparelhos nesta versão. Não introduza dados sensíveis da criança.</p>
-    <p>Os dados podem ser apagados por perfil através do botão acima. Para apagar todos os dados locais da aplicação, limpe o armazenamento do site nas definições do navegador.</p>
-    <p class="aviso">As vozes neurais online requerem um serviço TTS com backend seguro e credenciais protegidas. A aplicação não inclui chaves de fornecedor nem envia dados pessoais para terceiros.</p>
+    <p>Este jogo é feito para crianças e respeita a privacidade delas: <strong>não tem anúncios, compras, chat nem rastreio</strong>. Não pede nome real, localização, câmara, microfone ou contactos.</p>
+    <p>O progresso, os perfis e as estatísticas ficam apenas neste aparelho. Por defeito nada é enviado para a internet. Só se os pais ligarem a partilha com amigos é publicado um resumo mínimo (alcunha, estrelas, níveis, personagens), que pode ser apagado a qualquer momento.</p>
+    <p><a href="./privacidade.html" target="_blank" rel="noopener">Ler a Política de Privacidade completa</a></p>
+    <button class="botao calma pequeno" id="btn-apagar-tudo" type="button">Apagar todos os dados deste aparelho</button>
+    <p class="aviso">Pode apagar só um perfil com o botão acima. A opção “Apagar todos os dados” remove todos os perfis, progresso e cópias guardadas no aparelho.</p>
   </div>
 
   <button class="botao" id="btn-sair-pais">Voltar ao jogo</button>
@@ -1117,7 +1125,7 @@ body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,bo
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.18.0"></script>
+<script type="module" src="./js/app.js?v=4.20.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

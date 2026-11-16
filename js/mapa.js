@@ -46,11 +46,25 @@ const DEGRAUS = [
   /* 9 */ { opcoes:6, maxConta:10, formas:6, paleta:8 },
 ];
 
+/* A rotação dos jogos é baralhada em cada bloco (sempre igual para o mesmo nível)
+   e nunca repete o mesmo jogo duas vezes seguidas. */
+const _cacheBloco = {};
+function ordemBloco(b){
+  const chave = TIPOS.join() + '|' + b;
+  if(_cacheBloco[chave]) return _cacheBloco[chave];
+  let s = (b + 1) * 2654435761 % 4294967296;
+  const r = () => (s = (s * 1664525 + 1013904223) % 4294967296) / 4294967296;
+  const a = TIPOS.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  if(b > 0 && a.length > 1 && a[0] === ordemBloco(b - 1)[a.length - 1]) [a[0], a[1]] = [a[1], a[0]];
+  if(Object.keys(_cacheBloco).length > 60) for(const k in _cacheBloco) delete _cacheBloco[k];
+  return (_cacheBloco[chave] = a);
+}
 export function infoNivel(g){
   const degrau = Math.min(DEGRAUS.length - 1, Math.floor((g - 1) / 50));
   return {
     n: g,
-    tipo: TIPOS[(g - 1) % TIPOS.length],
+    tipo: TIPOS.length > 1 ? ordemBloco(Math.floor((g - 1) / TIPOS.length))[(g - 1) % TIPOS.length] : TIPOS[0],
     mundo: Math.floor((g - 1) / POR_MUNDO),
     noMundo: ((g - 1) % POR_MUNDO) + 1,
     dificuldade: degrau,

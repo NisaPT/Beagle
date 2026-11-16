@@ -27,7 +27,6 @@ function elogio(){
   let e; do{ e = pick(BEM); }while(e === ultimoElogio);
   return (ultimoElogio = e);
 }
-const RONDAS = 5;
 
 export class Jogo {
   /* ctx = { raiz, voz, mascote, aoAcabar(nivel, estrelas), aoSair } */
@@ -52,6 +51,12 @@ export class Jogo {
     this.info = info;
     this.ronda = 0;
     this.erros = 0;
+    this.emBonus = false;
+    /* 4 a 6 rondas conforme o nível (3-4 anos: no máximo 5); de 4 em 4 níveis há uma ronda bónus
+       com animais, que nunca tira estrelas */
+    const base = [5, 4, 6, 5, 4][nivel % 5];
+    this.total = info.estrelasMin ? Math.min(5, base) : base;
+    this.temBonus = nivel % 4 === 0 && info.tipo !== 'animais';
     this.aDecorrer = true;
     this.aEsperar = false;
     document.body.dataset.jogo = this.tipo;
@@ -73,7 +78,12 @@ export class Jogo {
   proxima(){
     if(!this.aDecorrer) return;
     this.desliga();
-    if(this.ronda >= RONDAS) return this.acaba();
+    if(this.ronda >= this.total && !this.emBonus && this.temBonus){
+      this.emBonus = true; this.errosAntes = this.erros; this.tipoOriginal = this.tipo; this.tipo = 'animais';
+      this.ctx.raiz.dataset.bonus = '1';
+    }else if(this.ronda >= this.total && !this.emBonus || this.emBonus && this.ronda >= this.total + 1){
+      return this.acaba();
+    }
     this.ronda++;
     this.aEsperar = false;
     this.errosRonda = 0;
@@ -433,6 +443,8 @@ export class Jogo {
   }
 
   acaba(){
+    if(this.emBonus){ this.erros = this.errosAntes; this.tipo = this.tipoOriginal; this.emBonus = false; }
+    delete this.ctx.raiz.dataset.bonus;
     this.aDecorrer = false;
     this.desliga();
     delete document.body.dataset.jogo;

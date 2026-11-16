@@ -8,7 +8,7 @@ O código já está no jogo. Falta criar o projeto no Firebase e colar a configu
 
 ## 2. Ativar o login
 1. **Build → Authentication → Get started**.
-2. Separador **Sign-in method**: ativar **Google** (escolha o email de apoio) e **Email/Password**.
+2. Separador **Sign-in method**: ativar **apenas Anonymous (Anónimo)**. Não ative Google nem Email/Password: o jogo para crianças não usa contas.
 3. Separador **Settings → Authorized domains → Add domain**: acrescente o endereço do jogo na Vercel (por exemplo `escolabeagle.vercel.app`) e, mais tarde, o domínio próprio. `localhost` já vem incluído.
 
 ## 3. Criar a base de dados
@@ -20,24 +20,12 @@ O código já está no jogo. Falta criar o projeto no Firebase e colar a configu
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /utilizadores/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
-    }
-  }
-}
-```
-
-Cada conta só consegue ler e escrever o seu próprio documento.
-
-### Regras para o ranking e os amigos (acrescentar, dentro de `match /documents`)
-Cada perfil publica um resumo pequeno (alcunha, estrelas, níveis e personagens) em `ranking/{código}`. Os amigos leem-no pelo código. Não se pode listar a coleção: só ler um código que se conhece.
-
-```
     match /ranking/{codigo} {
       allow get: if request.auth != null;
       allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
       allow update: if request.auth != null && resource.data.uid == request.auth.uid
                     && request.resource.data.uid == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
     match /seguidores/{codigo} {
       allow get: if request.auth != null;
@@ -45,9 +33,11 @@ Cada perfil publica um resumo pequeno (alcunha, estrelas, níveis e personagens)
                             && request.resource.data.keys().hasOnly(['codigos'])
                             && request.resource.data.codigos.size() <= 100;
     }
+  }
+}
 ```
 
-`seguidores/{código}` serve para a amizade ser dos dois lados: quem adiciona um código deixa lá o seu, e o dono desse código passa a ver o outro.
+Só se pode ler um código que se conhece (não há listagem). O progresso completo já não vai para a cloud. A partilha só funciona depois de os pais a ligarem na Área dos Pais.
 
 ## 4. Obter a configuração
 1. **Project settings** (roda dentada) → **Your apps** → ícone **</>** (Web).

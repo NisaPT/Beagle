@@ -91,6 +91,8 @@ const esse = it => plural(it) ? 'Esses são' : masc(it) ? 'Esse é' : 'Essa é';
 const letraInicial = it => semAcentos(it.nome).charAt(0).toUpperCase();
 
 
+export const CATEGORIAS_ALBUM = ['animais', 'frutas', 'legumes'];
+export const imagemItem = imgSrc;
 export const rotuloTipo = { animais:'Animais', frutas:'Frutas', legumes:'Legumes' };
 
 /* ------------------------------------------------------------------ jogo */
@@ -119,6 +121,7 @@ export function rondaNatureza(jogo, cat){
     cor:    () => modoCor(),
     contagem:() => modoContagem(),
     tipo:   () => modoTipo(),
+    escondidos: () => modoEscondidos(),
   };
 
   /* ----------------------------------------------------- desenho comum */
@@ -138,7 +141,11 @@ export function rondaNatureza(jogo, cat){
       jogo.limpezas.push(() => b.removeEventListener('click', f));
     });
   }
-  const certo = (b, it, texto, cor) => { jogo._natUltimo = it.id; jogo.responde(b, true, texto, cor); };
+  const certo = (b, it, texto, cor) => {
+    jogo._natUltimo = it.id;
+    if(jogo.ctx.aoColecionar && !jogo.emBonus) jogo.ctx.aoColecionar(it.id, cat);   /* cromo para o álbum */
+    jogo.responde(b, true, texto, cor);
+  };
   const errado = (b, texto) => jogo.responde(b, false, texto);
   const legendaSempre = !!nat.nomes;
 
@@ -150,6 +157,20 @@ export function rondaNatureza(jogo, cat){
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
       else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
     }, legendaSempre);
+  }
+
+  /* ------------------------------------------------ 1b. escondidos */
+  /* as cartas estão tapadas por arbustos: ao tocar descobre-se o que está lá debaixo.
+     As perguntas e as respostas são as mesmas do modo "nome" (frases já gravadas). */
+  function modoEscondidos(){
+    const certa = escolheResposta(pool);
+    const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
+    desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
+      b.classList.remove('tapada');
+      if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
+      else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
+    }, true);
+    jogo.ctx.raiz.querySelectorAll('.carta-nat').forEach(b => b.classList.add('tapada'));
   }
 
   /* ---------------------------------------------------------- 2. som */

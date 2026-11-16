@@ -9,6 +9,7 @@ import { Som } from './som.js';
 import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
+import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
 import { miniFilme } from './curiosidades.js';
 import { Festa } from './festa.js';
 import { EDIFICIOS, BICHOS as BICHOS_LOJA, PERSONAGENS, nivelQuinta, achaItem, gastoTotal, contaEdificios, contaBichos, desenhaQuinta, desenhaLoja, arteEdificio } from './minhaquinta.js';
@@ -74,7 +75,7 @@ const AMIGOS_FALSOS = ['MARU-2841', 'PIPO-5513', 'LUAS-7702'];
 const nomeReal = n => (n && n !== 'Criança 1' && n !== 'Criança') ? n : '';
 
 const Estado = {
-  nivel:1, estrelas:{}, quinta:{itens:{}}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
+  nivel:1, estrelas:{}, album:{}, quinta:{itens:{}}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
   aprendizagem:{cores:{certas:0,erros:0},contar:{certas:0,erros:0},formas:{certas:0,erros:0},letras:{certas:0,erros:0},memoria:{certas:0,erros:0},logica:{certas:0,erros:0}},
   limiteMinutos:30, tempoHoje:0, diaUso:null, inicioSessao:Date.now(),
 
@@ -99,6 +100,7 @@ const Estado = {
       Object.assign(this, {
         nivel: g.nivel || 1,
         estrelas: g.estrelas || {},
+        album: (g.album && typeof g.album === 'object') ? g.album : {},
         quinta: (g.quinta && g.quinta.itens) ? g.quinta : {itens:{}},
         companheiro: g.companheiro || 'avo',
         nome: nomeReal(g.nome) || nomeReal(perfil && perfil.nome) || '',
@@ -127,7 +129,7 @@ const Estado = {
     if(this.apagando) return;
     clearTimeout(this._tg); this._tg = 0;
     const dados = {
-      nivel:this.nivel, estrelas:this.estrelas, quinta:this.quinta, companheiro:this.companheiro,
+      nivel:this.nivel, estrelas:this.estrelas, album:this.album, quinta:this.quinta, companheiro:this.companheiro,
       codigo:this.codigo, amigos:this.amigos, removidos:this.removidos || [], nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
       tempoHoje:this.tempoHoje, diaUso:chaveDia(), t:Date.now(),
@@ -336,7 +338,7 @@ function limpaAmigosLocais(){
 function resumoMeu(){
   const it = Estado.quinta.itens, nq = nivelQuinta(it);
   return {
-    codigo: Estado.codigo, nome: Estado.nome || 'Criança',
+    codigo: Estado.codigo, nome: (Estado.nome || 'Criança').slice(0, 14),
     estrelas: Estado.totalEstrelas(), nivel: Estado.nivel,
     nqNivel: nq.nivel, nqNome: nq.nome, pontos: nq.pontos,
     edificios: contaEdificios(it), bichos: contaBichos(it),
@@ -492,6 +494,31 @@ function atualizaTempoUso(){
 function limiteAtingido(){
   return Estado.limiteMinutos > 0 && (Estado.tempoHoje || 0) >= Estado.limiteMinutos * 60;
 }
+function abreAlbum(){
+  if(document.querySelector('.album-fundo')) return;
+  const todos = CATEGORIAS_ALBUM.flatMap(c => ITENS[c].map(x => ({ ...x, cat: c })));
+  const tem = todos.filter(x => Estado.album[x.id]).length;
+  const f = document.createElement('div'); f.className = 'album-fundo'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-label', 'Álbum de cromos');
+  f.innerHTML = `<h2>📒 O meu álbum</h2><p>${tem} de ${todos.length} cromos</p>` +
+    CATEGORIAS_ALBUM.map(c => `<h3>${rotuloTipo[c]}</h3><div class="album-grelha">${ITENS[c].map(x => {
+      const n = Estado.album[x.id] || 0;
+      return `<div class="cromo${n ? '' : ' falta'}"><img src="${imagemItem(x.id)}" alt="" loading="lazy" decoding="async">${n ? `<b>${n}</b><div>${x.nome}</div>` : '<div>?</div>'}</div>`;
+    }).join('')}</div>`).join('') +
+    '<button class="botao" type="button">Fechar</button>';
+  document.body.append(f);
+  f.querySelector('button').onclick = () => f.remove();
+}
+$('#btn-album')?.addEventListener('click', abreAlbum);
+let niveisSeguidos = 0;
+function mostraPausa(){
+  if(document.querySelector('.aviso-limite')) return;
+  niveisSeguidos = 0;
+  const aviso=document.createElement('div'); aviso.className='aviso-limite'; aviso.setAttribute('role','dialog');
+  aviso.innerHTML='<strong>🌿 Boa! Que tal uma pausa?</strong><p>Já jogaste três níveis. Podes ir ver a tua quinta ou continuar a jogar.</p><button class="botao" type="button" data-a="quinta">🏡 Ver a minha quinta</button> <button class="botao calma" type="button" data-a="seguir">▶ Continuar</button>';
+  document.body.append(aviso);
+  aviso.querySelector('[data-a=quinta]').onclick=()=>{aviso.remove();abreQuinta();};
+  aviso.querySelector('[data-a=seguir]').onclick=()=>aviso.remove();
+}
 function mostraAvisoLimite(){
   if(document.querySelector('.aviso-limite')) return;
   Voz.cala(); Fala.esconde();
@@ -542,6 +569,12 @@ const jogo = new Jogo({
     const k=tipo||jogo.tipo; if(!Estado.aprendizagem[k]) Estado.aprendizagem[k]={certas:0,erros:0};
     Estado.aprendizagem[k].erros++; Estado.guardaLogo();
   },
+  aoColecionar: (id) => {
+    const novo = !Estado.album[id];
+    Estado.album[id] = Math.min(99, (Estado.album[id] || 0) + 1);
+    Estado.guardaLogo();
+    if(novo){ const t = document.createElement('div'); t.className = 'toast-cromo'; t.textContent = '⭐ Novo cromo no álbum!'; document.body.append(t); setTimeout(() => t.remove(), 2300); }
+  },
   aoSair: () => voltaAoMapa(),
   aoAcabar: (nivel, estrelas) => {
     const antes = Estado.nivel;
@@ -550,6 +583,7 @@ const jogo = new Jogo({
     Estado.missaoDia = chaveDia();
     Estado.guarda();
     mostraRecompensa(nivel, estrelas);
+    if(++niveisSeguidos >= 3) setTimeout(() => { if(['mundos','mapa'].includes(document.body.dataset.ecra)) mostraPausa(); }, 6000);
   },
 });
 
@@ -793,17 +827,16 @@ function desenhaConta(){
   const estado = $('#conta-estado'), fora = $('#conta-fora'), dentro = $('#conta-dentro');
   if(!estado) return;
   if(!Nuvem.configurada){
-    estado.textContent = 'As contas na cloud ainda não estão ativadas neste jogo. Por agora o progresso fica só neste aparelho.';
+    estado.textContent = 'A partilha com amigos não está disponível neste jogo. O progresso fica só neste aparelho.';
     fora.hidden = true; dentro.hidden = true; return;
   }
-  if(Nuvem.utilizador){
-    const h = Nuvem.ultimaSync ? new Date(Nuvem.ultimaSync).toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}) : 'ainda não';
-    estado.textContent = `Sessão iniciada: ${Nuvem.utilizador.email || 'conta Google'}. Último guardar na cloud: ${h}.` + (Nuvem.erro ? ' ' + Nuvem.erro : '');
-    fora.hidden = true; dentro.hidden = false;
-  }else{
-    estado.textContent = 'Entre com a sua conta para guardar o progresso na cloud e continuar noutro telemóvel ou tablet.';
-    fora.hidden = false; dentro.hidden = true;
+  if(!Nuvem.consentida){
+    estado.textContent = 'A partilha com amigos está desligada. Nada sai deste aparelho.';
+    fora.hidden = false; dentro.hidden = true; return;
   }
+  const h = Nuvem.ultimaSync ? new Date(Nuvem.ultimaSync).toLocaleTimeString('pt-PT', {hour:'2-digit', minute:'2-digit'}) : 'ainda não';
+  estado.textContent = `Partilha com amigos ligada. Última atualização: ${h}.` + (Nuvem.erro ? ' ' + Nuvem.erro : '');
+  fora.hidden = true; dentro.hidden = false;
 }
 Nuvem.aMudar = desenhaConta;
 /* progresso novo da cloud: aplica-se sem recarregar, e nunca a meio de um jogo */
@@ -829,16 +862,15 @@ async function tentaConta(acao){
   catch(e){ aviso.textContent = Nuvem.mensagem(e); }
   finally{ botoes.forEach(b => b.disabled = false); }
 }
-const dadosConta = () => ({ email: $('#conta-email').value.trim(), pw: $('#conta-pw').value });
-$('#btn-google').onclick = () => tentaConta(() => Nuvem.entraGoogle());
-$('#form-conta').onsubmit = e => { e.preventDefault(); const c = dadosConta(); tentaConta(() => Nuvem.entraEmail(c.email, c.pw)); };
-$('#btn-criar-conta').onclick = () => { const c = dadosConta(); tentaConta(() => Nuvem.criaConta(c.email, c.pw)); };
-$('#btn-esqueci').onclick = () => {
-  const c = dadosConta();
-  if(!c.email){ $('#aviso-conta').textContent = 'Escreva primeiro o seu email.'; return; }
-  tentaConta(async () => { await Nuvem.recupera(c.email); $('#aviso-conta').textContent = 'Enviámos um email para repor a palavra-passe.'; });
+$('#btn-ativar-partilha').onclick = () => {
+  if(!$('#consentimento-pais').checked){ $('#aviso-conta').textContent = 'Marque a caixa para confirmar que é o pai, mãe ou responsável.'; return; }
+  tentaConta(async () => { await Nuvem.ativa(); atualizaAmigos(true); });
 };
-$('#btn-sair-conta').onclick = () => tentaConta(() => Nuvem.sai());
+$('#btn-sair-conta').onclick = () => tentaConta(async () => {
+  if(!confirm('Desligar a partilha e apagar da cloud o que foi publicado? Os amigos deixam de ver esta criança.')) return;
+  await Nuvem.desativa([...codigosLocais()]);
+  Estado.amigos.forEach(a => { a.resumo = null; }); Estado.guarda();
+});
 
 $('#idade-crianca')?.addEventListener('change',e=>{Estado.idade=+e.target.value;Estado.guarda();aplicaIdade();});
 $('#limite-tempo')?.addEventListener('change',e=>{Estado.limiteMinutos=Math.max(0,Math.min(180,+e.target.value||0));Estado.guarda();});
@@ -852,6 +884,13 @@ $('#btn-apagar-perfil')?.addEventListener('click',()=>{
   if(!ps.length) ps.push({id:'principal',nome:'Criança 1'});
   localStorage.setItem('eab-perfis',JSON.stringify(ps));
   localStorage.setItem('eab-perfil-ativo',ps[0].id); location.reload();
+});
+$('#btn-apagar-tudo')?.addEventListener('click',()=>{
+  if(!confirm('Apagar TODOS os perfis e dados deste jogo neste aparelho? Não é possível desfazer.')) return;
+  Estado.apagando = true; clearTimeout(Estado._tg);
+  try{ Object.keys(localStorage).filter(k => k === 'eab' || k.startsWith('eab-')).forEach(k => localStorage.removeItem(k)); }catch(e){}
+  try{ if(window.caches) caches.keys().then(ks => ks.filter(k => k.startsWith('eab')).forEach(k => caches.delete(k))); }catch(e){}
+  location.reload();
 });
 $('#perfil-ativo').addEventListener('change', e => {
   const id = e.target.value;
