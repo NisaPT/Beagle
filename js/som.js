@@ -234,7 +234,14 @@ export const Som = {
     if(this.pacotes[p]) return this.pacotes[p];
     if(!this.aCarregar[p]){
       this.aCarregar[p] = (p === 'f' ? import('./voz_f.js') : import('./voz_m.js'))
-        .then(m => { this.pacotes[p] = p === 'f' ? m.VOZ_F : m.VOZ_M; return this.pacotes[p]; })
+        .then(async m => {
+          const base = p === 'f' ? m.VOZ_F : m.VOZ_M;
+          /* falas novas, geradas à parte com a mesma voz (voz_f/voz_m ficam intactos) */
+          let extra = {};
+          try{ const e = await (p === 'f' ? import('./voz_extra_f.js') : import('./voz_extra_m.js')); extra = e.VOZ_EXTRA_F || e.VOZ_EXTRA_M || {}; }catch(e){}
+          this.pacotes[p] = Object.assign({}, base, extra);
+          return this.pacotes[p];
+        })
         .catch(e => { console.warn('sem voz embutida', p, e); return null; });
     }
     return this.aCarregar[p];

@@ -34,7 +34,7 @@ let TIPOS_MUNDO = {};
 export const COR_TIPO = { cores:'#D93A32', contar:'#4A90D9', formas:'#5BAF6A',
   letras:'#F3822B', memoria:'#8E6BC8', logica:'#2AA6A0', somas:'#C98F55',
   animais:'#E08A3C', frutas:'#E0457B', legumes:'#4FA14F', colheita:'#6BAA3E', flores:'#D860A8',
-  toupeiras:'#A0693A', cesto:'#E0A12B', puzzle:'#5B7FD1' };
+  toupeiras:'#A0693A', cesto:'#E0A12B', puzzle:'#5B7FD1', pontos:'#D9576B', procurar:'#2FA39A', pintar:'#C25BD1' };
 
 /* ---------------------------------------------------- curva de dificuldade */
 /* dez degraus ao longo dos 500 níveis; cada um acrescenta alguma coisa */

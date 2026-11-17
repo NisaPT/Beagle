@@ -2,6 +2,7 @@ import { balao, flor, biscoito, peca, buraco, FORMAS, confete } from './arte.js'
 import { rondaNatureza } from './natureza.js';
 import { campoMovel } from './movimento.js';
 import { rondaToupeiras, rondaCesto, rondaPuzzle, rondaColheita } from './jogos2.js';
+import { rondaPontos, rondaProcurar, rondaPintar } from './jogos3.js';
 
 const rnd = n => Math.floor(Math.random() * n);
 const pick = a => a[rnd(a.length)];
@@ -105,7 +106,10 @@ export class Jogo {
     if(this.tipo === 'colheita') rondaColheita(this);
     if(this.tipo === 'flores') this.rondaFlores();
     if(this.tipo === 'cesto' && rondaCesto(this) === false) this.rondaCores();
-    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes','toupeiras','puzzle','cesto','colheita','flores'].includes(this.tipo)) this.rondaCores();
+    if(this.tipo === 'pontos' && rondaPontos(this) === false) this.rondaCores();
+    if(this.tipo === 'procurar' && rondaProcurar(this) === false) this.rondaCores();
+    if(this.tipo === 'pintar' && rondaPintar(this) === false) this.rondaCores();
+    if(!['cores','contar','formas','letras','memoria','logica','somas','animais','frutas','legumes','toupeiras','puzzle','cesto','colheita','flores','pontos','procurar','pintar'].includes(this.tipo)) this.rondaCores();
   }
 
   diz(texto, aoFim, pista, falado){ this.ctx.voz.diz(texto, aoFim, pista, falado); }

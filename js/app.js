@@ -10,6 +10,7 @@ import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { abreBrincar } from './brincar.js';
+import { abreTarefas } from './tarefas.js';
 import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
 import { miniFilme } from './curiosidades.js';
 import { Festa } from './festa.js';
@@ -76,7 +77,7 @@ const AMIGOS_FALSOS = ['MARU-2841', 'PIPO-5513', 'LUAS-7702'];
 const nomeReal = n => (n && n !== 'Criança 1' && n !== 'Criança') ? n : '';
 
 const Estado = {
-  nivel:1, estrelas:{}, album:{}, quinta:{itens:{}}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
+  nivel:1, estrelas:{}, extra:0, album:{}, quinta:{itens:{}}, companheiro:'avo', codigo:null, amigos:[], nome:'', perguntouNome:false, idade:null, perfilId:'principal',
   aprendizagem:{cores:{certas:0,erros:0},contar:{certas:0,erros:0},formas:{certas:0,erros:0},letras:{certas:0,erros:0},memoria:{certas:0,erros:0},logica:{certas:0,erros:0}},
   limiteMinutos:30, tempoHoje:0, diaUso:null, inicioSessao:Date.now(),
 
@@ -101,6 +102,7 @@ const Estado = {
       Object.assign(this, {
         nivel: g.nivel || 1,
         estrelas: g.estrelas || {},
+        extra: Number.isFinite(g.extra) ? g.extra : 0,
         album: (g.album && typeof g.album === 'object') ? g.album : {},
         quinta: (g.quinta && g.quinta.itens) ? g.quinta : {itens:{}},
         companheiro: g.companheiro || 'avo',
@@ -130,7 +132,7 @@ const Estado = {
     if(this.apagando) return;
     clearTimeout(this._tg); this._tg = 0;
     const dados = {
-      nivel:this.nivel, estrelas:this.estrelas, album:this.album, quinta:this.quinta, companheiro:this.companheiro,
+      nivel:this.nivel, estrelas:this.estrelas, extra:this.extra||0, album:this.album, quinta:this.quinta, companheiro:this.companheiro,
       codigo:this.codigo, amigos:this.amigos, removidos:this.removidos || [], nome:this.nome, perguntouNome:this.perguntouNome, idade:this.idade, missaoDia:this.missaoDia || null,
       aprendizagem:this.aprendizagem, limiteMinutos:this.limiteMinutos,
       tempoHoje:this.tempoHoje, diaUso:chaveDia(), t:Date.now(),
@@ -145,7 +147,7 @@ const Estado = {
     }catch(e){ console.warn('Não foi possível guardar neste aparelho', e); }
     Nuvem.agenda();
   },
-  totalEstrelas(){ return Object.values(this.estrelas).reduce((a, b) => a + b, 0); },
+  totalEstrelas(){ return Object.values(this.estrelas).reduce((a, b) => a + b, 0) + (this.extra || 0); },
   /* estrelas por gastar: as ganhas menos o que já foi comprado na quinta */
   saldo(){ return Math.max(0, this.totalEstrelas() - gastoTotal(this.quinta.itens)); },
   ganha(nivel, estrelas){
@@ -283,7 +285,12 @@ function abreMundos(){
       <span class="texto"><span class="titulo">Ranking</span>
         <span class="sub">Quem tem mais ⭐ · Quinta nível ${nq.nivel}</span></span>
     </button>`;
-  $('#lista-mundos').innerHTML = cartaoQuinta + cartaoRanking + MUNDOS.map((m, i) => {
+  const cartaoTarefas = `<button class="mundo tarefas" data-tarefas="1">
+      <span class="selo" style="--c:#F6D9A8"><span class="selo-emoji">🧺</span></span>
+      <span class="texto"><span class="titulo">Tarefas da quinta</span>
+        <span class="sub">Ovos, lã e dar de comer</span></span>
+    </button>`;
+  $('#lista-mundos').innerHTML = cartaoQuinta + cartaoTarefas + cartaoRanking + MUNDOS.map((m, i) => {
     const inicio = primeiroDoMundo(i);
     const aberto = maior >= inicio;
     const feitos = Math.max(0, Math.min(POR_MUNDO, maior - inicio));
@@ -309,6 +316,10 @@ $('#lista-mundos').onclick = e => {
   if(!b || b.disabled) return;
   Som.efeito('toque');
   if(b.dataset.quinta) return abreQuinta();
+  if(b.dataset.tarefas){
+    if(limiteAtingido()){ mostraAvisoLimite(); return; }
+    return abreTarefas(Som, n => { Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); });
+  }
   if(b.dataset.ranking) return abreRanking();
   abreMapa(false, +b.dataset.mundo);
 };
@@ -781,7 +792,7 @@ function desenhaPais(){
   const concluidos = Object.keys(Estado.estrelas).length;
   $('#relatorio-aprendizagem').innerHTML =
     `<p><strong>${concluidos}</strong> níveis concluídos · <strong>${Estado.totalEstrelas()}</strong> estrelas conquistadas</p>` +
-    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes',toupeiras:'Toupeiras',cesto:'Cesto',puzzle:'Puzzle',colheita:'Colheita',flores:'Flores'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
+    `<div class="relatorio-grelha">${Object.entries(Estado.aprendizagem).map(([k,v])=>{const t=v.certas+v.erros,p=t?Math.round(v.certas/t*100):0;return `<div><strong>${({cores:'Cores',contar:'Contagem',formas:'Formas',letras:'Letras',memoria:'Memória',logica:'Lógica',somas:'Somas',animais:'Animais',frutas:'Frutas',legumes:'Legumes',toupeiras:'Toupeiras',cesto:'Cesto',puzzle:'Puzzle',colheita:'Colheita',flores:'Flores',pontos:'Ligar pontos',procurar:'Procurar',pintar:'Pintar'})[k]||k}</strong><span>${v.certas} respostas certas · ${t} tentativas</span><div class="barra-progresso"><i style="width:${p}%"></i></div><small>${t?p+'% de sucesso':'Ainda sem dados'}</small></div>`}).join('')}</div>` +
     `<p class="aviso">Dados agregados guardados apenas neste dispositivo. A percentagem orienta a adaptação da dificuldade; não é uma avaliação clínica ou escolar.</p>`;
   const selPerfil = $('#perfil-ativo');
   if(selPerfil){

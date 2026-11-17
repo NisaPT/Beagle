@@ -970,6 +970,62 @@ body[data-ecra="mundos"] #btn-album,body[data-ecra="mapa"] #btn-album,body[data-
 
 .ecra.cobre{padding-top:calc(max(.55rem,env(safe-area-inset-top)) + 3.6rem)}
 body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-ecra="recompensa"] #btn-brincar,body[data-ecra="recompensa"] #btn-album{bottom:calc(max(.8rem,env(safe-area-inset-bottom)) + 5.4rem)}
+
+/* v4.25: ligar pontos, procurar, pintar e tarefas da quinta */
+.pontos-cena{width:min(100%,26rem);aspect-ratio:1;margin:0 auto;padding:.4rem}
+.pontos-cena svg{width:100%;height:100%;touch-action:none;background:#fffaf0;border-radius:1.2rem;box-shadow:inset 0 0 0 3px #e9d9b6}
+.pontos-forma{fill:transparent;transition:fill .5s}
+.pontos-cena svg.completo .pontos-forma{fill:#F5C344}
+.pontos-linhas line{stroke:#2C6FD6;stroke-width:1.8;stroke-linecap:round}
+.ponto circle{fill:#fff;stroke:#2b3a55;stroke-width:1.2}
+.ponto text{font:800 5.4px/1 'Baloo 2',system-ui,sans-serif;fill:#2b3a55;pointer-events:none}
+.ponto.ligado circle{fill:#8ED28F}
+.ponto.proximo circle{fill:#FFE27A;animation:ponto-pulsa 1s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.ponto.dica circle{stroke:#D93A32;stroke-width:2}
+.ponto.treme{animation:ponto-treme .35s}
+@keyframes ponto-pulsa{50%{transform:scale(1.28)}}
+@keyframes ponto-treme{25%{transform:translate(var(--x,0),0) rotate(-6deg)}75%{transform:rotate(6deg)}}
+.procura-cena{position:relative;width:min(100%,34rem);aspect-ratio:4/3;margin:0 auto;border-radius:1.2rem;overflow:hidden;box-shadow:inset 0 0 0 3px rgba(0,0,0,.08)}
+.procura-cena.pasto{background:linear-gradient(#bfe4ff 0 30%,#8fd17a 30% 100%)}
+.procura-cena.horta{background:linear-gradient(#cfeaff 0 24%,#9ad37e 24% 55%,#8b5a35 55% 100%)}
+.procura-item{position:absolute;width:22%;aspect-ratio:1;transform:translate(-50%,-50%) rotate(var(--giro));border:0;background:none;padding:0;cursor:pointer;transition:transform .25s}
+.procura-item img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.procura-item.achado{transform:translate(-50%,-50%) scale(1.15);filter:drop-shadow(0 0 6px #F5B921)}
+.procura-item.achado::after{content:"✔";position:absolute;right:-4%;top:-4%;width:1.6rem;height:1.6rem;border-radius:50%;background:#3DA35D;color:#fff;font:800 1rem/1.6rem system-ui;text-align:center}
+.procura-conta{position:absolute;right:.6rem;bottom:.5rem;background:rgba(255,255,255,.92);border-radius:999px;padding:.2rem .8rem;font-weight:800;color:#234}
+.pintar-cena{display:flex;flex-direction:column;align-items:center;gap:.8rem;width:min(100%,24rem);margin:0 auto}
+.pintar-cena svg{width:min(100%,19rem);aspect-ratio:1;background:#fffaf0;border-radius:1.2rem;box-shadow:inset 0 0 0 3px #e9d9b6}
+.pintar-cena .parte{cursor:pointer;transition:fill .25s}
+.pintar-tintas{display:flex;gap:.6rem;flex-wrap:wrap;justify-content:center;padding:.3rem}
+.pintar-tintas.chama{animation:tinta-chama .45s 2}
+.tinta{width:3.2rem;height:3.2rem;border-radius:50%;border:3px solid #fff;background:var(--c);box-shadow:0 3px 0 rgba(0,0,0,.25);cursor:pointer}
+.tinta.on{outline:4px solid #234;outline-offset:2px;transform:scale(1.12)}
+@keyframes tinta-chama{50%{transform:scale(1.12)}}
+.tarefa-palco{width:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.ovos-quinta{width:min(100%,30rem);display:flex;flex-direction:column;align-items:center;gap:1rem}
+.ovos-ninhos{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;width:100%}
+.ninho{position:relative;aspect-ratio:1.3;background:#e7c98a;border-radius:50% 50% 40% 40%;box-shadow:inset 0 -8px 0 #c79b52;display:grid;place-items:center}
+.ovo{font-size:2.8rem;border:0;background:none;cursor:pointer;min-width:3.4rem;min-height:3.4rem;animation:ovo-pop .4s cubic-bezier(.3,1.6,.5,1)}
+.ovo.vai{transition:transform .6s ease-in,opacity .6s;transform:translate(var(--dx),var(--dy)) scale(.5);opacity:.6;pointer-events:none}
+@keyframes ovo-pop{from{transform:scale(0)}}
+.ovos-cesto,.la-conta{font-size:1.6rem;font-weight:800;background:#fff;border-radius:999px;padding:.3rem 1.2rem}
+.la-quinta{display:flex;flex-direction:column;align-items:center;gap:1rem}
+.la-ovelha{position:relative;width:min(80vw,22rem);aspect-ratio:1;touch-action:none}
+.la-ovelha img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.la-tufo{position:absolute;width:24%;aspect-ratio:1;border:0;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 35% 35%,#fff,#eef1f6 60%,#d9dfea);box-shadow:0 3px 6px rgba(0,0,0,.2);transform:translate(-20%,-20%)}
+.la-tufo.voa{transition:transform .7s ease-in,opacity .7s;transform:translate(-20%,-260%) scale(.4);opacity:0;pointer-events:none}
+.comer-quinta{width:min(100%,32rem);display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+.comer-bichos{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;width:100%}
+.comer-bicho{aspect-ratio:1;display:grid;place-items:center;background:#fff;border-radius:1.2rem;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.comer-bicho img{width:86%;height:86%;object-fit:contain;pointer-events:none}
+.comer-bicho.feliz{animation:comer-feliz .5s 2;background:#e3f7dc}
+.comer-bicho.treme{animation:ponto-treme .35s}
+@keyframes comer-feliz{50%{transform:scale(1.1)}}
+.comida{font-size:4rem;min-width:4.5rem;min-height:4.5rem;display:grid;place-items:center;cursor:grab;touch-action:none;user-select:none}
+.comida.a-arrastar{z-index:5;cursor:grabbing}
+.comida.comida-comida{transition:transform .5s,opacity .5s;transform:scale(.1);opacity:0}
+.tarefa-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.5rem;font-weight:800}
+.mundo.tarefas .selo-emoji{font-size:1.9rem}
 </style>
 </head>
 <body data-ecra="carregar">
