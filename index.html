@@ -621,14 +621,14 @@ body[data-saudacao="ava"] .intro-video{display:block}
 @keyframes mov-pop{to{transform:scale(1.5);opacity:0}}
 .mov.errado svg,.mov.errado img{animation:abana .4s ease}
 @media (prefers-reduced-motion:reduce){.campo-movel .mov{animation-duration:calc(var(--d) * 2)}}
-.toupeiras{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.6rem;max-width:34rem;margin:0 auto;padding:.4rem}
+.toupeiras{width:min(100%,32rem);display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.6rem;max-width:34rem;margin:0 auto;padding:.4rem}
 .toupeira{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .toupeira .bicho-caixa{position:absolute;inset:0 8% 26% 8%;overflow:hidden;display:block}
 .toupeira .bicho{position:absolute;left:0;bottom:0;width:100%;height:100%;object-fit:contain;transform:translateY(105%);transition:transform .28s cubic-bezier(.34,1.5,.64,1);pointer-events:none}
 .toupeira.sobe .bicho{transform:translateY(0)}
 .toupeira .terra{position:absolute;left:4%;right:4%;bottom:6%;height:34%;border-radius:50%;background:radial-gradient(ellipse at 50% 35%,#3d2a1a 0 55%,#7a5632 56%);box-shadow:0 4px 0 #5a3f22}
 .toupeira.errado .bicho{animation:abana .4s ease}
-.cesto-cena{display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
+.cesto-cena{width:min(100%,34rem);display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
 .cesto-peca-area{height:min(26vh,200px);display:grid;place-items:center}
 .cesto-peca{width:min(30vw,170px);touch-action:none;cursor:grab;transition:opacity .3s}
 .cesto-peca img{width:100%;pointer-events:none;-webkit-user-drag:none}
@@ -638,7 +638,7 @@ body[data-saudacao="ava"] .intro-video{display:block}
 .cesto{font-size:clamp(2rem,9vw,3.6rem);display:flex;flex-direction:column;align-items:center;min-width:clamp(110px,32vw,190px);padding:.5rem .8rem .7rem;border-radius:1.2rem 1.2rem 2.2rem 2.2rem;border:4px solid #8a5a2b;background:repeating-linear-gradient(90deg,#d9a566 0 14px,#c8934f 14px 28px);cursor:pointer}
 .cesto span{font-size:clamp(1rem,4vw,1.4rem);font-weight:700;color:#4a2f12}
 .cesto.errado{animation:abana .4s ease}
-.puzzle-cena{--B:min(56vw,34vh);display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
+.puzzle-cena{width:min(100%,34rem);--B:min(56vw,34vh);display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.4rem}
 .puzzle-quadro{position:relative;width:var(--B);height:var(--B);display:grid;grid-template-columns:repeat(var(--cols),1fr);grid-template-rows:repeat(var(--rows),1fr);border-radius:.8rem;background:rgba(255,255,255,.35)}
 .puzzle-slot{border:2px dashed rgba(27,77,143,.45);border-radius:.4rem}
 .puzzle-slot.errado{animation:abana .4s ease}
@@ -666,7 +666,7 @@ body[data-saudacao="ava"] .intro-video{display:block}
 @keyframes bolha-pop{to{transform:scale(1.6);opacity:0}}
 .carta-nat.sombra img,.carta-nat.sombra canvas{filter:brightness(0) opacity(.8)}
 .carta-nat img{transition:filter .35s}
-.colheita{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.5rem;max-width:36rem;margin:0 auto;padding:.4rem}
+.colheita{width:min(100%,32rem);display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.5rem;max-width:36rem;margin:0 auto;padding:.4rem}
 .canteiro{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .canteiro .planta{position:absolute;left:8%;right:8%;top:0;bottom:30%;overflow:hidden;display:block}
 .canteiro .planta img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:contain;clip-path:inset(0 0 38% 0);transition:transform .35s cubic-bezier(.34,1.5,.64,1),clip-path .35s}
@@ -676,7 +676,7 @@ body[data-saudacao="ava"] .intro-video{display:block}
 @keyframes colhe{to{transform:translateY(-120%) scale(.6);opacity:0}}
 .canteiro.errado .planta{animation:abana .4s ease}
 .cesta-cont{text-align:center;font-size:1.4rem;margin-top:.4rem}
-.flores-jardim{display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.4rem;max-width:36rem;margin:0 auto;padding:.4rem}
+.flores-jardim{width:min(100%,32rem);display:grid;grid-template-columns:repeat(var(--cols),1fr);gap:.4rem;max-width:36rem;margin:0 auto;padding:.4rem}
 .f-canteiro{position:relative;aspect-ratio:1;background:none;border:0;padding:0;cursor:pointer}
 .f-canteiro .f-terra{position:absolute;left:12%;right:12%;bottom:4%;height:18%;border-radius:50%;background:#7a5632;box-shadow:0 3px 0 #5a3f22}
 .f-canteiro .f-flor{position:absolute;inset:0 8% 14% 8%;transform:scale(0);transform-origin:50% 100%;transition:transform .6s cubic-bezier(.34,1.6,.64,1)}
@@ -959,6 +959,17 @@ body[data-ecra="mundos"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bot
 .quinta-atalho span{font-size:14px}
 body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,body[data-ecra="recompensa"] .quinta-atalho{display:inline-flex;align-items:center}
 @media (max-width:420px){.quinta-atalho span{display:none}.quinta-atalho{padding:0 10px}}
+
+/* v4.24: barra sem esmagar; Brincar/Álbum num dock próprio (só mundos, mapa, recompensa) */
+.barra .mini,.barra .voltar,.barra .estrelas{flex:none}
+#btn-brincar,#btn-album{display:none;position:fixed;bottom:max(.8rem,env(safe-area-inset-bottom));z-index:8;width:3.2rem;height:3.2rem;font-size:1.5rem}
+#btn-brincar{left:.8rem}#btn-album{right:.8rem}
+body[data-ecra="mundos"] #btn-brincar,body[data-ecra="mapa"] #btn-brincar,body[data-ecra="recompensa"] #btn-brincar,
+body[data-ecra="mundos"] #btn-album,body[data-ecra="mapa"] #btn-album,body[data-ecra="recompensa"] #btn-album{display:grid}
+@media (max-width:420px){.barra{gap:.35rem;left:.45rem;right:.45rem}.mini.discreto{width:2.75rem;height:2.75rem}}
+
+.ecra.cobre{padding-top:calc(max(.55rem,env(safe-area-inset-top)) + 3.6rem)}
+body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-ecra="recompensa"] #btn-brincar,body[data-ecra="recompensa"] #btn-album{bottom:calc(max(.8rem,env(safe-area-inset-bottom)) + 5.4rem)}
 </style>
 </head>
 <body data-ecra="carregar">

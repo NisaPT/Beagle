@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.23.0';
+const VERSAO = 'eab-4.24.1';
 const FICHEIROS_TODOS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -36,6 +36,8 @@ const FICHEIROS_TODOS = [
   './js/som.js',
   './js/voz_f.js',
   './js/voz_m.js',
+  './js/voz_extra_f.js',
+  './js/voz_extra_m.js',
   './lib/loaders/GLTFLoader.js',
   './modelos/animais/cao.glb',
   './modelos/animais/gato.glb',
