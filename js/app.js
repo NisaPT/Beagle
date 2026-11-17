@@ -11,6 +11,8 @@ import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { abreBrincar } from './brincar.js';
 import { abreTarefas } from './tarefas.js';
+import { tocaHistoria } from './historias.js';
+import { HISTORIAS } from './historias_dados.js';
 import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
 import { miniFilme } from './curiosidades.js';
 import { Festa } from './festa.js';
@@ -245,12 +247,13 @@ function mostra(id){
   document.body.dataset.ecra = id ? id.replace('#ecra-', '') : 'jogo';
   pausado = id === '#ecra-carregar' || id === '#ecra-quinta' || id === '#ecra-porta' || id === '#ecra-pais';   /* nos outros menus o avô/avó faz companhia num canto */
   if(id === '#ecra-inicio' || id === '#ecra-nome' || id === '#ecra-idade') vista = VISTAS.dois;      /* os dois avós */
-  else if(id === '#ecra-mundos' || id === '#ecra-mapa' || id === '#ecra-ranking') vista = VISTAS.um;                           /* o que foi escolhido */
+  else if(id === '#ecra-mundos' || id === '#ecra-historias' || id === '#ecra-mapa' || id === '#ecra-ranking') vista = VISTAS.um;                           /* o que foi escolhido */
   if(Q3D) Q3D.ativa(id === '#ecra-quinta');
   requestAnimationFrame(redimensiona);   /* o palco muda de altura entre ecrãs */
   setTimeout(aplicaPendentes, 0);
   const t = $('#texto-voltar');
-  if(t) t.textContent = id === '#ecra-mundos' ? 'Avós'
+  if(t) t.textContent = id === '#ecra-historias' ? 'Mundos'
+                      : id === '#ecra-mundos' ? 'Avós'
                       : id === '#ecra-mapa'   ? 'Quinta'
                       : id === '#ecra-quinta' ? 'Brincar'
                       : id === '#ecra-ranking' ? 'Avós'
@@ -290,7 +293,12 @@ function abreMundos(){
       <span class="texto"><span class="titulo">Tarefas da quinta</span>
         <span class="sub">Ovos, lã e dar de comer</span></span>
     </button>`;
-  $('#lista-mundos').innerHTML = cartaoQuinta + cartaoTarefas + cartaoRanking + MUNDOS.map((m, i) => {
+  const cartaoHistorias = `<button class="mundo historias" data-historias="1">
+      <span class="selo" style="--c:#F4C9D6"><span class="selo-emoji">📖</span></span>
+      <span class="texto"><span class="titulo">Histórias dos avós</span>
+        <span class="sub">${HISTORIAS.length} ${HISTORIAS.length === 1 ? 'história' : 'histórias'} · para ver e ouvir</span></span>
+    </button>`;
+  $('#lista-mundos').innerHTML = cartaoHistorias + cartaoQuinta + cartaoTarefas + cartaoRanking + MUNDOS.map((m, i) => {
     const inicio = primeiroDoMundo(i);
     const aberto = maior >= inicio;
     const feitos = Math.max(0, Math.min(POR_MUNDO, maior - inicio));
@@ -316,6 +324,7 @@ $('#lista-mundos').onclick = e => {
   if(!b || b.disabled) return;
   Som.efeito('toque');
   if(b.dataset.quinta) return abreQuinta();
+  if(b.dataset.historias) return abreHistorias();
   if(b.dataset.tarefas){
     if(limiteAtingido()){ mostraAvisoLimite(); return; }
     return abreTarefas(Som, n => { Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); });
@@ -670,11 +679,73 @@ function voltaAoMapa(){
   $('#tabuleiro').innerHTML = '';
   abreMapa(false, mundoVisto);
 }
+/* ============================================== HISTÓRIAS ============ */
+let historiaAtiva = null;
+function abreHistorias(){
+  Voz.cala(); Fala.esconde(); jogo.para();
+  $('#tabuleiro').innerHTML = '';
+  $('#lista-historias').innerHTML = HISTORIAS.map(h => {
+    const falas = h.passos.reduce((n, p) => n + p.falas.length, 0);
+    return `<button class="mundo historia" data-h="${h.id}" type="button">
+      <span class="selo" style="--c:#F4C9D6"><span class="selo-emoji">${h.emoji}</span></span>
+      <span class="texto"><span class="titulo">${h.titulo}</span>
+        <span class="sub">▶ ${h.duracao || 'Cerca de 3 minutos'} · com os dois avós</span></span>
+    </button>`;
+  }).join('') + `<div class="mundo breve" aria-disabled="true">
+      <span class="selo" style="--c:#E6E2D8"><span class="selo-emoji">✨</span></span>
+      <span class="texto"><span class="titulo">Mais histórias em breve</span>
+        <span class="sub">Novas aventuras na quinta</span></span></div>`;
+  mostra('#ecra-historias');
+  $('#barra').hidden = false;
+}
+$('#lista-historias').onclick = e => {
+  const b = e.target.closest('.historia');
+  if(!b) return;
+  Som.efeito('toque');
+  const h = HISTORIAS.find(x => x.id === b.dataset.h);
+  if(h) comecaHistoria(h);
+};
+const VISTA_HIST = { pos: new THREE.Vector3(0, .6, 4.5), alvo: new THREE.Vector3(0, .46, 0) };   /* mais afastada: os dois avós cabem num ecrã estreito */
+function comecaHistoria(h){
+  if(limiteAtingido()){ mostraAvisoLimite(); return; }
+  Voz.cala(); Fala.esconde(); jogo.para();
+  Som.arranca && Som.arranca();
+  mostra(null);
+  document.body.dataset.historia = '1';
+  $('#barra').hidden = false;
+  $('#texto-voltar').textContent = 'Histórias';
+  const raiz = $('#tabuleiro'); raiz.innerHTML = '';
+  /* os dois avós, lado a lado, tal como na abertura */
+  avo.visivel(true); ava.visivel(true);
+  avo.grupo.position.x = -.52; ava.grupo.position.x = .52;
+  avo.grupo.rotation.y = avo.rotBase + 14 * Math.PI / 180; ava.grupo.rotation.y = ava.rotBase - 14 * Math.PI / 180;
+  avo.faz('repouso'); ava.faz('repouso');
+  vista = VISTA_HIST;
+  if(historiaAtiva) historiaAtiva.para();
+  historiaAtiva = tocaHistoria(h, { Som, raiz, avo: () => avo, ava: () => ava, fim: () => fimHistoria(h) });
+}
+function fimHistoria(h){
+  const raiz = $('#tabuleiro');
+  raiz.insertAdjacentHTML('beforeend', `<div class="hist-fim"><p>⭐ Fim da história!</p>
+    <button class="botao" id="hist-outra" type="button">Ver outra vez</button>
+    <button class="botao calma" id="hist-sair" type="button">Voltar</button></div>`);
+  $('#hist-outra').onclick = () => comecaHistoria(h);
+  $('#hist-sair').onclick = saiDaHistoria;
+}
+function saiDaHistoria(){
+  if(historiaAtiva){ historiaAtiva.para(); historiaAtiva = null; }
+  delete document.body.dataset.historia;
+  Voz.cala();
+  soUm(Estado.companheiro);
+  abreHistorias();
+}
 $('#btn-voltar').onclick = () => {
   Som.efeito('toque');
+  if(document.body.dataset.historia){ saiDaHistoria(); return; }
   const onde = document.body.dataset.ecra;
   if(onde === 'quinta'){ if(!$('#loja').hidden) fechaLoja(); else if(Q3D && Q3D.dentro) Q3D.sai(); else abreMundos(); }   /* quinta -> mundos */
   else if(onde === 'ranking') abreMundos();          /* ranking -> mundos */
+  else if(onde === 'historias') abreMundos();     /* histórias -> mundos */
   else if(onde === 'mundos') abreEscolha();        /* mundos -> escolher avô */
   else if(onde === 'mapa') abreMundos();      /* mapa   -> mundos      */
   else voltaAoMapa();                         /* jogo   -> mapa        */

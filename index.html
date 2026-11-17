@@ -753,28 +753,28 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 /* ---- v4.14: o avô e a avó fazem companhia nos menus, num canto ---- */
 /* os ecrãs são filhos do body, por isso o #app sobe acima deles (sem apanhar toques) */
 body[data-ecra="inicio"] #app,body[data-ecra="nome"] #app,body[data-ecra="idade"] #app,
-body[data-ecra="mundos"] #app,body[data-ecra="ranking"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
+body[data-ecra="mundos"] #app,body[data-ecra="historias"] #app,body[data-ecra="ranking"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
 body[data-ecra="inicio"] .tabuleiro,body[data-ecra="nome"] .tabuleiro,body[data-ecra="idade"] .tabuleiro,
-body[data-ecra="mundos"] .tabuleiro,body[data-ecra="ranking"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
-body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage{pointer-events:auto}
+body[data-ecra="mundos"] .tabuleiro,body[data-ecra="historias"] .tabuleiro,body[data-ecra="ranking"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage{pointer-events:auto}
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,
-body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage,body[data-ecra="mapa"] .stage{
+body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage,body[data-ecra="mapa"] .stage{
   position:fixed;z-index:7;flex:none;overflow:visible;background:transparent;
   left:0;bottom:0;width:min(44vw,17rem);height:min(30vh,15rem);
 }
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage{
   left:50%;transform:translateX(-50%);width:min(94vw,24rem);height:min(26vh,13rem);bottom:max(.4rem,env(safe-area-inset-bottom));
 }
-body[data-ecra="mundos"] .stage,body[data-ecra="ranking"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
+body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
 body[data-ecra="mapa"] .stage{height:min(17vh,9rem);width:min(24vw,8rem);left:auto;right:0;bottom:3.6rem;pointer-events:none}
 body[data-ecra="inicio"] .stage .cenario,body[data-ecra="nome"] .stage .cenario,body[data-ecra="idade"] .stage .cenario,
 body[data-ecra="mundos"] .stage .cenario,body[data-ecra="ranking"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
 body[data-ecra="inicio"] .stage .fala,body[data-ecra="nome"] .stage .fala,body[data-ecra="idade"] .stage .fala,
-body[data-ecra="mundos"] .stage .fala,body[data-ecra="ranking"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
+body[data-ecra="mundos"] .stage .fala,body[data-ecra="historias"] .stage .fala,body[data-ecra="ranking"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
 body[data-ecra="inicio"] .stage::after,body[data-ecra="nome"] .stage::after,body[data-ecra="idade"] .stage::after,
-body[data-ecra="mundos"] .stage::after,body[data-ecra="ranking"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
+body[data-ecra="mundos"] .stage::after,body[data-ecra="historias"] .stage::after,body[data-ecra="ranking"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
 body[data-ecra="inicio"] .ecra.on,body[data-ecra="nome"] .ecra.on,body[data-ecra="idade"] .ecra.on{padding-bottom:calc(min(26vh,13rem) + 1rem)}
-body[data-ecra="mundos"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
+body[data-ecra="mundos"] .ecra.on,body[data-ecra="historias"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
 
 /* ---- v4.13: festa dos meninos Beagle ---- */
 .festa{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(24,61,53,.6);padding:1rem;animation:festa-fundo .25s ease-out}
@@ -957,7 +957,7 @@ body[data-ecra="mundos"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bot
 #btn-ir-quinta{display:inline-block}
 .quinta-atalho{display:none;width:auto;padding:0 12px;gap:6px;font-weight:800;font-size:15px;background:#CFEBC3;color:#1B4D8F;border-radius:22px}
 .quinta-atalho span{font-size:14px}
-body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,body[data-ecra="recompensa"] .quinta-atalho{display:inline-flex;align-items:center}
+body[data-ecra="mundos"] .quinta-atalho,body[data-ecra="historias"] .quinta-atalho,body[data-ecra="mapa"] .quinta-atalho,body[data-ecra="recompensa"] .quinta-atalho{display:inline-flex;align-items:center}
 @media (max-width:420px){.quinta-atalho span{display:none}.quinta-atalho{padding:0 10px}}
 
 /* v4.24: barra sem esmagar; Brincar/Álbum num dock próprio (só mundos, mapa, recompensa) */
@@ -1026,6 +1026,32 @@ body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-
 .comida.comida-comida{transition:transform .5s,opacity .5s;transform:scale(.1);opacity:0}
 .tarefa-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.5rem;font-weight:800}
 .mundo.tarefas .selo-emoji{font-size:1.9rem}
+
+/* v4.26: histórias dos avós */
+body[data-historia]{--stage-h:42%}
+body[data-historia] .fala{display:none}
+.hist-cena{position:absolute;inset:0;overflow:hidden;animation:hist-entra .6s ease both}
+.hist-cena[data-fundo=ceu]{background:linear-gradient(#bfe4ff 0 55%,#8fd17a 55%)}
+.hist-cena[data-fundo=horta]{background:linear-gradient(#cfeaff 0 22%,#9ad37e 22% 50%,#8b5a35 50%)}
+.hist-cena[data-fundo=pomar]{background:linear-gradient(#cfeaff 0 30%,#7fc46a 30%)}
+.hist-cena[data-fundo=galinheiro]{background:linear-gradient(#ffe9b8 0 35%,#e2b66b 35%)}
+.hist-cena[data-fundo=curral]{background:linear-gradient(#d6ecff 0 28%,#a6d98b 28%)}
+.hist-cena[data-fundo=campo]{background:linear-gradient(#cfeaff 0 34%,#93cf78 34%)}
+.hist-cena[data-fundo=lago]{background:linear-gradient(#cfeaff 0 25%,#8fd17a 25% 45%,#6fc3e8 45%)}
+.hist-cena[data-fundo=casa]{background:linear-gradient(#e2f2ff 0 30%,#b7de96 30%)}
+.hist-titulo{position:absolute;top:.6rem;left:50%;transform:translateX(-50%);background:#fff;border:3px solid #1B4D8F;border-radius:999px;padding:.2rem 1.1rem;font-weight:800;font-size:1.15rem;color:#1B4D8F;z-index:2;white-space:nowrap}
+.hist-item{position:absolute;width:var(--t);height:var(--t);transform:translate(-50%,-50%);object-fit:contain;animation:hist-pop .6s var(--d) cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
+.hist-item.emoji{width:auto;height:auto;font-size:var(--t);line-height:1;display:block}
+.hist-cena canvas.a3d{position:absolute;width:var(--t);height:var(--t);transform:translate(-50%,-50%);pointer-events:none;animation:hist-pop .6s var(--d,300ms) cubic-bezier(.3,1.6,.5,1) both}
+.hist-legenda{position:absolute;left:.7rem;right:.7rem;bottom:.7rem;background:rgba(255,255,255,.94);border-radius:1rem;padding:.6rem .9rem;font-weight:700;font-size:clamp(1rem,4.2vw,1.35rem);line-height:1.25;color:#234;text-align:center;opacity:0;transform:translateY(10px);transition:.3s;z-index:2}
+.hist-legenda.on{opacity:1;transform:none}
+.hist-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.6rem;font-weight:800;z-index:5}
+@keyframes hist-pop{from{transform:translate(-50%,-50%) scale(0);opacity:0}}
+@keyframes hist-entra{from{opacity:0}}
+@media (prefers-reduced-motion:reduce){.hist-item,.hist-cena{animation:none}}
+.mundo.historias .selo-emoji{font-size:1.9rem}
+.mundo.breve{opacity:.6;cursor:default}
+.mundo.historia .selo-emoji{font-size:1.9rem}
 </style>
 </head>
 <body data-ecra="carregar">
@@ -1103,6 +1129,11 @@ body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-
 <section class="ecra cobre" id="ecra-mundos">
   <h1>Onde queres brincar?</h1>
   <div class="mundos" id="lista-mundos"></div>
+</section>
+
+<section class="ecra cobre" id="ecra-historias">
+  <h1>📖 Histórias dos avós</h1>
+  <div class="mundos" id="lista-historias"></div>
 </section>
 
 <section class="ecra cobre" id="ecra-ranking">
