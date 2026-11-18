@@ -12,21 +12,21 @@ export const HISTORIAS = [
         { id: 'cenoura', dx: -34, fila: 'frente', t: 4.2, modo: 'bob' }, { id: 'tomate', dx: -17, fila: 'frente', t: 4.2, modo: 'bob' },
         { id: 'alface', dx: 0, fila: 'frente', t: 4.2, modo: 'bob' }, { id: 'abobora', dx: 17, fila: 'frente', t: 4.4, modo: 'bob' }, { id: 'milho', dx: 34, fila: 'frente', t: 4.2, modo: 'bob' } ] },
       { id: 'pomar', x: 200, edificio: 'pomar', itens: [
-        { e: '🌳', dx: -36, fila: 'tras', t: 9 }, { e: '🌳', dx: 38, fila: 'tras', t: 8 },
-        { id: 'maca', dx: -26, fila: 'frente', t: 4, modo: 'bob' }, { id: 'pera', dx: -9, fila: 'frente', t: 4, modo: 'bob' },
-        { id: 'laranja', dx: 9, fila: 'frente', t: 4, modo: 'bob' }, { id: 'cerejas', dx: 26, fila: 'frente', t: 4, modo: 'bob' } ] },
+        { e: '🌳', dx: -36, fila: 'tras', t: 6.7 }, { e: '🌳', dx: 38, fila: 'tras', t: 5.9 },
+        { id: 'maca', dx: -26, fila: 'frente', t: 4.0, modo: 'bob' }, { id: 'pera', dx: -9, fila: 'frente', t: 4.0, modo: 'bob' },
+        { id: 'laranja', dx: 9, fila: 'frente', t: 4.0, modo: 'bob' }, { id: 'cerejas', dx: 26, fila: 'frente', t: 4.0, modo: 'bob' } ] },
       { id: 'galinheiro', x: 300, edificio: 'galinheiro', itens: [
-        { id: 'galo', dx: -26, fila: 'frente', t: 6.4, modo: 'anda', passeio: 14 },
-        { e: '🥚', dx: 18, fila: 'frente', t: 2.6 }, { e: '🥚', dx: 26, fila: 'frente', t: 2.6 }, { e: '🥚', dx: 34, fila: 'frente', t: 2.6 }, { e: '🌾', dx: -40, fila: 'frente', t: 3 } ] },
+        { id: 'galo', dx: -26, fila: 'frente', t: 4.7, modo: 'anda', passeio: 14 },
+        { e: '🥚', dx: 18, fila: 'frente', t: 2.6 }, { e: '🥚', dx: 26, fila: 'frente', t: 2.6 }, { e: '🥚', dx: 34, fila: 'frente', t: 2.6 }, { e: '🌾', dx: -40, fila: 'frente', t: 3.0 } ] },
       { id: 'curral', x: 400, edificio: 'vacaria', itens: [
-        { id: 'vaca', dx: -30, fila: 'frente', t: 10, d3: 1 }, { id: 'ovelha', dx: 2, fila: 'frente', t: 6.4, modo: 'anda', passeio: 10 },
-        { id: 'porco', dx: 32, fila: 'frente', t: 6.4, modo: 'anda', passeio: 8 } ] },
+        { id: 'vaca', dx: -30, fila: 'frente', t: 8.8, d3: 1 }, { id: 'ovelha', dx: 2, fila: 'frente', t: 4.7, modo: 'anda', passeio: 10 },
+        { id: 'porco', dx: 32, fila: 'frente', t: 4.7, modo: 'anda', passeio: 8 } ] },
       { id: 'estabulo', x: 500, edificio: 'estabulo', itens: [
-        { id: 'cavalo', dx: -6, fila: 'frente', t: 9, modo: 'anda', passeio: 10 }, { id: 'cenoura', dx: 28, fila: 'frente', t: 3.4, modo: 'bob' }, { id: 'maca', dx: 38, fila: 'frente', t: 3.4, modo: 'bob' } ] },
+        { id: 'cavalo', dx: -6, fila: 'frente', t: 6.7, modo: 'anda', passeio: 10 }, { id: 'cenoura', dx: 28, fila: 'frente', t: 3.4, modo: 'bob' }, { id: 'maca', dx: 38, fila: 'frente', t: 3.4, modo: 'bob' } ] },
       { id: 'lago', x: 600, edificio: 'lago', itens: [
-        { id: 'pato', dx: -22, fila: 'frente', t: 10, d3: 1 }, { id: 'ra', dx: 24, fila: 'frente', t: 5, modo: 'salta' }, { e: '🪷', dx: 40, fila: 'frente', t: 3 } ] },
+        { id: 'pato', dx: -22, fila: 'frente', t: 8.2, d3: 1 }, { id: 'ra', dx: 24, fila: 'frente', t: 5.0, modo: 'salta' }, { e: '🪷', dx: 40, fila: 'frente', t: 3.0 } ] },
       { id: 'casa2', x: 700, edificio: 'casa', itens: [
-        { id: 'cao', dx: -26, fila: 'frente', t: 10, d3: 1 }, { id: 'gato', dx: 26, fila: 'frente', t: 10, d3: 1 }, { e: '🦴', dx: -40, fila: 'frente', t: 2.8 }, { e: '🐟', dx: 40, fila: 'frente', t: 2.8 } ] },
+        { id: 'cao', dx: -26, fila: 'frente', t: 8.4, d3: 1 }, { id: 'gato', dx: 26, fila: 'frente', t: 8.4, d3: 1 }, { e: '🦴', dx: -40, fila: 'frente', t: 2.8 }, { e: '🐟', dx: 40, fila: 'frente', t: 2.8 } ] },
     ] },
     passos: [
       { para: 'casa', falas: [

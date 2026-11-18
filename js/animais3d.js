@@ -113,11 +113,11 @@ export function criaModelo(id, dados){
 
 /* animação de uma cartinha / vitrine: anda no lugar, vira-se devagar, salta ao toque.
    m = modelo de criaModelo; devolve função (dt, t) que anima. */
-function animador(m){
+function animador(m, quieto = false){
   const fase0 = Math.random() * 6;
   let fase = fase0, salto = 0, giro = 0, hop = Math.random();
   const f = (dt, t) => {
-    fase += dt * (m.pula ? 4 : 7.5);
+    fase += dt * (m.pula ? 4 : quieto ? 1.1 : 7.5);
     const ges = gestos(m.mov, t, fase0, true), parado = gestos(m.mov, t, fase0, false);
     let y = 0;
     if(m.pula){
@@ -129,14 +129,14 @@ function animador(m){
       if(m.cab) m.cab.rotation.x = parado.cab - s * .15;
     }else{
       for(let i = 0; i < m.pernas.length; i++)
-        m.pernas[i].rotation.x = Math.sin(fase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * (calmo ? .12 : (m.mov === 'lenta' ? .3 : .5));
-      y = Math.abs(Math.sin(fase)) * .02;
+        m.pernas[i].rotation.x = Math.sin(fase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * (calmo ? .12 : quieto ? .09 : (m.mov === 'lenta' ? .3 : .5));
+      y = Math.abs(Math.sin(fase)) * (quieto ? .004 : .02);
       if(m.cab) m.cab.rotation.x = (m.mov ? (Math.floor(t * .35 + fase0) % 2 ? ges.cab : parado.cab) : ges.cab);
     }
     if(parado.pata && !m.pula && m.pernas[parado.pata[0]]) m.pernas[parado.pata[0]].rotation.x = parado.pata[1];
     if(m.cab && m.mov === 'lenta') m.cab.position.z = m.cabZ0 + parado.pescoco;
     if(m.cauda) m.cauda.rotation.y = parado.cauda || ges.cauda;
-    m.malha.parent.rotation.z = m.pula ? 0 : Math.sin(fase) * m.balanco;
+    m.malha.parent.rotation.z = m.pula ? 0 : Math.sin(fase) * m.balanco * (quieto ? .15 : 1);
     if(salto > 0){
       salto = Math.max(0, salto - dt * 1.5);
       const s = Math.sin((1 - salto) * Math.PI);
@@ -145,7 +145,7 @@ function animador(m){
       if(m.cab) m.cab.rotation.x -= s * .4;
       m.malha.parent.scale.setScalar(CONFIG[m.id].esc).multiply(new THREE.Vector3(1 - s * .05, 1 + s * .1, 1 - s * .05));
     }else m.malha.parent.scale.setScalar(CONFIG[m.id].esc);
-    giro = calmo ? -.5 : Math.sin(t * .7 + fase0) * .45 - .5;     /* meia-volta para se ver em 3D */
+    giro = calmo ? -.5 : quieto ? Math.sin(t * .3 + fase0) * .12 - .45 : Math.sin(t * .7 + fase0) * .45 - .5;     /* meia-volta para se ver em 3D */
     m.raiz.rotation.y = giro;
     m.raiz.position.y = y;
   };
@@ -169,7 +169,7 @@ function renderizador(){
   return R;
 }
 
-function cenaDe(id, dados){
+function cenaDe(id, dados, quieto = false){
   const cena = new THREE.Scene();
   cena.add(new THREE.HemisphereLight(0xffffff, 0xb9a98a, 1.65));
   const sol = new THREE.DirectionalLight(0xffffff, 1.5); sol.position.set(2, 4, 3); cena.add(sol);
@@ -182,7 +182,7 @@ function cenaDe(id, dados){
   const cam = new THREE.PerspectiveCamera(30, 1, .1, 50);
   const d = r / Math.tan(THREE.MathUtils.degToRad(15));
   cam.position.set(d * .3, alt * .55 + d * .12, d * .95); cam.lookAt(0, alt * .46, 0);
-  return { cena, cam, m, anima: animador(m) };
+  return { cena, cam, m, anima: animador(m, quieto) };
 }
 
 function monta(img){
@@ -193,7 +193,7 @@ function monta(img){
     if(!img.isConnected) return;
     const c = document.createElement('canvas'); c.width = c.height = 256; c.className = 'a3d'; c.setAttribute('aria-hidden', 'true');
     c.style.cssText = img.getAttribute('style') || ''; c.style.setProperty('--giro', '0deg');
-    const o = cenaDe(id, dados);
+    const o = cenaDe(id, dados, img.dataset.quieto === '1');
     const carta = { canvas: c, ctx: c.getContext('2d'), img, ...o, t0: performance.now() / 1000, pronta: false };
     img.after(c);
     const botao = img.closest('button');

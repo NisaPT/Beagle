@@ -67,7 +67,7 @@ function constroi(h, palco){
       w.className = 'hm-bicho ' + (it.fila === 'tras' ? 'tras ' : '') + (it.modo || 'parado') + (it.e ? ' emoji' : '');
       w.style.cssText = `left:${cx + it.dx * vw}px;--t:${it.t}rem;--p:${(it.passeio || 8) * vw}px;--atraso:-${(i * 1.3).toFixed(1)}s`;
       if(it.e) w.textContent = it.e;
-      else w.innerHTML = `<img src="${imgSrc(it.id)}" alt="" draggable="false"${it.d3 && A3D.includes(it.id) ? ` data-a3d="${it.id}"` : ''}>`;
+      else w.innerHTML = `<img src="${imgSrc(it.id)}" alt="" draggable="false"${it.d3 && A3D.includes(it.id) ? ` data-a3d="${it.id}" data-quieto="1"` : ''}>`;
       g.append(w);
     });
     main.append(g); estEl[e.id] = g;
