@@ -133,7 +133,8 @@ function cenaDe(id, dados){
 
 function monta(img){
   const id = img.dataset.a3d;
-  if(!TEM3D.has(id) || !renderizador()) return;
+  if(!TEM3D.has(id) || img.dataset.viva || !renderizador()) return;
+  img.dataset.viva = '1';
   carrega(id).then(dados => {
     if(!img.isConnected) return;
     const c = document.createElement('canvas'); c.width = c.height = 256; c.className = 'a3d'; c.setAttribute('aria-hidden', 'true');
