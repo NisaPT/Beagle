@@ -678,14 +678,16 @@ function abreHistorias(){
   $('#tabuleiro').innerHTML = '';
   $('#lista-historias').innerHTML = HISTORIAS.map(h => {
     const falas = h.passos.reduce((n, p) => n + p.falas.length, 0);
-    return `<button class="mundo historia" data-h="${h.id}" type="button">
+    /* só o filme: a versão animada ao vivo fica de reserva no código, mas não aparece no menu */
+    const cartaoHist = h.soFilme ? '' : `<button class="mundo historia" data-h="${h.id}" type="button">
       <span class="selo" style="--c:#F4C9D6"><span class="selo-emoji">${h.emoji}</span></span>
       <span class="texto"><span class="titulo">${h.titulo}</span>
         <span class="sub">▶ ${h.duracao || 'Cerca de 3 minutos'} · com os dois avós</span></span>
-    </button>` + (h.filme ? `<button class="mundo historia filme-cartao" data-filme="${h.id}" type="button">
+    </button>`;
+    return cartaoHist + (h.filme ? `<button class="mundo historia filme-cartao" data-filme="${h.id}" type="button">
       <span class="selo" style="--c:#C9DDF4"><span class="selo-emoji">🎬</span></span>
-      <span class="texto"><span class="titulo">Ver como filme</span>
-        <span class="sub">▶ O mesmo passeio, em vídeo</span></span>
+      <span class="texto"><span class="titulo">${h.tituloFilme || h.titulo}</span>
+        <span class="sub">▶ ${h.duracao || 'Cerca de 4 minutos'} · com os dois avós</span></span>
     </button>` : '');
   }).join('') + `<div class="mundo breve" aria-disabled="true">
       <span class="selo" style="--c:#E6E2D8"><span class="selo-emoji">✨</span></span>
@@ -700,7 +702,8 @@ function abreFilme(h){
   Voz.cala(); Som.paraVoz && Som.paraVoz();
   const d = document.createElement('div');
   d.className = 'filme';
-  d.innerHTML = `<video controls playsinline autoplay preload="auto" poster="${h.poster || ''}" src="${h.filme}"></video>
+  d.innerHTML = `<video controls playsinline autoplay preload="auto" poster="${h.poster || ''}" src="${h.filme}" aria-label="${h.tituloFilme || h.titulo}"></video>
+    <div class="filme-t">${h.tituloFilme || h.titulo}</div>
     <button class="filme-x" type="button" aria-label="Fechar o filme">✕ Fechar</button>`;
   document.body.append(d);
   const v = d.querySelector('video');

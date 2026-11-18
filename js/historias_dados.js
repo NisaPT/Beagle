@@ -4,7 +4,7 @@
    'som' (opcional) é o som do animal, dito logo a seguir à fala (clip que já existe na voz).
    As falas novas gravam-se com: node ferramentas/gerar-historias.mjs */
 export const HISTORIAS = [
-  { id: 'quinta', titulo: 'Os avós Beagle e a sua quinta', emoji: '🏡', duracao: 'Cerca de 4 minutos', filme: './media/video/historia-quinta.mp4', poster: './media/video/historia-quinta.jpg',
+  { id: 'quinta', titulo: 'Os avós Beagle e a sua quinta', emoji: '🏡', duracao: 'Cerca de 4 minutos', soFilme: true, tituloFilme: 'Como é a quinta dos avós Beagle', filme: './media/video/historia-quinta.mp4', poster: './media/video/historia-quinta.jpg',
     mundo: { estacoes: [
       { id: 'casa', x: 0, edificio: 'casa', itens: [
         { e: '🌻', dx: -34, fila: 'frente', t: 3.4 }, { e: '🌻', dx: 36, fila: 'frente', t: 3.4 }, { e: '🌷', dx: -24, fila: 'frente', t: 2.4 } ] },
