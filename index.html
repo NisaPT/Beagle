@@ -804,7 +804,7 @@ body[data-ecra="mundos"] .ecra.on,body[data-ecra="historias"] .ecra.on,body[data
   border-radius:99px;padding:.3rem 1rem;font-weight:700;font-size:1rem;pointer-events:none;white-space:nowrap}
 .q3d-dica[hidden],.q3d-nome[hidden],.q3d-btn[hidden]{display:none}
 .q3d-btn{position:absolute;bottom:1.2rem;z-index:3;width:auto;min-height:3.2rem;padding:.4em 1.2em;font-size:1.2rem}
-.q3d-sair{left:1rem}.q3d-mais{right:1rem}
+.q3d-sair{left:1rem}.q3d-mais{right:1rem}.q3d-jogos{left:50%;transform:translateX(-50%)}
 
 /* ================= A Minha Quinta e a loja (v4.6.0) ================= */
 #ecra-quinta{justify-content:flex-start;align-items:stretch;overflow-y:auto;overflow-x:hidden;gap:.5rem;
@@ -1025,7 +1025,47 @@ body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-
 .comida.a-arrastar{z-index:5;cursor:grabbing}
 .comida.comida-comida{transition:transform .5s,opacity .5s;transform:scale(.1);opacity:0}
 .tarefa-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.5rem;font-weight:800}
-.mundo.tarefas .selo-emoji{font-size:1.9rem}
+/* v4.28: jogos dentro de cada casa da quinta */
+.lote-jogos{position:absolute;right:.4rem;top:.4rem;z-index:301;width:2.8rem;height:2.8rem;border-radius:50%;border:3px solid #fff;background:#F5C344;font-size:1.3rem;cursor:pointer;box-shadow:0 2px 6px #0003}
+.lote.vazio .lote-jogos{display:none}
+.cj-instr{margin:0;font-size:1.3rem;font-weight:800;min-height:1.6rem}
+.cj-moradores{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center;max-width:32rem}
+.cj-moradores img{width:3.6rem;height:3.6rem;object-fit:contain}
+.cj-aviso{font-size:1.2rem;font-weight:700;margin:0}
+.brincar-menu .botao[disabled]{opacity:.45}
+.cj-cesto{font-size:1.6rem;font-weight:800;background:#fff;border-radius:999px;padding:.3rem 1.2rem}
+.cj-apanhar,.cj-servir,.cj-contar,.cj-esfregar{width:min(100%,32rem);display:flex;flex-direction:column;align-items:center;gap:1rem}
+.cj-spots{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;width:100%}
+.cj-spot{position:relative;aspect-ratio:1.3;display:grid;place-items:center}
+.cj-spot.l-ninho{background:#e7c98a;border-radius:50% 50% 40% 40%;box-shadow:inset 0 -8px 0 #c79b52}
+.cj-spot.l-arvore{background:radial-gradient(circle,#7fcf72,#4a9b4a);border-radius:50%}
+.cj-spot.l-canteiro{background:#8a5a32;border-radius:40% 40% 20% 20%;box-shadow:inset 0 -8px 0 #6f4624}
+.cj-spot.l-agua{background:radial-gradient(ellipse,#bfe9f5,#5da9cc);border-radius:50%}
+.cj-item{font-size:2.8rem;border:0;background:none;cursor:pointer;min-width:3.4rem;min-height:3.4rem;animation:ovo-pop .4s cubic-bezier(.3,1.6,.5,1)}
+.cj-item.vai{transition:transform .6s ease-in,opacity .6s;transform:translate(var(--dx),var(--dy)) scale(.5);opacity:.6;pointer-events:none}
+.cj-bichos{display:grid;grid-template-columns:repeat(var(--col,3),1fr);gap:.8rem;width:100%}
+.cj-bicho{position:relative;aspect-ratio:1;display:grid;place-items:center;background:#fff;border-radius:1.2rem;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+.cj-bicho img{width:80%;height:80%;object-fit:contain;pointer-events:none}
+.cj-bicho.feliz{animation:comer-feliz .5s 2;background:#e3f7dc}
+.cj-bicho.treme{animation:ponto-treme .35s}
+.cj-pedido{position:absolute;right:-.2rem;top:-.6rem;font-size:1.8rem;background:#fff;border-radius:999px;padding:0 .4rem;box-shadow:0 2px 5px #0003}
+.cj-bandeja{display:flex;gap:1rem;min-height:5rem;justify-content:center}
+.cj-conta-cena{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center;align-items:center;background:#fff;border-radius:1.2rem;padding:1rem;width:100%;min-height:9rem}
+.cj-conta-item{font-size:2.6rem;animation:ovo-pop .4s cubic-bezier(.3,1.6,.5,1)}
+.cj-conta-item.img img{width:4rem;height:4rem;object-fit:contain}
+.cj-opcoes{display:flex;gap:1rem}
+.cj-num{font-size:2.2rem;min-width:4.5rem;min-height:4.5rem}
+.cj-num.certo{background:#8fd18a}.cj-num.treme{animation:ponto-treme .35s}
+.cj-corpo{position:relative;width:min(80vw,22rem);aspect-ratio:1;touch-action:none}
+.cj-corpo>img{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.cj-tufo{position:absolute;width:22%;aspect-ratio:1;border:0;border-radius:50%;cursor:pointer;box-shadow:0 3px 6px rgba(0,0,0,.2);transform:translate(-20%,-20%)}
+.cj-tufo.t-la{background:radial-gradient(circle at 35% 35%,#fff,#eef1f6 60%,#d9dfea)}
+.cj-tufo.t-lama{background:radial-gradient(circle at 35% 35%,#a9784a,#6f4624)}
+.cj-tufo.t-brilho{background:radial-gradient(circle,#fff7c2,#f5c344);width:16%}
+.cj-tufo.t-leite{background:radial-gradient(circle at 35% 35%,#fff,#dfe8f2);width:16%}
+.cj-tufo.t-amor{background:none;box-shadow:none;font-size:2.6rem;width:auto}
+.cj-tufo.t-amor::before{content:"❤️"}
+.cj-tufo.voa{transition:transform .7s ease-in,opacity .7s;transform:translate(-20%,-260%) scale(.4);opacity:0;pointer-events:none}
 
 /* v4.27: histórias dos avós a caminhar pela quinta */
 body[data-historia]{--stage-h:100%}
@@ -1178,6 +1218,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
     <p class="q3d-dica" id="q3d-dica">👆 Toca num edifício para entrar</p>
     <button class="botao calma q3d-btn q3d-sair" id="q3d-sair" type="button" hidden>⬅ Sair</button>
     <button class="botao quente q3d-btn q3d-mais" id="q3d-mais" type="button" hidden>➕ Animais</button>
+    <button class="botao q3d-btn q3d-jogos" id="q3d-jogos" type="button" hidden>🎮 Jogos</button>
   </div>
   <div class="quinta-topo">
     <h1>A Minha Quinta</h1>
@@ -1324,7 +1365,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.23.0"></script>
+<script type="module" src="./js/app.js?v=4.28.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

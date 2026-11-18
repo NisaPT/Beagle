@@ -232,6 +232,7 @@ export function desenhaQuinta(raiz, itens, novo){
     return `<div class="lote ${novo === e.id ? 'novo' : ''}" data-ed="${e.id}">
       <button class="lote-arte" data-edificio="${e.id}" aria-label="${e.nome}">${arteEdificio(e.id)}</button>
       ${animais}
+      <button class="lote-jogos" data-jogos="${e.id}" aria-label="Jogos: ${e.nome}">🎮</button>
       <span class="lote-nome">${e.nome}</span>
     </div>`;
   }).join('');

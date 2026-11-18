@@ -10,7 +10,7 @@ import { quinta } from './quinta.js';
 import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { abreBrincar } from './brincar.js';
-import { abreTarefas } from './tarefas.js';
+import { abreJogosCasa } from './tarefas.js';
 import { tocaHistoria } from './historias.js';
 import { HISTORIAS } from './historias_dados.js';
 import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
@@ -288,17 +288,12 @@ function abreMundos(){
       <span class="texto"><span class="titulo">Ranking</span>
         <span class="sub">Quem tem mais ⭐ · Quinta nível ${nq.nivel}</span></span>
     </button>`;
-  const cartaoTarefas = `<button class="mundo tarefas" data-tarefas="1">
-      <span class="selo" style="--c:#F6D9A8"><span class="selo-emoji">🧺</span></span>
-      <span class="texto"><span class="titulo">Tarefas da quinta</span>
-        <span class="sub">Ovos, lã e dar de comer</span></span>
-    </button>`;
   const cartaoHistorias = `<button class="mundo historias" data-historias="1">
       <span class="selo" style="--c:#F4C9D6"><span class="selo-emoji">📖</span></span>
       <span class="texto"><span class="titulo">Histórias dos avós</span>
         <span class="sub">${HISTORIAS.length} ${HISTORIAS.length === 1 ? 'história' : 'histórias'} · para ver e ouvir</span></span>
     </button>`;
-  $('#lista-mundos').innerHTML = cartaoHistorias + cartaoQuinta + cartaoTarefas + cartaoRanking + MUNDOS.map((m, i) => {
+  $('#lista-mundos').innerHTML = cartaoHistorias + cartaoQuinta + cartaoRanking + MUNDOS.map((m, i) => {
     const inicio = primeiroDoMundo(i);
     const aberto = maior >= inicio;
     const feitos = Math.max(0, Math.min(POR_MUNDO, maior - inicio));
@@ -325,10 +320,6 @@ $('#lista-mundos').onclick = e => {
   Som.efeito('toque');
   if(b.dataset.quinta) return abreQuinta();
   if(b.dataset.historias) return abreHistorias();
-  if(b.dataset.tarefas){
-    if(limiteAtingido()){ mostraAvisoLimite(); return; }
-    return abreTarefas(Som, n => { Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); });
-  }
   if(b.dataset.ranking) return abreRanking();
   abreMapa(false, +b.dataset.mundo);
 };
@@ -1222,6 +1213,14 @@ const Cap = t => t.charAt(0).toUpperCase() + t.slice(1);
 let abaLoja = 'edificios', novoEd = null;
 
 /* ---- quinta 3D: carrega-se só ao abrir o ecrã; se falhar, fica a grelha 2D ---- */
+
+/* jogos de cada casa da quinta (dentro do edifício ou no botão 🎮 do lote) */
+function abreJogosDaCasa(id){
+  if(limiteAtingido()){ mostraAvisoLimite(); return; }
+  Som.arranca();
+  abreJogosCasa(Som, n => { Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); },
+    id, Estado.quinta.itens, c => abreLoja('bichos', null, c));
+}
 let Q3D = null, q3dTentou = false;
 async function iniciaQ3D(){
   if(q3dTentou) return; q3dTentou = true;
@@ -1244,17 +1243,19 @@ async function iniciaQ3D(){
         nome.textContent = def.nome; nome.hidden = false;
         $('#q3d-sair').hidden = false;
         $('#q3d-mais').hidden = !BICHOS_LOJA.some(b => b.casa === def.id);
+        $('#q3d-jogos').hidden = false;
         $('#texto-voltar').textContent = 'Quinta';
       },
       dentro: def => { if(def.id === 'pomar' || def.id === 'estufa') return; },
       saiu: () => {
         ecra.classList.remove('dentro'); nome.hidden = true;
-        $('#q3d-sair').hidden = true; $('#q3d-mais').hidden = true;
+        $('#q3d-sair').hidden = true; $('#q3d-mais').hidden = true; $('#q3d-jogos').hidden = true;
         $('#texto-voltar').textContent = 'Brincar';
       },
       bicho: id => { const b = achaItem(id); Som.efeito('toque'); Som.fala(b.som); },
     });
     $('#q3d-sair').onclick = () => { Som.efeito('toque'); Q3D.sai(); };
+    $('#q3d-jogos').onclick = () => { Som.efeito('toque'); if(Q3D.nomeAtual) abreJogosDaCasa(Q3D.nomeAtual.id); };
     $('#q3d-mais').onclick = () => { Som.efeito('toque'); if(Q3D.nomeAtual) abreLoja('bichos', null, Q3D.nomeAtual.id); };
     $('#q3d').hidden = false; ecra.classList.add('com3d');
     redesenhaQuinta();
@@ -1387,6 +1388,8 @@ $('#loja').addEventListener('click', e => {
 });
 $('#quinta-grelha').addEventListener('click', e => {
   Som.arranca();
+  const jg = e.target.closest('[data-jogos]');
+  if(jg){ Som.efeito('toque'); abreJogosDaCasa(jg.dataset.jogos); return; }
   const bicho = e.target.closest('.bicho');
   if(bicho){
     const b = achaItem(bicho.dataset.b);
