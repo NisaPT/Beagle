@@ -29,7 +29,7 @@ if (!CHAVE) { console.error('Falta a variável ELEVENLABS_API_KEY.'); process.ex
 async function frases(p) {
   const { HISTORIAS } = await import(pathToFileURL(path.join(RAIZ, 'js', 'historias_dados.js')).href);
   const lista = [];
-  for (const h of HISTORIAS) for (const passo of h.passos) for (const f of passo.falas) if (f.v === p && !lista.includes(f.t)) lista.push(f.t);
+  for (const h of HISTORIAS) for (const passo of h.passos) for (const f of [...(passo.andando || []), ...(passo.falas || [])]) if (f.v === p && !lista.includes(f.t)) lista.push(f.t);
   return lista;
 }
 

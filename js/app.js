@@ -690,7 +690,11 @@ function abreHistorias(){
       <span class="selo" style="--c:#F4C9D6"><span class="selo-emoji">${h.emoji}</span></span>
       <span class="texto"><span class="titulo">${h.titulo}</span>
         <span class="sub">▶ ${h.duracao || 'Cerca de 3 minutos'} · com os dois avós</span></span>
-    </button>`;
+    </button>` + (h.filme ? `<button class="mundo historia filme-cartao" data-filme="${h.id}" type="button">
+      <span class="selo" style="--c:#C9DDF4"><span class="selo-emoji">🎬</span></span>
+      <span class="texto"><span class="titulo">Ver como filme</span>
+        <span class="sub">▶ O mesmo passeio, em vídeo</span></span>
+    </button>` : '');
   }).join('') + `<div class="mundo breve" aria-disabled="true">
       <span class="selo" style="--c:#E6E2D8"><span class="selo-emoji">✨</span></span>
       <span class="texto"><span class="titulo">Mais histórias em breve</span>
@@ -698,16 +702,32 @@ function abreHistorias(){
   mostra('#ecra-historias');
   $('#barra').hidden = false;
 }
+/* o filme da história (vídeo guardado em media/video; carrega só quando se abre, não fica no pré-carregamento) */
+function abreFilme(h){
+  if(!h || !h.filme) return;
+  Voz.cala(); Som.paraVoz && Som.paraVoz();
+  const d = document.createElement('div');
+  d.className = 'filme';
+  d.innerHTML = `<video controls playsinline autoplay preload="auto" poster="${h.poster || ''}" src="${h.filme}"></video>
+    <button class="filme-x" type="button" aria-label="Fechar o filme">✕ Fechar</button>`;
+  document.body.append(d);
+  const v = d.querySelector('video');
+  const fecha = () => { try{ v.pause(); }catch(e){} d.remove(); };
+  d.querySelector('.filme-x').onclick = fecha;
+  v.onended = fecha;
+}
 $('#lista-historias').onclick = e => {
   const b = e.target.closest('.historia');
   if(!b) return;
   Som.efeito('toque');
+  if(b.dataset.filme){ abreFilme(HISTORIAS.find(x => x.id === b.dataset.filme)); return; }
   const h = HISTORIAS.find(x => x.id === b.dataset.h);
   if(h) comecaHistoria(h);
 };
-const VISTA_HIST = { pos: new THREE.Vector3(0, .6, 4.5), alvo: new THREE.Vector3(0, .46, 0) };   /* mais afastada: os dois avós cabem num ecrã estreito */
+const VISTA_HIST = { pos: new THREE.Vector3(0, .9, 8.2), alvo: new THREE.Vector3(0, 1.25, 0) };   /* mais afastada: os dois avós cabem num ecrã estreito */
 function comecaHistoria(h){
   if(limiteAtingido()){ mostraAvisoLimite(); return; }
+  document.querySelectorAll('.hist-fim').forEach(e => e.remove());
   Voz.cala(); Fala.esconde(); jogo.para();
   Som.arranca && Som.arranca();
   mostra(null);
@@ -722,10 +742,11 @@ function comecaHistoria(h){
   avo.faz('repouso'); ava.faz('repouso');
   vista = VISTA_HIST;
   if(historiaAtiva) historiaAtiva.para();
-  historiaAtiva = tocaHistoria(h, { Som, raiz, avo: () => avo, ava: () => ava, fim: () => fimHistoria(h) });
+  historiaAtiva = tocaHistoria(h, { Som, palco: $('#stage'), avo: () => avo, ava: () => ava, fim: () => fimHistoria(h) });
+  requestAnimationFrame(redimensiona);
 }
 function fimHistoria(h){
-  const raiz = $('#tabuleiro');
+  const raiz = $('#stage');
   raiz.insertAdjacentHTML('beforeend', `<div class="hist-fim"><p>⭐ Fim da história!</p>
     <button class="botao" id="hist-outra" type="button">Ver outra vez</button>
     <button class="botao calma" id="hist-sair" type="button">Voltar</button></div>`);
@@ -735,6 +756,7 @@ function fimHistoria(h){
 function saiDaHistoria(){
   if(historiaAtiva){ historiaAtiva.para(); historiaAtiva = null; }
   delete document.body.dataset.historia;
+  document.querySelectorAll('.hist-fim').forEach(e => e.remove());
   Voz.cala();
   soUm(Estado.companheiro);
   abreHistorias();

@@ -1027,31 +1027,51 @@ body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-
 .tarefa-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.5rem;font-weight:800}
 .mundo.tarefas .selo-emoji{font-size:1.9rem}
 
-/* v4.26: histórias dos avós */
-body[data-historia]{--stage-h:42%}
-body[data-historia] .fala{display:none}
-.hist-cena{position:absolute;inset:0;overflow:hidden;animation:hist-entra .6s ease both}
-.hist-cena[data-fundo=ceu]{background:linear-gradient(#bfe4ff 0 55%,#8fd17a 55%)}
-.hist-cena[data-fundo=horta]{background:linear-gradient(#cfeaff 0 22%,#9ad37e 22% 50%,#8b5a35 50%)}
-.hist-cena[data-fundo=pomar]{background:linear-gradient(#cfeaff 0 30%,#7fc46a 30%)}
-.hist-cena[data-fundo=galinheiro]{background:linear-gradient(#ffe9b8 0 35%,#e2b66b 35%)}
-.hist-cena[data-fundo=curral]{background:linear-gradient(#d6ecff 0 28%,#a6d98b 28%)}
-.hist-cena[data-fundo=campo]{background:linear-gradient(#cfeaff 0 34%,#93cf78 34%)}
-.hist-cena[data-fundo=lago]{background:linear-gradient(#cfeaff 0 25%,#8fd17a 25% 45%,#6fc3e8 45%)}
-.hist-cena[data-fundo=casa]{background:linear-gradient(#e2f2ff 0 30%,#b7de96 30%)}
-.hist-titulo{position:absolute;top:.6rem;left:50%;transform:translateX(-50%);background:#fff;border:3px solid #1B4D8F;border-radius:999px;padding:.2rem 1.1rem;font-weight:800;font-size:1.15rem;color:#1B4D8F;z-index:2;white-space:nowrap}
-.hist-item{position:absolute;width:var(--t);height:var(--t);transform:translate(-50%,-50%);object-fit:contain;animation:hist-pop .6s var(--d) cubic-bezier(.3,1.6,.5,1) both;pointer-events:none}
-.hist-item.emoji{width:auto;height:auto;font-size:var(--t);line-height:1;display:block}
-.hist-cena canvas.a3d{position:absolute;width:var(--t);height:var(--t);transform:translate(-50%,-50%);pointer-events:none;animation:hist-pop .6s var(--d,300ms) cubic-bezier(.3,1.6,.5,1) both}
-.hist-legenda{position:absolute;left:.7rem;right:.7rem;bottom:.7rem;background:rgba(255,255,255,.94);border-radius:1rem;padding:.6rem .9rem;font-weight:700;font-size:clamp(1rem,4.2vw,1.35rem);line-height:1.25;color:#234;text-align:center;opacity:0;transform:translateY(10px);transition:.3s;z-index:2}
-.hist-legenda.on{opacity:1;transform:none}
+/* v4.27: histórias dos avós a caminhar pela quinta */
+body[data-historia]{--stage-h:100%}
+body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] .fala,body[data-historia] .stage::after{display:none}
+.hm{position:absolute;inset:0;overflow:hidden;z-index:0;background:linear-gradient(#7cc4f2,#bfe6fa 48%,#e6f6ff 64%)}
+.hm-ceu{position:absolute;inset:0;pointer-events:none}
+.hm-sol{position:absolute;right:6%;top:5%;font-size:3.6rem;filter:drop-shadow(0 0 18px #ffe38a)}
+.hm-nuvem{position:absolute;opacity:.9;animation:hm-nuvem 70s linear infinite}
+@keyframes hm-nuvem{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+.hm-passaro{position:absolute;left:-10%;font-size:1.6rem;animation:hm-passaro 24s linear infinite}
+@keyframes hm-passaro{0%{transform:translate(0,0)}25%{transform:translate(30vw,-3vh)}50%{transform:translate(65vw,2vh)}75%{transform:translate(95vw,-4vh)}100%{transform:translate(125vw,0)}}
+.hm-camada{position:absolute;left:0;top:0;bottom:0;will-change:transform;pointer-events:none}
+.hm-longe svg,.hm-medio svg{position:absolute;left:0;bottom:30%}
+.hm-arvores .hm-arvore,.hm-arvore{position:absolute;bottom:34%;line-height:1}
+.hm-relva{position:absolute;left:0;right:0;bottom:0;height:36%;background:linear-gradient(#8fd277,#6cbb5b 55%,#5aa84c)}
+.hm-caminho{position:absolute;left:0;right:0;bottom:6%;height:10%;background:linear-gradient(#ecd49b,#dcbb7b);border-radius:2rem/1rem;box-shadow:0 2px 0 rgba(120,80,30,.2)}
+.hm-vedacao{position:absolute;left:0;right:0;bottom:33%;height:2.4rem;background:repeating-linear-gradient(90deg,#9a6a35 0 .45rem,transparent .45rem 1.7rem);border-top:.3rem solid #b07a3d;opacity:.9}
+.hm-flor{position:absolute;line-height:1}
+.hm-estacao{position:absolute;inset:0}
+.hm-edif{position:absolute;bottom:25%;width:min(15rem,62vw);transform:translateX(-50%)}
+.hm-edif svg{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 4px rgba(0,0,0,.15))}
+.hm-bicho{position:absolute;bottom:8%;width:var(--t);height:var(--t);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+.hm-bicho.tras{bottom:30%}
+.hm-bicho img,.hm-bicho canvas.a3d{width:100%;height:100%;object-fit:contain;pointer-events:none}
+.hm-bicho.emoji{font-size:var(--t);line-height:1;width:auto;height:auto}
+.hm-bicho.bob>*{animation:hm-bob 2.6s var(--atraso) ease-in-out infinite;transform-origin:50% 100%}
+.hm-bicho.parado>*{animation:hm-bob 3.4s var(--atraso) ease-in-out infinite;transform-origin:50% 100%}
+.hm-bicho.anda{animation:hm-anda 9s var(--atraso) linear infinite}
+.hm-bicho.anda>*{animation:hm-bob 1s ease-in-out infinite;transform-origin:50% 100%}
+.hm-bicho.salta>*{animation:hm-salta 1.8s var(--atraso) ease-in-out infinite}
+.hm-estacao.alegre .hm-bicho>*{animation:hm-salta .5s ease-in-out 3}
+@keyframes hm-bob{50%{transform:translateY(-3%) scaleY(1.04)}}
+@keyframes hm-salta{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-22%)}}
+@keyframes hm-anda{0%{transform:translateX(-50%)}50%{transform:translateX(calc(-50% + var(--p)))}100%{transform:translateX(-50%)}}
+.hm-erva{position:absolute;bottom:-1%;font-size:3rem;line-height:1;opacity:.95}
+.hm-borboleta{position:absolute;bottom:22%;font-size:1.5rem;animation:hm-borboleta 6s ease-in-out infinite}
+@keyframes hm-borboleta{50%{transform:translate(8vw,-6vh) rotate(12deg)}}
+.hm-legenda{position:absolute;left:.7rem;right:.7rem;bottom:calc(.7rem + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);border-radius:1rem;padding:.6rem .9rem;font-weight:700;font-size:clamp(1rem,4.2vw,1.35rem);line-height:1.25;color:#234;text-align:center;opacity:0;transform:translateY(10px);transition:.3s;z-index:3}
+.hm-legenda.on{opacity:1;transform:none}
 .hist-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.6rem;font-weight:800;z-index:5}
-@keyframes hist-pop{from{transform:translate(-50%,-50%) scale(0);opacity:0}}
-@keyframes hist-entra{from{opacity:0}}
-@media (prefers-reduced-motion:reduce){.hist-item,.hist-cena{animation:none}}
-.mundo.historias .selo-emoji{font-size:1.9rem}
+@media (prefers-reduced-motion:reduce){.hm-nuvem,.hm-passaro,.hm-borboleta,.hm-bicho,.hm-bicho>*{animation:none!important}}
 .mundo.breve{opacity:.6;cursor:default}
 .mundo.historia .selo-emoji{font-size:1.9rem}
+.filme{position:fixed;inset:0;z-index:60;background:#000;display:flex;align-items:center;justify-content:center}
+.filme video{width:100%;height:100%;object-fit:contain;background:#000}
+.filme-x{position:absolute;top:max(.7rem,env(safe-area-inset-top));right:.7rem;min-height:48px;padding:.5rem 1rem;border-radius:1rem;border:0;background:rgba(255,255,255,.92);font-weight:800;font-size:1.05rem;color:#234}
 </style>
 </head>
 <body data-ecra="carregar">
