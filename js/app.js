@@ -1253,7 +1253,7 @@ async function iniciaQ3D(){
         $('#q3d-sair').hidden = true; $('#q3d-mais').hidden = true; $('#q3d-jogos').hidden = true;
         $('#texto-voltar').textContent = 'Brincar';
       },
-      bicho: id => { const b = achaItem(id); Som.efeito('toque'); Som.fala(b.som); },
+      bicho: id => { const b = achaItem(id); Som.efeito('toque'); if(Som.temClips([b.som])) Som.fala(b.som); },
     });
     $('#q3d-sair').onclick = () => { Som.efeito('toque'); Q3D.sai(); };
     $('#q3d-jogos').onclick = () => { Som.efeito('toque'); if(Q3D.nomeAtual) abreJogosDaCasa(Q3D.nomeAtual.id); };
@@ -1397,7 +1397,7 @@ $('#quinta-grelha').addEventListener('click', e => {
     const img = bicho.querySelector('img');
     img.classList.remove('salta'); void img.offsetWidth; img.classList.add('salta');
     Som.efeito('toque');
-    Som.fala(b.som);
+    if(Som.temClips([b.som])) Som.fala(b.som);
     return;
   }
   const ed = e.target.closest('[data-edificio]');

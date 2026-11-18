@@ -10,7 +10,7 @@ import { tom } from './arte.js';
 export const EDIFICIOS = [
   { id:'casa',       nome:'Casa de Campo', art:'a', preco:5,  bichos:['cao','gato'] },
   { id:'horta',      nome:'Horta',         art:'a', preco:10, bichos:['coelho'] },
-  { id:'galinheiro', nome:'Galinheiro',    art:'o', preco:12, bichos:['galo'] },
+  { id:'galinheiro', nome:'Galinheiro',    art:'o', preco:12, bichos:['galo','galinha'] },
   { id:'pocilga',    nome:'Pocilga',       art:'a', preco:16, bichos:['porco'] },
   { id:'redil',      nome:'Redil',         art:'o', preco:16, bichos:['ovelha'] },
   { id:'vacaria',    nome:'Vacaria',       art:'a', preco:20, bichos:['vaca'] },
@@ -25,6 +25,7 @@ export const EDIFICIOS = [
 /* som: o que o avô diz quando se toca no animal */
 export const BICHOS = [
   { id:'galo',      nome:'Galo',      art:'o', preco:4,  max:4, casa:'galinheiro', som:'Cocorocó!' },
+  { id:'galinha',   nome:'Galinha',   art:'a', preco:4,  max:4, casa:'galinheiro', som:'Có có có!' },
   { id:'coelho',    nome:'Coelho',    art:'o', preco:4,  max:4, casa:'horta',      som:'Que fofinho!' },
   { id:'cao',       nome:'Cão',       art:'o', preco:6,  max:2, casa:'casa',       som:'Au au!' },
   { id:'gato',      nome:'Gato',      art:'o', preco:6,  max:2, casa:'casa',       som:'Miau!' },
@@ -84,7 +85,7 @@ const G = (id, c, k1 = .2, k2 = -.2) =>
   `<linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${tom(c, k1)}"/><stop offset="1" stop-color="${tom(c, k2)}"/></linearGradient>`;
 const sombra = (cx = 100, cy = 130, rx = 72) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="9" fill="#3a2410" opacity=".18"/>`;
 const tel = (id, cor, d, extra = '') => `<path d="${d}" fill="url(#${id})" stroke="${cor}" stroke-width="7" stroke-linejoin="round" ${extra}/>`;
-const imgSrc = id => ['cao', 'gato', 'vaca', 'pato'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
+const imgSrc = id => ['cao', 'gato', 'vaca', 'pato', 'galo', 'galinha', 'coelho', 'porco', 'ra', 'tartaruga', 'cavalo', 'ovelha'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
 const img = (nome, x, y, w) => `<image href="${imgSrc(nome)}" x="${x}" y="${y}" width="${w}" height="${w}" preserveAspectRatio="xMidYMid meet"/>`;
 
 const ARTE = {
@@ -206,7 +207,7 @@ const CHAO = {
   lago:      [[24,60],[52,72],[72,58],[38,78],[60,50],[84,74]],
   default:   [[15,86],[37,92],[59,87],[81,93],[26,95],[70,96],[48,84],[90,86]],
 };
-const tamanhoBicho = id => ({ cavalo:.30, vaca:.30, porco:.26, ovelha:.26, tartaruga:.2, ra:.17, galo:.2, coelho:.19, gato:.2, cao:.22, pato:.2 }[id] || .22);
+const tamanhoBicho = id => ({ cavalo:.30, vaca:.30, porco:.26, ovelha:.26, tartaruga:.2, ra:.17, galo:.2, galinha:.19, coelho:.19, gato:.2, cao:.22, pato:.2 }[id] || .22);
 
 /* ------------------------------------------------------------ o ecrã */
 export function desenhaQuinta(raiz, itens, novo){

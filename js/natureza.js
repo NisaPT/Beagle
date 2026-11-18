@@ -4,10 +4,10 @@ import { campoMovel } from './movimento.js';
    Cada item: [ficheiro, nome, artigo, nível (1 = mais conhecido), extras].
    O nível e os modos de jogo dependem da idade (ver idades.js). */
 
-const imgSrc = id => ['cao', 'gato', 'vaca', 'pato'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
+const imgSrc = id => ['cao', 'gato', 'vaca', 'pato', 'galo', 'galinha', 'coelho', 'porco', 'ra', 'tartaruga', 'cavalo', 'ovelha'].includes(id) ? `./media/img/3d-${id}.webp` : `./media/img/${id}.webp`;   /* os 4 animais 3D têm nome novo: ignora imagens antigas na cache */
 const rnd = n => Math.floor(Math.random() * n);
 /* animais com modelo 3D (animais3d.js): nas cartas ganham vida — andam no lugar e saltam ao toque */
-const A3D = new Set(['cao', 'gato', 'vaca', 'pato']);
+const A3D = new Set(['cao', 'gato', 'vaca', 'pato', 'galo', 'galinha', 'coelho', 'porco', 'ra', 'tartaruga', 'cavalo', 'ovelha']);
 const atr3d = id => A3D.has(id) ? ` data-a3d="${id}"` : '';
 const vida3d = raiz => { if(raiz.querySelector('img[data-a3d]')) import('./animais3d.js').then(m => m.ativaCartas(raiz)).catch(e => console.warn('Animais 3D indisponíveis', e)); };
 const pick = a => a[rnd(a.length)];

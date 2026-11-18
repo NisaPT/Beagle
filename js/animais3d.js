@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-export const TEM3D = new Set(['cao', 'gato', 'vaca', 'pato']);
+export const TEM3D = new Set(['cao', 'gato', 'vaca', 'pato', 'galo', 'galinha', 'coelho', 'porco', 'ra', 'tartaruga', 'cavalo', 'ovelha']);
 const FICHEIRO = id => `./modelos/animais/${id}.glb`;
 const calmo = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -22,7 +22,48 @@ export const CONFIG = {
   gato: { esc: .85, andar: 1.4, tam: .45, salto: [-1, -1, 1, 1], balanco: .02, alegre: .25 },
   vaca: { esc: 1.75, andar: .7, tam: 1.2, salto: [-1, -1, 1, 1], balanco: .025, alegre: .08 },
   pato: { esc: .95, andar: 1.6, tam: .5, salto: [1, 1], balanco: .16, alegre: .2, nada: true },
+  /* v4.29: modelos novos. mov = o gesto próprio de cada um (ver gestos) · pula = anda aos saltinhos */
+  galo:      { esc: .62, andar: 1.6, tam: .4,  salto: [1, 1], balanco: .08, alegre: .3, mov: 'ave' },
+  galinha:   { esc: .56, andar: 1.5, tam: .36, salto: [1, 1], balanco: .08, alegre: .3, mov: 'ave' },
+  coelho:    { esc: .5,  andar: 1.4, tam: .3,  salto: [-1, -1, 1, 1], balanco: .01, alegre: .3, mov: 'pulo', pula: true },
+  ra:        { esc: .42, andar: 1.4, tam: .28, salto: [-1, -1, 1, 1], balanco: .01, alegre: .3, mov: 'pulo', pula: true },
+  tartaruga: { esc: .55, andar: .45, tam: .35, salto: [-1, -1, 1, 1], balanco: .03, alegre: .05, mov: 'lenta' },
+  porco:     { esc: 1.5, andar: .9,  tam: .6,  salto: [-1, -1, 1, 1], balanco: .03, alegre: .2, mov: 'porco' },
+  ovelha:    { esc: 1.55, andar: .9, tam: .6,  salto: [-1, -1, 1, 1], balanco: .025, alegre: .15, mov: 'pasto' },
+  cavalo:    { esc: 1.95, andar: 1.2, tam: .9, salto: [-1, -1, 1, 1], balanco: .02, alegre: .2, mov: 'cavalo' },
 };
+
+/* gestos próprios de cada animal, parado (anda = false) ou a andar.
+   Devolve { cab: rotação x da cabeça (+ = baixa o focinho), cauda: rotação y da cauda, pescoco: avanço da cabeça, pata: [índice, rotação x] ou null }.
+   Usado nas cartas, na loja, nos jogos e na quinta 3D, para o mesmo animal fazer o mesmo gesto em todo o lado. */
+export function gestos(mov, t, fase, anda){
+  const r = { cab: 0, cauda: 0, pescoco: 0, pata: null };
+  switch(mov){
+    case 'ave':      /* bica o chão; a andar, a cabeça vai e vem */
+      r.cab = anda ? Math.sin(fase * 2) * .18 : Math.pow(Math.max(0, Math.sin(t * 1.7 + fase)), 10) * .9 + Math.sin(t * 1.3 + fase) * .05;
+      r.cauda = Math.sin(t * 5 + fase) * .3; break;
+    case 'pulo':     /* orelhas/olhos atentos: cabeça a farejar */
+      r.cab = Math.sin(t * 5 + fase) * .06 + Math.sin(t * .9 + fase) * .1;
+      r.cauda = Math.sin(t * 8 + fase) * .25; break;
+    case 'lenta':    /* tartaruga: põe e tira a cabeça */
+      r.cab = Math.sin(t * .8 + fase) * .1;
+      r.pescoco = (Math.sin(t * .6 + fase) * .5 + .5) * .06 - .02; break;
+    case 'porco':    /* fareja com o focinho */
+      r.cab = anda ? Math.sin(fase * 2) * .06 : Math.sin(t * 7 + fase) * .06 + Math.max(0, Math.sin(t * .8 + fase)) * .2;
+      r.cauda = Math.sin(t * 7 + fase) * .6; break;
+    case 'pasto':    /* ovelha: baixa a cabeça a comer erva */
+      r.cab = anda ? Math.sin(fase * 2) * .05 : Math.max(0, Math.sin(t * .55 + fase)) * .55 + Math.sin(t * 1.3 + fase) * .04;
+      break;
+    case 'cavalo':   /* baixa a cabeça, sacode a cauda e bate com a pata */
+      r.cab = anda ? Math.sin(fase * 2) * .06 : Math.max(0, Math.sin(t * .5 + fase)) * .45 - Math.pow(Math.max(0, Math.sin(t * .37 + fase * 2)), 14) * .5;
+      r.cauda = Math.sin(t * 3 + fase) * .5;
+      if(!anda && Math.sin(t * .31 + fase * 3) > .94) r.pata = [0, -Math.abs(Math.sin(t * 9)) * .7];
+      break;
+    default:
+      r.cab = Math.sin(t * 1.3 + fase) * .1; r.cauda = Math.sin(t * 6 + fase) * .35;
+  }
+  return r;
+}
 
 /* ------------------------------------------------------------ carregamento */
 const _dados = new Map();
@@ -65,7 +106,8 @@ export function criaModelo(id, dados){
   malha.bind(new THREE.Skeleton(lista), malha.matrixWorld);   /* pose de repouso = pose original */
   g.scale.setScalar(cfg.esc);
   const pernas = lista.filter(b => /^p\d$/.test(b.name)).sort((a, b) => a.name.localeCompare(b.name));
-  return { g, malha, pernas, cab: ossos.cabeca, cauda: ossos.cauda, andar: cfg.andar, tam: cfg.tam,
+  return { g, malha, pernas, cab: ossos.cabeca, cauda: ossos.cauda, andar: cfg.andar, tam: cfg.tam, mov: cfg.mov || null, pula: !!cfg.pula,
+           cabZ0: ossos.cabeca ? ossos.cabeca.position.z : 0,
            salto: cfg.salto, balanco: cfg.balanco, alegre: cfg.alegre, nada: !!cfg.nada, ossos };
 }
 
@@ -73,16 +115,28 @@ export function criaModelo(id, dados){
    m = modelo de criaModelo; devolve função (dt, t) que anima. */
 function animador(m){
   const fase0 = Math.random() * 6;
-  let fase = fase0, salto = 0, giro = 0;
-  const alvo = { y: 0 };
+  let fase = fase0, salto = 0, giro = 0, hop = Math.random();
   const f = (dt, t) => {
-    fase += dt * 7.5;
-    for(let i = 0; i < m.pernas.length; i++)
-      m.pernas[i].rotation.x = Math.sin(fase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * (calmo ? .12 : .5);
-    let y = Math.abs(Math.sin(fase)) * .02;
-    if(m.cab) m.cab.rotation.x = Math.sin(t * 1.3 + fase0) * .1;
-    if(m.cauda) m.cauda.rotation.y = Math.sin(t * 6 + fase0) * .35;
-    m.malha.parent.rotation.z = Math.sin(fase) * m.balanco;
+    fase += dt * (m.pula ? 4 : 7.5);
+    const ges = gestos(m.mov, t, fase0, true), parado = gestos(m.mov, t, fase0, false);
+    let y = 0;
+    if(m.pula){
+      /* anda aos saltinhos: sobe, estica as patas e cai */
+      hop = (hop + dt / 1.5) % 1;
+      const u = hop < .4 ? hop / .4 : 0, s = Math.sin(u * Math.PI);
+      y = s * .13;
+      for(let i = 0; i < m.pernas.length; i++) m.pernas[i].rotation.x = (m.salto[i] || 0) * s * (calmo ? .2 : .7);
+      if(m.cab) m.cab.rotation.x = parado.cab - s * .15;
+    }else{
+      for(let i = 0; i < m.pernas.length; i++)
+        m.pernas[i].rotation.x = Math.sin(fase + (i % 2 ? Math.PI : 0) + (i > 1 ? Math.PI / 2 : 0)) * (calmo ? .12 : (m.mov === 'lenta' ? .3 : .5));
+      y = Math.abs(Math.sin(fase)) * .02;
+      if(m.cab) m.cab.rotation.x = (m.mov ? (Math.floor(t * .35 + fase0) % 2 ? ges.cab : parado.cab) : ges.cab);
+    }
+    if(parado.pata && !m.pula && m.pernas[parado.pata[0]]) m.pernas[parado.pata[0]].rotation.x = parado.pata[1];
+    if(m.cab && m.mov === 'lenta') m.cab.position.z = m.cabZ0 + parado.pescoco;
+    if(m.cauda) m.cauda.rotation.y = parado.cauda || ges.cauda;
+    m.malha.parent.rotation.z = m.pula ? 0 : Math.sin(fase) * m.balanco;
     if(salto > 0){
       salto = Math.max(0, salto - dt * 1.5);
       const s = Math.sin((1 - salto) * Math.PI);

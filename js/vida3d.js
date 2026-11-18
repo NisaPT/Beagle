@@ -2,7 +2,7 @@
    nos jogos de cada casa, na quinta 2D, na loja e no "Procurar".
    Procura <img> destes animais nesses sítios e troca-as por um modelo 3D que anda no lugar
    e salta ao toque (animais3d.js). Se não houver WebGL, ficam as imagens. */
-const RE = /\/(?:3d-)?(cao|gato|vaca|pato)\.webp(?:\?.*)?$/;
+const RE = /\/(?:3d-)?(cao|gato|vaca|pato|galo|galinha|coelho|porco|ra|tartaruga|cavalo|ovelha)\.webp(?:\?.*)?$/;
 const ONDE = '.tarefas-fundo, #quinta-grelha .bicho, .item-arte, .procura-item';
 const MAX = 10;   /* no máximo 10 animais vivos ao mesmo tempo (poupa telemóveis fracos) */
 

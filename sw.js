@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.28.2';
+const VERSAO = 'eab-4.29.0';
 const FICHEIROS_TODOS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -48,6 +48,14 @@ const FICHEIROS_TODOS = [
   './modelos/animais/gato.glb',
   './modelos/animais/vaca.glb',
   './modelos/animais/pato.glb',
+  './modelos/animais/galo.glb',
+  './modelos/animais/galinha.glb',
+  './modelos/animais/coelho.glb',
+  './modelos/animais/porco.glb',
+  './modelos/animais/ra.glb',
+  './modelos/animais/tartaruga.glb',
+  './modelos/animais/cavalo.glb',
+  './modelos/animais/ovelha.glb',
   './modelos/menino.glb',
   './modelos/menina.glb',
   './media/img/menino.webp',
@@ -148,6 +156,15 @@ const FICHEIROS_TODOS = [
   './media/img/3d-gato.webp',
   './media/img/3d-vaca.webp',
   './media/img/3d-pato.webp',
+  './media/img/3d-galo.webp',
+  './media/img/3d-galinha.webp',
+  './media/img/3d-coelho.webp',
+  './media/img/3d-porco.webp',
+  './media/img/3d-ra.webp',
+  './media/img/3d-tartaruga.webp',
+  './media/img/3d-cavalo.webp',
+  './media/img/3d-ovelha.webp',
+  './media/img/galinha.webp',
   './media/img/zebra.webp',
   './modelos/ava.js',
   './modelos/avo.js'

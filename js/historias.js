@@ -6,7 +6,7 @@ import { util } from './natureza.js';
 import { arteEdificio } from './minhaquinta.js';
 
 const { imgSrc } = util;
-const A3D = ['cao', 'gato', 'pato', 'vaca'];
+const A3D = ['cao', 'gato', 'vaca', 'pato', 'galo', 'galinha', 'coelho', 'porco', 'ra', 'tartaruga', 'cavalo', 'ovelha'];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const rnd = (a, b) => a + Math.random() * (b - a);
 

@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import { EDIFICIOS, BICHOS } from './minhaquinta.js';
 import { Amigos } from './amigos3d.js';
-import { TEM3D, CONFIG as CFG3D, carrega as carrega3D, pronto as pronto3D, preCarrega as preCarrega3D, criaModelo as criaModelo3D } from './animais3d.js';
+import { TEM3D, gestos, CONFIG as CFG3D, carrega as carrega3D, pronto as pronto3D, preCarrega as preCarrega3D, criaModelo as criaModelo3D } from './animais3d.js';
 
 const V3 = (x = 0, y = 0, z = 0) => new THREE.Vector3(x, y, z);
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -105,6 +105,7 @@ const olhos = (g, x, y, z, r = .035) => {
 };
 
 const FEITIOS = {
+  galinha(){ return FEITIOS.galo(); },
   cao(){
     const g = new THREE.Group(), pernas = [];
     const pel = '#D9A15E', cla = '#F2D9A8';
@@ -288,7 +289,7 @@ const FEITIOS = {
    aparece assim que ele for descarregado (e, se falhar, volta à forma mole). */
 function feitio3D(id, dados){
   const m = criaModelo3D(id, dados), w = new THREE.Group(); w.add(m.g);
-  return { g: w, pernas: m.pernas, cab: m.cab, cauda: m.cauda, andar: m.andar, tam: m.tam, salto: m.salto, balanco: m.balanco, alegre: m.alegre, nada: m.nada };
+  return { g: w, pernas: m.pernas, cab: m.cab, cauda: m.cauda, andar: m.andar, tam: m.tam, salto: m.salto, balanco: m.balanco, alegre: m.alegre, nada: m.nada, salta: m.pula, mov: m.mov, cabZ0: m.cabZ0 };
 }
 
 class Animal {
@@ -314,6 +315,7 @@ class Animal {
     this.pernas = f.pernas; this.cab = f.cab; this.cauda = f.cauda;
     this.salta = !!f.salta; this.nada = !!f.nada; this.vel = (f.andar || 1) * .9; this.tam = f.tam;
     this.salto = f.salto || null; this.balanco = f.balanco || 0; this.alegre = f.alegre || 0;
+    this.mov = f.mov || null; this.cabZ0 = f.cabZ0 || 0;
     this.cabBase = this.cab ? this.cab.rotation.x : 0;
     this.corpo.traverse(o => { if(o.isMesh) o.userData.animal = this; });
   }
@@ -353,10 +355,14 @@ class Animal {
     }
     if(this.nada) y += Math.sin(t * 2 + this.fase) * .012;
     /* pequenos gestos de quem está parado */
+    const ges = this.mov ? gestos(this.mov, t, this.fase, !!anda) : null;
     if(this.cab){
-      this.cab.rotation.x = this.cabBase + (anda ? 0 : Math.sin(t * 1.3 + this.fase) * .12 + (Math.sin(t * .4 + this.fase * 2) > .85 ? .45 : 0));
+      this.cab.rotation.x = ges ? this.cabBase + ges.cab
+        : this.cabBase + (anda ? 0 : Math.sin(t * 1.3 + this.fase) * .12 + (Math.sin(t * .4 + this.fase * 2) > .85 ? .45 : 0));
+      if(ges && this.mov === 'lenta') this.cab.position.z = this.cabZ0 + ges.pescoco;
     }
-    if(this.cauda) this.cauda.rotation.y = Math.sin(t * 6 + this.fase) * (anda ? .25 : .45);
+    if(this.cauda) this.cauda.rotation.y = ges ? ges.cauda : Math.sin(t * 6 + this.fase) * (anda ? .25 : .45);
+    if(ges && ges.pata && this.pernas[ges.pata[0]]) this.pernas[ges.pata[0]].rotation.x = ges.pata[1];
     /* toque: salto e esticão */
     if(this.toque > 0){
       const k = this.toque, s = Math.sin((1 - k) * Math.PI);
@@ -754,7 +760,7 @@ export class Quinta3D {
     this.r.outputColorSpace = THREE.SRGBColorSpace;
     this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
     this.cena = new THREE.Scene();
-    preCarrega3D();                         /* cão, gato, vaca e pato 3D: descarrega já, para estarem prontos */
+    preCarrega3D(['cao', 'gato', 'vaca', 'pato']);   /* os outros descarregam quando a criança os compra / aparecem */
     this.cam = new THREE.PerspectiveCamera(40, 1, .5, 400);
     this.relogio = new THREE.Clock();
     this.t = 0; this.ligada = false;

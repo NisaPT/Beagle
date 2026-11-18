@@ -13,7 +13,7 @@ const { imgSrc, BEM, pick, baralha } = util;
 const rnd = n => Math.floor(Math.random() * n);
 
 /* o que cada animal come (emoji) e a frase que já existe em voz */
-const COMIDA = { galo:'🌽', pato:'🌽', ra:'🪰', tartaruga:'🥬', ovelha:'🌿', porco:'🍎', vaca:'🌾', cavalo:'🥕', coelho:'🥕', cao:'🦴', gato:'🐟' };
+const COMIDA = { galo:'🌽', galinha:'🌽', pato:'🌽', ra:'🪰', tartaruga:'🥬', ovelha:'🌿', porco:'🍎', vaca:'🌾', cavalo:'🥕', coelho:'🥕', cao:'🦴', gato:'🐟' };
 const FRASE_COMER = {
   cavalo:'Dá de comer ao cavalo.', pato:'Dá de comer ao pato.', porco:'Dá de comer ao porco.',
   vaca:'Dá de comer à vaca.', galo:'Dá de comer ao galo.', ovelha:'Dá de comer à ovelha.',
