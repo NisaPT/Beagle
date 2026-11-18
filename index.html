@@ -1057,8 +1057,8 @@ body[data-ecra="mapa"] #btn-brincar,body[data-ecra="mapa"] #btn-album,body[data-
 .cj-conta-cena{display:flex;flex-wrap:wrap;gap:.3rem;justify-content:center;align-items:center;background:#fff;border-radius:1.2rem;padding:1rem;width:100%;min-height:9rem}
 .cj-conta-item{font-size:2.6rem;animation:ovo-pop .4s cubic-bezier(.3,1.6,.5,1)}
 .cj-conta-item.img img,.cj-conta-item.img canvas.a3d{width:4rem;height:4rem;object-fit:contain}
-.cj-opcoes{display:flex;gap:1rem}
-.cj-num{font-size:2.2rem;min-width:4.5rem;min-height:4.5rem}
+.cj-opcoes{display:flex;gap:.8rem;justify-content:center;width:100%}
+.cj-num{font-size:2rem;width:clamp(4rem,22vw,5.5rem);min-width:0;height:4rem;min-height:0;padding:0;flex:none}
 .cj-num.certo{background:#8fd18a}.cj-num.treme{animation:ponto-treme .35s}
 .cj-corpo{position:relative;width:min(80vw,22rem);aspect-ratio:1;touch-action:none}
 .cj-corpo>img,.cj-corpo>canvas.a3d{width:100%;height:100%;object-fit:contain;pointer-events:none}
@@ -1372,7 +1372,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.28.1"></script>
+<script type="module" src="./js/app.js?v=4.28.2"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

@@ -192,7 +192,7 @@ export function abreJogosCasa(Som, aoGanhar, casaId, itens, aoComprar){
   /* um cartão por animal comprado (até 6); arrasta a comida ao animal que a pede */
   function servir(palco, j){
     const bichos = lista.slice(0, 6).map((id, k) => ({ id, k, quer: j.agua ? '💧' : (COMIDA[id] || '🥕'), feito: false }));
-    const col = bichos.length <= 2 ? bichos.length : (bichos.length <= 4 ? 2 : 3);
+    const col = Math.min(bichos.length, 3);
     palco.innerHTML = `<div class="cj-servir"><div class="cj-bichos" style="--col:${col}">${bichos.map(b =>
       `<div class="cj-bicho" data-k="${b.k}">${img(b.id)}<span class="cj-pedido">${b.quer}</span></div>`).join('')}</div>
       <div class="cj-bandeja"></div><div class="cj-cesto">${j.agua ? '💧' : '🍽️'} <b>0</b>/${bichos.length}</div></div>`;
@@ -203,24 +203,24 @@ export function abreJogosCasa(Som, aoGanhar, casaId, itens, aoComprar){
 
     const monta = () => {
       const faltam = [...new Set(bichos.filter(b => !b.feito).map(b => b.quer))];
-      bandeja.innerHTML = faltam.map(q => `<div class="comida" data-q="${q}">${q}</div>`).join('');
-      bandeja.querySelectorAll('.comida').forEach(arrasta);
+      bandeja.innerHTML = faltam.map(q => `<div class="cj-comida" data-q="${q}">${q}</div>`).join('');
+      bandeja.querySelectorAll('.cj-comida').forEach(arrasta);
     };
     const arrasta = comida => {
       let em = false, dx = 0, dy = 0, base = null, pid = null;
       const centro = e => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; };
       comida.style.touchAction = 'none';
-      comida.onpointerdown = e => { em = true; pid = e.pointerId; base = centro(comida); dx = e.clientX - base.x; dy = e.clientY - base.y; comida.classList.add('a-arrastar'); comida.style.transition = ''; try{ comida.setPointerCapture(pid); }catch(err){} };
+      comida.onpointerdown = e => { em = true; pid = e.pointerId; base = centro(comida); dx = e.clientX - base.x; dy = e.clientY - base.y; comida.classList.add('cj-arrasta'); comida.style.transition = ''; try{ comida.setPointerCapture(pid); }catch(err){} };
       comida.onpointermove = e => { if(!em || e.pointerId !== pid) return; e.preventDefault(); comida.style.transform = `translate(${e.clientX - dx - base.x}px, ${e.clientY - dy - base.y}px) scale(1.1)`; };
       comida.onpointerup = comida.onpointercancel = () => {
-        if(!em) return; em = false; comida.classList.remove('a-arrastar');
+        if(!em) return; em = false; comida.classList.remove('cj-arrasta');
         try{ comida.releasePointerCapture(pid); }catch(err){}
         const c = centro(comida), q = comida.dataset.q;
         const alvo = cartoes.find(el => { const r = el.getBoundingClientRect(); return c.x >= r.left && c.x <= r.right && c.y >= r.top && c.y <= r.bottom; });
         const b = alvo && bichos[+alvo.dataset.k];
         if(b && !b.feito && b.quer === q){
           b.feito = true; dados++; conta.textContent = dados;
-          comida.classList.add('comida-comida'); alvo.classList.add('feliz');
+          comida.classList.add('cj-comida-comida'); alvo.classList.add('feliz');
           alvo.querySelector('.cj-pedido').textContent = '❤️';
           try{ Som.efeito('certo'); }catch(err){}
           if(dados >= bichos.length) espera(() => fim(palco, j), 700);

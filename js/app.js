@@ -11,6 +11,7 @@ import { perfilIdade } from './idades.js';
 import { Nuvem } from './nuvem.js';
 import { abreBrincar } from './brincar.js';
 import { abreJogosCasa } from './tarefas.js';
+import { iniciaVida3d } from './vida3d.js';
 import { tocaHistoria } from './historias.js';
 import { HISTORIAS } from './historias_dados.js';
 import { ITENS, CATEGORIAS_ALBUM, imagemItem, rotuloTipo } from './natureza.js';
@@ -1412,6 +1413,7 @@ $('#btn-ir-quinta').onclick = () => { Som.efeito('toque'); Voz.cala(); Fala.esco
 
 (async function iniciar(){
   try {
+  try{ iniciaVida3d(); }catch(e){ console.warn('Vida 3D', e); }
   Estado.carrega();
   aplicaIdade();
   /* pede ao navegador para não apagar o progresso por falta de espaço */
