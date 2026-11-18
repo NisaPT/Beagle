@@ -1051,19 +1051,24 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
 .hm-bicho.tras{bottom:30%}
 .hm-bicho img,.hm-bicho canvas.a3d{width:100%;height:100%;object-fit:contain;pointer-events:none}
 .hm-bicho.emoji{font-size:var(--t);line-height:1;width:auto;height:auto}
-.hm-bicho.bob>*{animation:hm-bob 2.6s var(--atraso) ease-in-out infinite;transform-origin:50% 100%}
-.hm-bicho.parado>*{animation:hm-bob 3.4s var(--atraso) ease-in-out infinite;transform-origin:50% 100%}
-.hm-bicho.anda{animation:hm-anda 9s var(--atraso) linear infinite}
-.hm-bicho.anda>*{animation:hm-bob 1s ease-in-out infinite;transform-origin:50% 100%}
-.hm-bicho.salta>*{animation:hm-salta 1.8s var(--atraso) ease-in-out infinite}
-.hm-estacao.alegre .hm-bicho>*{animation:hm-salta .5s ease-in-out 3}
-@keyframes hm-bob{50%{transform:translateY(-3%) scaleY(1.04)}}
-@keyframes hm-salta{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-22%)}}
-@keyframes hm-anda{0%{transform:translateX(-50%)}50%{transform:translateX(calc(-50% + var(--p)))}100%{transform:translateX(-50%)}}
+.hm-bicho>*{transform-origin:50% 100%}
+.hm-bicho.parado>*{animation:hm-respira 4.6s var(--atraso) ease-in-out infinite}
+.hm-bicho.bob>*{animation:hm-flutua 4.2s var(--atraso) ease-in-out infinite}
+.hm-bicho.anda{animation:hm-anda 16s var(--atraso) ease-in-out infinite,hm-vira 16s var(--atraso) step-end infinite}
+.hm-bicho.anda>*{animation:hm-passo 1.1s ease-in-out infinite}
+.hm-bicho.salta>*{animation:hm-salta 3.6s var(--atraso) ease-in-out infinite}
+.hm-estacao.alegre .hm-bicho.parado>*,.hm-estacao.alegre .hm-bicho.anda>*{animation:hm-alegre 1.2s ease-in-out 1}
+@keyframes hm-respira{0%,100%{transform:scale(1,1) rotate(0)}50%{transform:scale(1.012,1.028) rotate(.6deg)}}
+@keyframes hm-flutua{0%,100%{transform:translateY(0) rotate(-.8deg)}50%{transform:translateY(-3%) rotate(.8deg)}}
+@keyframes hm-passo{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2.5%) rotate(1deg)}}
+@keyframes hm-salta{0%,58%,100%{transform:translateY(0) scale(1,1)}64%{transform:translateY(0) scale(1.06,.9)}76%{transform:translateY(-26%) scale(.96,1.06)}88%{transform:translateY(0) scale(1.05,.92)}94%{transform:translateY(0) scale(1,1)}}
+@keyframes hm-alegre{0%,100%{transform:translateY(0)}30%{transform:translateY(-9%) rotate(-2deg)}60%{transform:translateY(0)}80%{transform:translateY(-4%) rotate(2deg)}}
+@keyframes hm-anda{0%,8%{translate:0 0}46%,54%{translate:var(--p) 0}92%,100%{translate:0 0}}
+@keyframes hm-vira{0%{scale:1 1}50%{scale:-1 1}}
 .hm-erva{position:absolute;bottom:-1%;font-size:3rem;line-height:1;opacity:.95}
 .hm-borboleta{position:absolute;bottom:22%;font-size:1.5rem;animation:hm-borboleta 6s ease-in-out infinite}
 @keyframes hm-borboleta{50%{transform:translate(8vw,-6vh) rotate(12deg)}}
-.hm-legenda{position:absolute;left:.7rem;right:.7rem;bottom:calc(.7rem + env(safe-area-inset-bottom));background:rgba(255,255,255,.95);border-radius:1rem;padding:.6rem .9rem;font-weight:700;font-size:clamp(1rem,4.2vw,1.35rem);line-height:1.25;color:#234;text-align:center;opacity:0;transform:translateY(10px);transition:.3s;z-index:3}
+.hm-legenda{position:absolute;left:.8rem;right:.8rem;top:calc(4.3rem + env(safe-area-inset-top));background:none;padding:0;font-weight:800;font-size:clamp(1.05rem,4.6vw,1.45rem);line-height:1.25;color:#fff;text-align:center;opacity:0;transform:translateY(-8px);transition:.35s;z-index:3;pointer-events:none;-webkit-text-stroke:.28rem #1f3b57;paint-order:stroke fill;text-shadow:0 2px 6px rgba(20,40,70,.55)}
 .hm-legenda.on{opacity:1;transform:none}
 .hist-fim{position:absolute;inset:0;background:rgba(253,243,216,.95);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;font-size:1.6rem;font-weight:800;z-index:5}
 @media (prefers-reduced-motion:reduce){.hm-nuvem,.hm-passaro,.hm-borboleta,.hm-bicho,.hm-bicho>*{animation:none!important}}

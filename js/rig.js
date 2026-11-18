@@ -268,14 +268,14 @@ export class Rig {
     this.anda += ((this.andarAlvo ? 1 : 0) - this.anda) * (1 - Math.exp(-6 * dt));
     if(this.anda > .01){
       this.passoFase += dt * 7.5 * this.velAndar;
-      const p = Math.sin(this.passoFase), q = Math.cos(this.passoFase), w = this.anda;
-      soma('LeftUpLeg',  -p * 27 * w, 0, 0);   soma('RightUpLeg',  p * 27 * w, 0, 0);
-      soma('LeftLeg',  Math.max(0,  q) * 32 * w, 0, 0);  soma('RightLeg', Math.max(0, -q) * 32 * w, 0, 0);
+      const p = Math.sin(this.passoFase), q = Math.cos(this.passoFase), w = this.anda, A = this.passoAmp || 1;
+      soma('LeftUpLeg',  -p * 27 * w * A, 0, 0);   soma('RightUpLeg',  p * 27 * w * A, 0, 0);
+      soma('LeftLeg',  Math.max(0,  q) * 32 * w * A, 0, 0);  soma('RightLeg', Math.max(0, -q) * 32 * w * A, 0, 0);
       soma('LeftFoot', -Math.max(0, -q) * 8 * w, 0, 0);  soma('RightFoot', -Math.max(0, q) * 8 * w, 0, 0);
-      soma('LeftArm',   p * 26 * w, 0, 0);     soma('RightArm', -p * 26 * w, 0, 0);
+      soma('LeftArm',   p * 26 * w * (1 + (A - 1) * .5), 0, 0);     soma('RightArm', -p * 26 * w * (1 + (A - 1) * .5), 0, 0);
       soma('LeftForeArm', -14 * w, 0, 0);      soma('RightForeArm', -14 * w, 0, 0);
       soma('Spine1', 0, -p * 5 * w, 0);        soma('Hips', 0, p * 5 * w, 0);
-      this.salto = Math.abs(p) * .02 * w;
+      this.salto = Math.abs(p) * .02 * w * (1 + (A - 1) * .5);
     }
     if(this.acao === 'dancar'){
       const s = Math.sin(f * 5.2), c = Math.cos(f * 5.2), b = Math.abs(s);

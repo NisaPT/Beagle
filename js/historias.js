@@ -90,6 +90,9 @@ export function tocaHistoria(h, api){
   const M = constroi(h, api.palco);
   if(M.mundo.querySelector('img[data-a3d]')) import('./animais3d.js').then(m => m.ativaCartas(M.mundo)).catch(() => {});
   const grau = Math.PI / 180;
+  /* os gestos seguem a direção do corpo (senão, de lado, as pernas balançariam para a câmara) */
+  const localAntes = [api.avo().opcoes.local, api.ava().opcoes.local];
+  api.avo().opcoes.local = true; api.ava().opcoes.local = true;
   let raf = 0;
 
   const aplica = () => M.camadas.forEach(c => { c.el.style.transform = `translate3d(${-cam * c.f}px,0,0)`; });
@@ -100,12 +103,17 @@ export function tocaHistoria(h, api){
     if(parado) return;
     raf = requestAnimationFrame(gira);
     const a = api.avo(), b = api.ava();
-    const alvoA = andando ? 82 * grau : a.rotBase + 14 * grau, alvoB = andando ? 86 * grau : b.rotBase - 14 * grau;
+    const alvoA = andando ? 90 * grau : a.rotBase + 14 * grau, alvoB = andando ? 90 * grau : b.rotBase - 14 * grau;
     a.grupo.rotation.y += (alvoA - a.grupo.rotation.y) * .09;
     b.grupo.rotation.y += (alvoB - b.grupo.rotation.y) * .09;
   };
   gira();
-  const anda = on => { andando = on; api.avo().caminha(on, .9); api.ava().caminha(on, .9); };
+  /* primeiro viram-se de lado, só depois andam; ao parar, as pernas assentam e só depois se voltam para quem vê */
+  const pernas = on => { [api.avo(), api.ava()].forEach(r => { r.passoAmp = on ? 1.2 : 1; r.caminha(on, .85); }); };
+  const anda = async on => {
+    if(on){ andando = true; await espera(1000); if(!parado) pernas(true); }
+    else { pernas(false); await espera(650); andando = false; }
+  };
 
   const vai = (alvo, ms) => new Promise(res => {
     const c0 = cam, t0 = performance.now();
@@ -152,12 +160,12 @@ export function tocaHistoria(h, api){
       const e = h.mundo.estacoes.find(x => x.id === p.para);
       const alvo = e.x * M.vw;
       if(Math.abs(alvo - cam) > 2){
-        anda(true);
+        await anda(true);
         const dist = Math.abs(alvo - cam) / M.vw;
         const mov = vai(alvo, Math.max(5500, dist * 65));
         const dito = (async () => { await espera(500); for(const f of (p.andando || [])) await fala(f, null); })();
         await Promise.all([mov, dito]);
-        anda(false);
+        await anda(false);
         await espera(900);
       }
       const g = M.estEl[e.id];
@@ -170,7 +178,7 @@ export function tocaHistoria(h, api){
   return { para(){
     parado = true; cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers.clear();
     try{ api.Som.paraVoz(); }catch(e){}
-    api.avo().fala(0); api.ava().fala(0); api.avo().caminha(false); api.ava().caminha(false);
+    api.avo().fala(0); api.ava().fala(0); api.avo().caminha(false); api.ava().caminha(false); api.avo().passoAmp = 1; api.ava().passoAmp = 1; api.avo().opcoes.local = localAntes[0]; api.ava().opcoes.local = localAntes[1];
     M.mundo.remove(); M.legenda.remove();
   } };
 }
