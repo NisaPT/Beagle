@@ -127,8 +127,9 @@ export function rondaCesto(jogo){
     jogo.pose('pensar');
     jogo.diz(prefixo ? [prefixo, pergunta(it)] : pergunta(it), () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
   };
+  let transicao = false;       /* entre uma peça e a seguinte ignora toques (evita saltar uma peça) */
   const escolhe = cesto => {
-    if(jogo.aEsperar) return;
+    if(jogo.aEsperar || transicao) return;
     const it = fila[i];
     if(cesto.dataset.v !== it.tipo){ jogo.responde(cesto, false, 'Pensa outra vez. Olha bem para a imagem.'); return false; }
     if(i === fila.length - 1){
@@ -140,12 +141,13 @@ export function rondaCesto(jogo){
     jogo.som('certo'); peca.classList.add('some');
     const r = cesto.getBoundingClientRect();
     confete(document.body, r.left + r.width / 2, r.top, ['#F5B921', '#fff', '#5BAF6A']);
-    i++;
-    jogo.espera(() => mostra(pick(BEM)), 450);
+    i++; transicao = true;
+    jogo.espera(() => { transicao = false; mostra(pick(BEM)); }, 450);
     return true;
   };
   cestos.forEach(c => { const f = () => escolhe(c); c.addEventListener('click', f); jogo.limpezas.push(() => c.removeEventListener('click', f)); });
   arrasta(jogo, peca, () => cestos, destino => destino ? escolhe(destino) : false);
+  jogo.dica = () => jogo.destaca(cestos.find(c => c.dataset.v === fila[i].tipo));
   mostra(null);
 }
 

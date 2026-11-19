@@ -101,7 +101,13 @@ const Estado = {
       if(!perfis.some(p => p.id === ativo)) ativo = perfis[0].id;
       localStorage.setItem('eab-perfil-ativo', ativo);
       this.perfilId = ativo;
-      const g = JSON.parse(localStorage.getItem('eab-perfil-' + ativo) || (ativo === 'principal' ? localStorage.getItem('eab') : '{}') || '{}');
+      const bruto = localStorage.getItem('eab-perfil-' + ativo) || (ativo === 'principal' ? localStorage.getItem('eab') : '{}') || '{}';
+      let g;
+      try{ g = JSON.parse(bruto); }
+      catch(e){                                    /* dados corrompidos: guarda cópia e recomeça, sem perder o original */
+        try{ localStorage.setItem('eab-copia-corrompida-' + ativo, bruto); }catch(_){}
+        g = {};
+      }
       const perfil = perfis.find(p => p.id === ativo);
       Object.assign(this, {
         nivel: g.nivel || 1,
@@ -200,6 +206,23 @@ function redimensiona(){
   camara.fov = w / h < .78 ? 32 : 28;
   camara.updateProjectionMatrix();
 }
+/* erros inesperados: nunca deixam a criança num ecrã preso */
+let errosSeguidos = 0, ultimoErro = 0;
+function recuperaDeErro(e){
+  console.error('Erro inesperado', e);
+  const agora = Date.now();
+  errosSeguidos = agora - ultimoErro < 4000 ? errosSeguidos + 1 : 1; ultimoErro = agora;
+  if(errosSeguidos < 3) return;                    /* um erro isolado não interrompe nada */
+  errosSeguidos = 0;
+  try{ jogo.para(); Voz.cala(); Fala.esconde(); $('#tabuleiro').innerHTML = ''; abreMapa(false, mundoVisto); }
+  catch(_){ try{ mostra('#ecra-inicio'); }catch(__){} }
+}
+addEventListener('error', recuperaDeErro);
+addEventListener('unhandledrejection', ev => recuperaDeErro(ev.reason));
+/* o sistema pode retirar o WebGL (pouca memória): não deixar o ecrã preto */
+$('#gl') && $('#gl').addEventListener('webglcontextlost', ev => { ev.preventDefault(); modoSem3D = true; }, false);
+$('#gl') && $('#gl').addEventListener('webglcontextrestored', () => { modoSem3D = false; }, false);
+
 /* ao sair da app, fechar o separador ou bloquear o ecrã: silêncio total */
 const silencio = () => { try{ Som.paraVoz(); if(Som.ctx && Som.ctx.state === 'running') Som.ctx.suspend(); }catch(e){} };
 document.addEventListener('visibilitychange', () => { if(document.hidden) silencio(); else Som.retoma(); });
@@ -522,7 +545,7 @@ function atualizaTempoUso(){
   Estado.tempoHoje=(Estado.tempoHoje||0)+delta; Estado.inicioSessao=agora; Estado.diaUso=hoje;
   if(delta) Estado.guardaLogo();
   /* o aviso nunca interrompe uma ronda: espera pelo mapa, pelos menus ou pela quinta */
-  if(limiteAtingido() && ['mundos','mapa','amigos','quinta'].includes(document.body.dataset.ecra)) mostraAvisoLimite();
+  if(limiteAtingido() && ['mundos','mapa','amigos'].includes(document.body.dataset.ecra)) mostraAvisoLimite();   /* a quinta é o descanso: não se interrompe */
 }
 function limiteAtingido(){
   return Estado.limiteMinutos > 0 && (Estado.tempoHoje || 0) >= Estado.limiteMinutos * 60;
@@ -562,7 +585,10 @@ function mostraAvisoLimite(){
   aviso.querySelector('[data-a=quinta]').onclick=()=>{aviso.remove();abreQuinta();};
   aviso.querySelector('[data-a=pais]').onclick=()=>{aviso.remove();$('#btn-pais').click();};
 }
-document.addEventListener('visibilitychange',()=>{if(document.hidden){ atualizaTempoUso(); Estado.guarda(); }});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden){ atualizaTempoUso(); Estado.guarda(); }
+  else Estado.inicioSessao = Date.now();        /* o tempo em segundo plano nunca conta como tempo de jogo */
+});
 addEventListener('pagehide',()=>{ Estado.guarda(); });
 setInterval(()=>{if(!document.hidden) atualizaTempoUso();},30000);
 
@@ -719,6 +745,7 @@ function abreHistorias(){
 /* o filme da história (vídeo guardado em media/video; carrega só quando se abre, não fica no pré-carregamento) */
 function abreFilme(h){
   if(!h || !h.filme) return;
+  if(limiteAtingido()){ mostraAvisoLimite(); return; }
   Voz.cala(); Som.paraVoz && Som.paraVoz();
   const d = document.createElement('div');
   d.className = 'filme';
@@ -787,6 +814,25 @@ $('#btn-voltar').onclick = () => {
   else if(onde === 'mapa') abreMundos();      /* mapa   -> mundos      */
   else voltaAoMapa();                         /* jogo   -> mapa        */
 };
+
+/* botão "Voltar" do Android / gesto de recuo: faz o mesmo que o botão da app, em vez de fechar tudo */
+(function botaoVoltarAndroid(){
+  try{
+    history.replaceState({ eab: 0 }, '');
+    history.pushState({ eab: 1 }, '');
+    addEventListener('popstate', () => {
+      const dialogo = document.querySelector('.album-fundo, .filme, .aviso-limite');
+      if(dialogo){ const x = dialogo.querySelector('.filme-x, button'); if(x) x.click(); else dialogo.remove(); }
+      else {
+        const onde = document.body.dataset.ecra;
+        const barra = $('#barra');
+        if(['pais', 'porta'].includes(onde)) $('#btn-pais-fechar') ? $('#btn-pais-fechar').click() : mostra('#ecra-mapa');
+        else if(barra && !barra.hidden && $('#btn-voltar')) $('#btn-voltar').click();
+      }
+      try{ history.pushState({ eab: 1 }, ''); }catch(e){}   /* mantém sempre uma entrada à frente: nunca sai sem querer */
+    });
+  }catch(e){}
+})();
 
 function abreEscolha(){
   Voz.cala(); Fala.esconde(); jogo.para();
@@ -927,6 +973,9 @@ function desenhaPais(){
   }
   const selIdade=$('#idade-crianca'); if(selIdade) selIdade.value=String(Estado.idade||5);
   const selLimite=$('#limite-tempo'); if(selLimite) selLimite.value=String(Estado.limiteMinutos);
+  atualizaTempoUso();
+  const uso = $('#uso-hoje'); if(uso) uso.textContent = `${Math.floor((Estado.tempoHoje || 0) / 60)} min utilizados hoje`;
+  const mus = $('#musica-fundo'); if(mus) mus.checked = Som.musicaLigada();
   desenhaVoz();
   desenhaConta();
 }
@@ -1056,6 +1105,7 @@ $('#btn-sair-conta').onclick = () => tentaConta(async () => {
 });
 
 $('#idade-crianca')?.addEventListener('change',e=>{Estado.idade=+e.target.value;Estado.guarda();aplicaIdade();});
+$('#musica-fundo')?.addEventListener('change', e => Som.defineMusica(e.target.checked));
 $('#limite-tempo')?.addEventListener('change',e=>{Estado.limiteMinutos=Math.max(0,Math.min(180,+e.target.value||0));Estado.guarda();});
 $('#btn-apagar-perfil')?.addEventListener('click',async()=>{
   if(!confirm('Apagar permanentemente o progresso deste perfil neste dispositivo (e o que partilhou na cloud)?')) return;
@@ -1316,7 +1366,14 @@ let abaLoja = 'edificios', novoEd = null;
 function abreJogosDaCasa(id){
   if(limiteAtingido()){ mostraAvisoLimite(); return; }
   Som.arranca();
-  abreJogosCasa(Som, n => { Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); },
+  abreJogosCasa(Som, n => {
+    /* teto diário de estrelas dos jogos da quinta: o progresso vem dos níveis, não de repetir o mesmo jogo */
+    let reg = {}; const chave = 'eab-extra-' + Estado.perfilId;
+    try{ reg = JSON.parse(localStorage.getItem(chave) || '{}'); }catch(e){}
+    if(reg.d !== chaveDia()) reg = { d: chaveDia(), n: 0 };
+    n = Math.max(0, Math.min(n, 20 - reg.n)); reg.n += n;
+    try{ localStorage.setItem(chave, JSON.stringify(reg)); }catch(e){}
+    Estado.extra = (Estado.extra || 0) + n; Estado.guarda(); const cs = $('#conta-estrelas'); if(cs) cs.textContent = Estado.saldo(); },
     id, Estado.quinta.itens, c => abreLoja('bichos', null, c));
 }
 let Q3D = null, q3dTentou = false;

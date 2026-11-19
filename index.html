@@ -294,6 +294,12 @@ body[data-jogo="contar"]{--stage-h:50%}
 .alvo.certo{animation:estoira .5s ease forwards}
 @keyframes estoira{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(0);opacity:0}}
 .alvo.errado{animation:abana .4s ease}
+/* dica depois de dois erros: o alvo certo pulsa */
+.dica{animation:dica 1s ease-in-out infinite;outline:5px solid #F5B921;outline-offset:3px;border-radius:18px;z-index:2}
+@keyframes dica{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+@media (prefers-reduced-motion:reduce){.dica{animation:none}}
+button:focus-visible,[role=button]:focus-visible{outline:4px solid #1B4D8F;outline-offset:3px}
+
 @keyframes abana{0%,100%{transform:none}20%{transform:translateX(-10px) rotate(-6deg)}60%{transform:translateX(10px) rotate(6deg)}}
 
 /* contar */
@@ -1393,7 +1399,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.30.0"></script>
+<script type="module" src="./js/app.js?v=4.31.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

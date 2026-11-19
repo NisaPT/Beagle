@@ -123,8 +123,14 @@ export const Som = {
   },
 
   /* --------------------------------------------------- música --------- */
+  /* a música de fundo tem interruptor próprio (Área dos Pais), separado do som geral */
+  musicaLigada(){ try{ return localStorage.getItem('eab-musica') !== '0'; }catch(e){ return true; } },
+  defineMusica(v){
+    try{ localStorage.setItem('eab-musica', v ? '1' : '0'); }catch(e){}
+    if(v) this.tocaMusica(); else this.paraMusica();
+  },
   tocaMusica(){
-    if(!this.ctx || this.aTocar) return;
+    if(!this.ctx || this.aTocar || !this.musicaLigada()) return;
     this.aTocar = true;
     this.passo = 0;
     this.proximo = this.ctx.currentTime + .15;

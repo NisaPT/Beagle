@@ -190,6 +190,7 @@ export function rondaNatureza(jogo, cat){
   function modoSombras(){
     const certa = escolheResposta(pool);
     const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
       b.classList.remove('sombra');
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
@@ -204,6 +205,7 @@ export function rondaNatureza(jogo, cat){
   function modoEscondidos(){
     const certa = escolheResposta(pool);
     const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
       b.classList.remove('tapada');
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
@@ -218,6 +220,7 @@ export function rondaNatureza(jogo, cat){
     if(com_som.length < 2) return false;
     const certa = escolheResposta(com_som);
     const op = opcoesCom(certa, pool, Math.min(nOpc, 4));
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Quem faz ${certa.som}?`, '', (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} faz ${certa.som}.`], '#F5B921');
       else errado(b, [`${esse(it)} ${com(it)}.`, `Quem faz ${certa.som}?`]);
@@ -236,6 +239,7 @@ export function rondaNatureza(jogo, cat){
     const op = opcoesCom(certa, foraOk, Math.min(nOpc, 4));
     const q = g === 'quinta' ? 'Qual destes animais vive na quinta?' : 'Qual destes animais vive na água do mar?';
     const onde = g === 'quinta' ? 'vive na quinta' : 'vive no mar';
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, q, g === 'quinta' ? '🏡' : '🌊', (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} ${onde}.`], '#F5B921');
       else errado(b, g === 'quinta' ? `Esse não vive na quinta. Tenta outra vez.` : `Esse não vive no mar. Tenta outra vez.`);
@@ -253,6 +257,7 @@ export function rondaNatureza(jogo, cat){
     for(const x of baralha(outros)){ const l = letraInicial(x); if(!vistas.has(l)){ vistas.add(l); distra.push(x); } }
     const op = baralha([certa, ...distra.slice(0, Math.min(nOpc, 4) - 1)]);
     if(op.length < 2) return false;
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Qual ${cat === 'animais' ? 'animal' : cat === 'frutas' ? 'fruta' : 'legume'} começa pela letra ${L}?`, `<b class="pista-letra">${L}</b>`, (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} começa pela letra ${L}.`], '#F5B921');
       else errado(b, [`Esse começa por ${letraInicial(it)}.`, `Procura a letra ${L}.`]);
@@ -272,6 +277,7 @@ export function rondaNatureza(jogo, cat){
     const op = baralha([certa, ...distra.slice(0, Math.min(nOpc, 4) - 1)]);
     const nomeCat = cat === 'frutas' ? 'a fruta' : 'o legume';
     const adjCat = COR[c][cat === 'frutas' ? 1 : 0];
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Qual é ${nomeCat} ${adjCat}?`, `<i class="pista-cor" style="background:${COR[c][4]}"></i>`, (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${Cap(com(certa))} ${verbo(certa)} ${adj(certa, c)}.`], COR[c][4]);
       else errado(b, [`${Cap(com(it))} ${verbo(it)} ${adj(it, it.cor || c)}.`, `Procura ${nomeCat} ${adjCat}.`]);
