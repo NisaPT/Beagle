@@ -1285,10 +1285,21 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
 
   <div class="painel" id="painel-conta">
     <h2>Partilha com amigos (opcional)</h2>
+    <div id="pin-criar" hidden>
+      <p><strong>1.º passo: crie um PIN dos pais.</strong> São 4 números que só os adultos sabem. Pede-se para ligar a partilha e para juntar amigos. Fica só neste aparelho (cifrado, nunca sai daqui).</p>
+      <label class="campo-voz" for="pin-novo">PIN (4 números)</label>
+      <input id="pin-novo" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+      <label class="campo-voz" for="pin-novo2">Repita o PIN</label>
+      <input id="pin-novo2" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
+      <button class="botao pequeno" id="btn-criar-pin" type="button">Criar PIN</button>
+      <p class="aviso-campo" id="aviso-pin" role="status"></p>
+    </div>
     <p id="conta-estado">—</p>
     <div id="conta-fora" hidden>
       <p>Se ligar, o jogo publica, para cada criança, apenas o <strong>código da família, o nível do jogo e os itens da quinta</strong> (edifícios e animais), para que amigos <strong>que também autorizar</strong> possam ver a quinta e o nível. Não há nome, fotografias, mensagens, chat, localização nem email: o amigo aparece com um nome de animal gerado (ex.: “Coelhinho 42”). Os dados são apagados após 180 dias sem uso, e pode desligar e apagar tudo a qualquer momento.</p>
       <label class="campo-voz"><input type="checkbox" id="consentimento-pais"> Sou o pai, mãe ou responsável legal da criança e autorizo esta partilha, que li e compreendi (ver Política de Privacidade).</label>
+      <label class="campo-voz" for="pin-ativar">PIN dos pais</label>
+      <input id="pin-ativar" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off">
       <button class="botao pequeno" id="btn-ativar-partilha" type="button">Ligar partilha com amigos</button>
     </div>
     <div id="conta-dentro" hidden>
@@ -1338,6 +1349,8 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
     <form class="form-amigo" id="form-amigo">
       <input id="campo-codigo" placeholder="ABCD-EFGH-JKMN" autocomplete="off"
              spellcheck="false" aria-label="Código do amigo" maxlength="14">
+      <input id="pin-amigo" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off"
+             placeholder="PIN" aria-label="PIN dos pais" style="max-width:5.5rem">
       <button type="submit">Juntar</button>
     </form>
     <p class="aviso-campo" id="aviso-amigo"></p>
@@ -1366,7 +1379,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
     <p>O progresso, os perfis, o nome e as estatísticas ficam apenas neste aparelho. Por defeito nada é enviado para a internet. Só se os pais ligarem a partilha com amigos é publicado o código da família, o nível e os itens da quinta, que são apagados após 180 dias sem uso e que pode apagar a qualquer momento.</p>
     <p><a href="./privacidade.html" target="_blank" rel="noopener">Ler a Política de Privacidade completa</a></p>
     <button class="botao calma pequeno" id="btn-apagar-tudo" type="button">Apagar todos os dados deste aparelho</button>
-    <p class="aviso">Pode apagar só um perfil com o botão acima. A opção “Apagar todos os dados” remove todos os perfis, progresso e cópias guardadas no aparelho.</p>
+    <p class="aviso">Pode apagar só um perfil com o botão acima. A opção “Apagar todos os dados” remove todos os perfis, progresso, cópias guardadas no aparelho e o PIN dos pais (é também o caminho se se esquecer do PIN).</p>
   </div>
 
   <button class="botao" id="btn-sair-pais">Voltar ao jogo</button>

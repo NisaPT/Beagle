@@ -954,9 +954,54 @@ function desenhaVoz(){
 
 
 /* ============================================ CONTA DOS PAIS (cloud) ======= */
+/* ---- PIN dos pais: ação de adulto exigida pela Google Play para funções sociais.
+   Guardado só neste aparelho, com sal e PBKDF2 (100 000 voltas). 3 erros = 5 minutos de espera. ---- */
+const PIN_CHAVE = 'eab-pin', PIN_BLOQ = 'eab-pin-bloq';
+const b64 = u => btoa(String.fromCharCode(...u)), desb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function hashPin(pin, sal){
+  const k = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+  return b64(new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: sal, iterations: 100000, hash: 'SHA-256' }, k, 256)));
+}
+const pinExiste = () => { try{ const d = JSON.parse(localStorage.getItem(PIN_CHAVE) || 'null'); return !!(d && d.s && d.h); }catch(e){ return false; } };
+const pinFraco = p => /^(\d)\1{3}$/.test(p) || ['0123','1234','2345','3456','4567','5678','6789','3210','4321','5432','6543','7654','8765','9876'].includes(p);
+async function criaPin(pin){
+  const sal = crypto.getRandomValues(new Uint8Array(16));
+  localStorage.setItem(PIN_CHAVE, JSON.stringify({ s: b64(sal), h: await hashPin(pin, sal) }));
+  localStorage.removeItem(PIN_BLOQ);
+}
+async function verificaPin(pin){
+  let b = {}; try{ b = JSON.parse(localStorage.getItem(PIN_BLOQ) || '{}'); }catch(e){}
+  if(b.ate && Date.now() < b.ate) return 'bloqueado';
+  const d = JSON.parse(localStorage.getItem(PIN_CHAVE) || 'null');
+  if(!d) return 'sem-pin';
+  if(await hashPin(pin, desb64(d.s)) === d.h){ localStorage.removeItem(PIN_BLOQ); return 'ok'; }
+  const n = (b.n || 0) + 1;
+  localStorage.setItem(PIN_BLOQ, JSON.stringify(n >= 3 ? { n: 0, ate: Date.now() + 300000 } : { n }));
+  return n >= 3 ? 'bloqueado' : 'errado';
+}
+/* pede o PIN num campo; devolve { ok, msg } e limpa o campo */
+async function validaPinAdulto(campo){
+  const pin = (campo.value || '').trim(); campo.value = '';
+  if(!pinExiste()) return { ok: false, msg: 'Crie primeiro o PIN dos pais (no início deste painel).' };
+  if(!/^\d{4}$/.test(pin)) return { ok: false, msg: 'Escreva o PIN dos pais (4 números).' };
+  const r = await verificaPin(pin);
+  if(r === 'ok') return { ok: true };
+  return { ok: false, msg: r === 'bloqueado' ? 'Demasiadas tentativas. Espere 5 minutos.' : 'PIN errado.' };
+}
+$('#btn-criar-pin').onclick = async () => {
+  const a = $('#pin-novo').value.trim(), b = $('#pin-novo2').value.trim(), aviso = $('#aviso-pin');
+  if(!/^\d{4}$/.test(a)){ aviso.textContent = 'O PIN tem de ter 4 números.'; return; }
+  if(pinFraco(a)){ aviso.textContent = 'Escolha um PIN menos óbvio (não 1234, 1111…).'; return; }
+  if(a !== b){ aviso.textContent = 'Os dois PIN têm de ser iguais.'; return; }
+  await criaPin(a);
+  $('#pin-novo').value = $('#pin-novo2').value = ''; aviso.textContent = 'PIN criado.';
+  desenhaConta();
+};
+
 function desenhaConta(){
   const estado = $('#conta-estado'), fora = $('#conta-fora'), dentro = $('#conta-dentro');
   if(!estado) return;
+  $('#pin-criar').hidden = pinExiste();
   if(!Nuvem.configurada){
     estado.textContent = 'A partilha com amigos não está disponível neste jogo. O progresso fica só neste aparelho.';
     fora.hidden = true; dentro.hidden = true; return;
@@ -995,8 +1040,10 @@ async function tentaConta(acao){
   catch(e){ aviso.textContent = Nuvem.mensagem(e); }
   finally{ botoes.forEach(b => b.disabled = false); }
 }
-$('#btn-ativar-partilha').onclick = () => {
+$('#btn-ativar-partilha').onclick = async () => {
   if(!$('#consentimento-pais').checked){ $('#aviso-conta').textContent = 'Marque a caixa para confirmar que é o pai, mãe ou responsável.'; return; }
+  const pin = await validaPinAdulto($('#pin-ativar'));
+  if(!pin.ok){ $('#aviso-conta').textContent = pin.msg; return; }
   if(!confirm('Vai ligar a partilha com amigos.\n\nSó sai do aparelho: o código da família, o nível do jogo e os itens da quinta. Não há nome, fotografias, mensagens nem localização. Cada amigo tem de ser autorizado por si, juntando o código dele.\n\nPode desligar e apagar tudo quando quiser.\n\nConfirma que é o pai, mãe ou responsável?')) return;
   tentaConta(async () => { await Nuvem.ativa(); atualizaAmigos(true); });
 };
@@ -1099,6 +1146,8 @@ $('#form-amigo').onsubmit = async e => {
   if(cod === Estado.codigo || codigosLocais().has(cod)){ aviso.textContent = 'Esse código é desta família.'; return; }
   if(Estado.amigos.some(a => a.codigo === cod)){ aviso.textContent = 'Esse amigo já está na lista.'; return; }
   if(Estado.amigos.length >= 12){ aviso.textContent = 'O máximo é de 12 amigos.'; return; }
+  const pin = await validaPinAdulto($('#pin-amigo'));
+  if(!pin.ok){ aviso.textContent = pin.msg; return; }
   const botao = e.submitter; if(botao) botao.disabled = true;
   aviso.textContent = 'A juntar…';
   try{

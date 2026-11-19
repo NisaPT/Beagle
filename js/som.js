@@ -61,13 +61,13 @@ export const Som = {
       this.gEfeitos.connect(this.mestre);
 
       this.destravaFala();
-      this.carregaVozes();
-      this.carregaVozes(this.personagem === 'm' ? 'f' : 'm');
+      this.carregaVozes();      /* só a voz do companheiro: a outra carrega quando for precisa (menos memória e arranque mais leve) */
       this.tocaMusica();
     }catch(e){ console.warn('sem áudio:', e); }
   },
 
-  retoma(){ if(this.ctx && this.ctx.state === 'suspended') this.ctx.resume().catch(() => {}); },
+  /* retoma em 'suspended' e também em 'interrupted' (iOS, depois de uma chamada ou alarme) */
+  retoma(){ if(this.ctx && this.ctx.state !== 'running' && this.ctx.state !== 'closed') this.ctx.resume().catch(() => {}); },
 
   silencia(v){
     this.ligado = !v;
@@ -268,7 +268,9 @@ export const Som = {
     this.paraVoz();
     const geracao = this.geracaoVoz;
     if(!this.ligado){
-      if(aoFim) setTimeout(() => { if(geracao === this.geracaoVoz) aoFim(); }, 400);
+      /* mudo: dá tempo de ler a frase antes de avançar (uma criança não lê em 0,4 s) */
+      const chars = lista.join(' ').length;
+      if(aoFim) setTimeout(() => { if(geracao === this.geracaoVoz) aoFim(); }, Math.min(4500, 900 + chars * 55));
       return;
     }
     this.retoma();
@@ -292,7 +294,8 @@ export const Som = {
       if(geracao !== this.geracaoVoz) return;
       bufs.push(await this.buffer(t));
     }
-    if(geracao !== this.geracaoVoz || !this.ctx || !this.ligado) return;
+    if(geracao !== this.geracaoVoz) return;
+    if(!this.ctx || !this.ligado){ if(aoFim) setTimeout(aoFim, 500); return; }   /* sem áudio: o jogo continua na mesma */
     /* falta algum clip (frase nova, ficheiro ainda não carregado): diz a frase toda com a voz do aparelho */
     if(bufs.some(b => !b)){ this.falaAparelho(lista.join(' '), aoFim, geracao); return; }
     let t = this.ctx.currentTime + .04, total = 0;

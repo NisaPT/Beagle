@@ -759,6 +759,9 @@ export class Quinta3D {
     this.r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'high-performance' });
     this.r.outputColorSpace = THREE.SRGBColorSpace;
     this.r.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    this.perdido = false;
+    canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); this.perdido = true; }, false);
+    canvas.addEventListener('webglcontextrestored', () => { this.perdido = false; }, false);
     this.cena = new THREE.Scene();
     preCarrega3D(['cao', 'gato', 'vaca', 'pato']);   /* os outros descarregam quando a criança os compra / aparecem */
     this.cam = new THREE.PerspectiveCamera(40, 1, .5, 400);
@@ -1112,12 +1115,13 @@ export class Quinta3D {
   ativa(on){
     if(on === this.ligada) return;
     this.ligada = on;
-    if(on){ this.redimensiona(); this.relogio.getDelta(); this.loop(); }
+    if(on && !this.aCorrer){ this.aCorrer = true; this.redimensiona(); this.relogio.getDelta(); this.loop(); }
   }
   loop = () => {
-    if(!this.ligada) return;
+    if(!this.ligada){ this.aCorrer = false; return; }
     requestAnimationFrame(this.loop);
     const dt = Math.min(this.relogio.getDelta(), .05); this.t += dt;
+    if(this.perdido || document.hidden) return;       /* sem contexto ou em segundo plano: não desenha */
     this.passo(dt, this.t);
     this.r.render(this.cena, this.cam);
   };

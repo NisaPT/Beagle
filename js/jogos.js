@@ -21,6 +21,15 @@ const CORES = [
   { id:'laranja',  m:'laranja',  f:'laranja',  hex:'#F3822B' },
 ];
 
+/* pares que quem tem daltonismo confunde: o alvo nunca aparece ao lado de uma cor confundível com ele */
+const CONFUNDEM = [['vermelho', 'verde'], ['laranja', 'verde'], ['vermelho', 'laranja'], ['azul', 'roxo']];
+const confunde = (a, b) => CONFUNDEM.some(([x, y]) => (a.id === x && b.id === y) || (a.id === y && b.id === x));
+/* escolhe as cores erradas: primeiro as que não se confundem com a certa */
+function distratoras(paleta, certa, n){
+  const outras = baralha(paleta.filter(c => c.id !== certa.id));
+  return [...outras.filter(c => !confunde(certa, c)), ...outras.filter(c => confunde(certa, c))].slice(0, n);
+}
+
 const NUM = ['', 'uma', 'duas', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez'];
 const NUM_M = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'catorze', 'quinze'];   /* as somas vão até 15 */
 /* ao acertar diz-se só um elogio curto, sem repetir o nome do objeto */
@@ -91,6 +100,7 @@ export class Jogo {
     this.aEsperar = false;
     this.ctx.raiz.classList.remove('parado');
     this.errosRonda = 0;
+    this.dica = null;
     if(this.tipo === 'letras' && !(this.info.letraOpcoes > 0)) this.tipo = 'cores';   /* 3 e 4 anos: sem letras */
     if(this.tipo === 'somas' && !(this.info.somaMax > 0)) this.tipo = 'contar';       /* so a partir dos 6 anos */
     if(this.tipo === 'cores')  this.rondaCores();
@@ -113,6 +123,20 @@ export class Jogo {
   }
 
   diz(texto, aoFim, pista, falado){ this.ctx.voz.diz(texto, aoFim, pista, falado); }
+  /* o jogo nunca pode ficar parado à espera da voz: se o fim da fala não chegar (sem áudio, voz cortada,
+     telemóvel em silêncio), avança na mesma ao fim de alguns segundos */
+  dizSeguro(texto, aoFim, pista, falado, max = 7000){
+    let feito = false;
+    const fim = () => { if(feito) return; feito = true; clearTimeout(w); if(aoFim) aoFim(); };
+    const w = this.espera(fim, max);
+    this.diz(texto, fim, pista, falado);
+  }
+  /* depois de dois erros seguidos mostra-se onde está a resposta (a criança aprende em vez de desistir) */
+  destaca(el){
+    if(!el) return;
+    el.classList.add('dica');
+    this.limpezas.push(() => el.classList.remove('dica'));
+  }
   som(nome, n){ if(this.ctx.som) this.ctx.som.efeito(nome, n); }
   pose(p){ this.ctx.mascote.faz(p); }
 
@@ -120,8 +144,8 @@ export class Jogo {
   rondaCores(){
     const i = this.info;
     const paleta = CORES.slice(0, i.paleta);
-    const opcoes = baralha(paleta.slice()).slice(0, Math.min(i.opcoes, paleta.length));
-    const certa = pick(opcoes);
+    const certa = pick(paleta);
+    const opcoes = baralha([certa, ...distratoras(paleta, certa, Math.min(i.opcoes, paleta.length) - 1)]);
     const usaFlor = i.dificuldade >= 2 && Math.random() < .5;
     const objeto = usaFlor ? flor : balao;
     const nomeDe = c => usaFlor ? `a flor ${c.f}` : `o balão ${c.m}`;
@@ -137,6 +161,7 @@ export class Jogo {
              () => { if(this.aDecorrer) this.pose('repouso'); },
              `<i class="pista-cor" style="background:${certa.hex}"></i>`);
 
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`.alvo[data-id="${certa.id}"]`));
     this.ctx.raiz.querySelectorAll('.alvo').forEach(b => {
       const aoClicar = () => {
         const c = CORES.find(x => x.id === b.dataset.id);
@@ -156,7 +181,7 @@ export class Jogo {
     const i = this.info, jovem = i.estrelasMin >= 2;
     const paleta = CORES.slice(0, i.paleta);
     const certa = pick(paleta);
-    const outras = paleta.filter(c => c.id !== certa.id);
+    const outras = distratoras(paleta, certa, paleta.length);
     const n = jovem ? 6 : 8, alvos = jovem ? 2 : 3;
     const lista = [];
     for(let k = 0; k < alvos; k++) lista.push({ c: certa, certo: true });
@@ -171,6 +196,7 @@ export class Jogo {
     /* nascem uma a uma, em ordem aleatória */
     baralha(bs.slice()).forEach((b, k) => this.espera(() => b.classList.add('nasce'), 250 + k * 380));
     let feitos = 0;
+    this.dica = () => this.destaca(bs.find(b => ordem[+b.dataset.k].certo && b.classList.contains('nasce') && !b.classList.contains('apanhada')));
     bs.forEach(b => {
       const f = () => {
         if(this.aEsperar || !b.classList.contains('nasce') || b.classList.contains('apanhada')) return;
@@ -187,7 +213,7 @@ export class Jogo {
 
   rondaBaloesSobem(paleta, certa){
     const alvos = this.info.estrelasMin >= 2 ? 2 : 3;                 /* 3-4 anos: dois balões */
-    const outras = paleta.filter(c => c.id !== certa.id);
+    const outras = distratoras(paleta, certa, paleta.length);
     const lista = [];
     for(let k = 0; k < alvos; k++) lista.push({ c: certa, certo: true });
     for(let k = 0; k < 5; k++) lista.push({ c: outras[k % outras.length], certo: false });
@@ -234,7 +260,10 @@ export class Jogo {
         conta.textContent = contados;
         conta.classList.remove('bate'); void conta.offsetWidth; conta.classList.add('bate');
         this.som('conta', contados);
-        this.ctx.voz.diz(NUM[contados] || String(contados));
+        /* "biscoitos" é masculino: diz-se "um, dois…", nunca "uma, duas…". Se o clip ainda não existe
+           na voz dos avós, não se diz nada (só o som e o número no ecrã) em vez de dizer errado. */
+        const palavra = NUM_M[contados];
+        if(palavra && this.ctx.som && this.ctx.som.temClips && this.ctx.som.temClips([palavra])) this.ctx.voz.diz(palavra);
         if(contados === n) this.espera(() => this.perguntaQuantos(n), 700);
       };
       b.addEventListener('click', aoClicar);
@@ -255,6 +284,7 @@ export class Jogo {
     caixa.hidden = false;
     this.pose('apontar');
     this.diz('Então, quantos biscoitos eram?');
+    this.dica = () => this.destaca(caixa.querySelector(`.num[data-n="${n}"]`));
     caixa.querySelectorAll('.num').forEach(b => {
       const aoClicar = () => {
         const v = +b.dataset.n;
@@ -294,6 +324,7 @@ export class Jogo {
              `<svg class="pista-forma" viewBox="-6 -6 112 112"><path d="${FORMAS[certa].d}"
                 fill="none" stroke="#1B4D8F" stroke-width="9" stroke-linejoin="round"/></svg>`);
 
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`.buraco[data-forma="${certa}"]`));
     this.ligaArrasto(this.ctx.raiz.querySelector('#peca'), certa, cor);
   }
 
@@ -377,6 +408,7 @@ export class Jogo {
     const lista=baralha([certo,...baralha(pares.filter(x=>x[0]!==letra)).slice(0,n-1)]);
     const img=this.info.imagens;
     this.ctx.raiz.innerHTML=`<div class="desafio-texto"><strong class="letra-grande">${letra}</strong><p>Qual destas palavras começa pela letra ${letra}?</p><div class="opcoes-palavra">${lista.map(x=>`<button class="botao opcao-palavra" data-v="${x[1]}">${img?`<span class="emoji-palavra">${x[2]}</span>`:''}${x[1]}</button>`).join('')}</div></div>`;
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`[data-v="${palavra}"]`));
     this.pose('apontar'); this.diz(`Escolhe a palavra que começa pela letra ${letra}.`);
     this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===palavra,b.dataset.v===palavra?[pick(BEM),`${palavra} começa por ${letra}.`]:`Experimenta outra vez. Procura ${palavra.toLowerCase()}.`,'#3DA35D');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
@@ -405,7 +437,7 @@ export class Jogo {
           if(paresFeitos === icons.length) this.responde(b, true, 'Encontraste todos os pares!', '#8E6BC8');
         }else{
           falhas++;
-          if(falhas > margem){ if(this.ctx.aoErro) this.ctx.aoErro(this.tipo); this.erros++; }
+          if(falhas > margem){ if(this.ctx.aoErro) this.ctx.aoErro(this.tipo); this.erros++; this.errosRonda++; }
           bloqueado = true;
           const anterior = aberto; aberto = null;
           this.espera(() => {
@@ -428,6 +460,7 @@ export class Jogo {
     this.ctx.raiz.innerHTML = `<div class="desafio-texto"><div class="modelo-igual" style="font-size:clamp(3.4rem,18vw,5.5rem);line-height:1.1">${modelo}</div>
       <p>Encontra o igual.</p>
       <div class="opcoes-logica">${opcoes.map(v => `<button class="botao opcao-logica" data-v="${v}" style="font-size:clamp(2.2rem,12vw,3.6rem)">${v}</button>`).join('')}</div></div>`;
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`[data-v="${modelo}"]`));
     this.pose('apontar');
     /* a voz dos avos nao muda: usa-se a frase que ja existe gravada */
     this.diz('Encontra o igual.', () => { if(this.aDecorrer) this.pose('repouso'); }, `<span style="font-size:2rem">${modelo}</span>`, 'Descobre os pares iguais.');
@@ -439,7 +472,7 @@ export class Jogo {
   }
 
   rondaLogica(){
-    const cores=baralha(['🔴','🔵','🟡','🟢']), [A,B,C]=cores;
+    const cores=baralha(['🔴','🔷','⭐','🟩']), [A,B,C]=cores;   /* cada peça muda de forma e de cor: não depende só da cor */
     /* do mais simples (ABAB) ao mais difícil; a idade decide quantos entram */
     const padroes=[
       { seq:[A,B,A,B,A], certa:B },
@@ -452,6 +485,7 @@ export class Jogo {
     const nOp=(this.info.padroes||2)>=3?4:3;
     const op=baralha([resposta,...baralha(cores.filter(c=>c!==resposta))].slice(0,nOp));
     this.ctx.raiz.innerHTML=`<div class="desafio-texto"><p>Que peça completa a sequência?</p><div class="sequencia-logica">${p.seq.join('　')}　<strong>?</strong></div><div class="opcoes-logica">${op.map(v=>`<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`[data-v="${resposta}"]`));
     this.pose('pensar');this.diz('Observa a sequência. O que vem a seguir?');
     this.ctx.raiz.querySelectorAll('[data-v]').forEach(b=>{const f=()=>this.responde(b,b.dataset.v===resposta,b.dataset.v===resposta?'Isso mesmo! A sequência repete-se.':'Observa as cores e tenta descobrir o padrão.','#2C6FD6');b.addEventListener('click',f);this.limpezas.push(()=>b.removeEventListener('click',f));});
   }
@@ -466,6 +500,7 @@ export class Jogo {
     const op=baralha([total,...baralha(cand).slice(0,3)]);
     const objetos=total<=10?`<div class="soma-objetos"><span>${fruta.repeat(a)}</span><b>+</b><span>${fruta.repeat(b)}</span></div>`:'';
     this.ctx.raiz.innerHTML=`<div class="desafio-texto">${objetos}<p class="soma-conta">${a} + ${b} = ?</p><div class="opcoes-logica">${op.map(v=>`<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
+    this.dica = () => this.destaca(this.ctx.raiz.querySelector(`[data-v="${total}"]`));
     this.pose('pensar');this.diz(`Quanto é ${por(a)} mais ${por(b)}?`);
     this.ctx.raiz.querySelectorAll('[data-v]').forEach(bt=>{const f=()=>this.responde(bt,+bt.dataset.v===total,+bt.dataset.v===total?[pick(BEM),`${por(a)} mais ${por(b)} é ${por(total)}.`]:'Quase! Conta outra vez.','#C98F55');bt.addEventListener('click',f);this.limpezas.push(()=>bt.removeEventListener('click',f));});
   }
@@ -491,13 +526,14 @@ export class Jogo {
         const lista = [fala, ...texto.slice(1)];
         if(this.ctx.som && this.ctx.som.temClips && this.ctx.som.temClips(lista)) fala = lista;
       }
-      this.diz(fala, () => {
+      this.dizSeguro(fala, () => {
         if(!this.aDecorrer) return;
         this.pose('repouso');
         this.espera(() => this.proxima(), 300);
       });
     }else{
       this.erros++; this.errosRonda++;
+      if(this.errosRonda >= 2 && this.dica) this.espera(() => this.dica(), 700);
       if(this.ctx.aoErro) this.ctx.aoErro(this.tipo);
       this.som('errado');
       elemento.classList.add('errado');

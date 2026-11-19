@@ -158,6 +158,7 @@ export function rondaNatureza(jogo, cat){
   function modoNome(){
     const certa = escolheResposta(pool);
     const op = opcoesCom(certa, pool, nOpc);
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`.carta-nat[data-id="${certa.id}"]`));
     desenha(op, `Toca ${EM[certa.art]} ${certa.nome}.`, '', (it, b) => {
       if(it.id === certa.id) certo(b, it, [pick(BEM), `${plural(certa) ? 'São' : 'É'} ${com(certa)}.`], '#F5B921');
       else errado(b, [`${esse(it)} ${com(it)}.`, `Procura ${com(certa)}.`]);
@@ -296,6 +297,7 @@ export function rondaNatureza(jogo, cat){
         <div class="opcoes-logica opcoes-num" style="--cols:${op.length > 3 ? 4 : op.length}">${op.map(v =>
           `<button class="botao opcao-logica" data-v="${v}">${v}</button>`).join('')}</div></div>`;
     vida3d(jogo.ctx.raiz);
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`[data-v="${n}"]`));
     jogo.pose('pensar');
     const pergunta = `Quantas ${it.pl} há?`.replace('Quantas', masc(it) ? 'Quantos' : 'Quantas');
     jogo.diz(pergunta, () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
@@ -320,6 +322,7 @@ export function rondaNatureza(jogo, cat){
           <button class="botao opcao-logica" data-v="fruta">🍎 Fruta</button>
           <button class="botao opcao-logica" data-v="legume">🥕 Legume</button>
         </div></div>`;
+    jogo.dica = () => jogo.destaca(jogo.ctx.raiz.querySelector(`[data-v="${it.tipo}"]`));
     jogo.pose('pensar');
     jogo.diz(plural(it) ? `${Cap(com(it))} são frutas ou legumes?` : `${Cap(com(it))} é fruta ou legume?`,
              () => { if(jogo.aDecorrer) jogo.pose('repouso'); });
