@@ -54,9 +54,9 @@ function constroi(h, palco){
   for(let x = 0; x < Lw(1); x += rnd(60, 140)) flores += `<span class="hm-flor" style="left:${x}px;bottom:${rnd(1, 9)}%;font-size:${rnd(1.2, 2)}rem">${['🌼', '🌷', '🌸', '🌿'][Math.floor(Math.random() * 4)]}</span>`;
   chao += flores;
   const main = camada(1, 'hm-chao', chao);
-  const estEl = {};
+  const estEl = {}, itemEl = {};
   est.forEach(e => {
-    const cx = e.x * vw + W / 2;
+    const cx = e.x * vw + W / 2, pendentes = [];
     const g = document.createElement('div');
     g.className = 'hm-estacao'; g.dataset.id = e.id;
     const ed = document.createElement('div');
@@ -64,11 +64,19 @@ function constroi(h, palco){
     g.append(ed);
     (e.itens || []).forEach((it, i) => {
       const w = document.createElement('div');
-      w.className = 'hm-bicho ' + (it.fila === 'tras' ? 'tras ' : '') + (it.modo || 'parado') + (it.e ? ' emoji' : '');
-      w.style.cssText = `left:${cx + it.dx * vw}px;--t:${it.t}rem;--p:${(it.passeio || 8) * vw}px;--atraso:-${(i * 1.3).toFixed(1)}s`;
+      w.className = 'hm-bicho ' + (it.fila === 'tras' ? 'tras ' : '') + (it.modo || 'parado') + (it.e ? ' emoji' : '') + (it.oculto ? ' oculto' : '');
+      w.style.cssText = `left:${cx + it.dx * vw}px;--t:${it.t}rem;--p:${(it.passeio || 8) * vw}px;--atraso:-${(i * 1.3).toFixed(1)}s` + (it.y != null ? `;bottom:${it.y}%` : '') + (it.z ? `;z-index:${it.z}` : '') + (it.rot ? `;--rot:${it.rot}deg` : '') + (it.q != null ? `;--q:${it.q * vw}px` : '');
+      if(it.flip) w.dataset.flip = '1';
+      if(it.k) itemEl[it.k] = w;
       if(it.e) w.textContent = it.e;
       else w.innerHTML = `<img src="${imgSrc(it.id)}" alt="" draggable="false"${it.d3 && A3D.includes(it.id) ? ` data-a3d="${it.id}" data-quieto="1"` : ''}>`;
-      g.append(w);
+      if(it.anexa) pendentes.push([w, it]); else g.append(w);
+    });
+    pendentes.forEach(([w, it]) => {     /* coisas coladas a um animal (ligadura, lágrima...): mexem-se com ele */
+      const mae = itemEl[it.anexa];
+      w.className = 'anexo' + (it.oculto ? ' oculto' : ''); w.textContent = it.e;
+      w.style.cssText = `--ax:${it.ax}%;--ay:${it.ay}%;--ta:${it.t}rem`;
+      mae.append(w);
     });
     main.append(g); estEl[e.id] = g;
   });
@@ -78,7 +86,10 @@ function constroi(h, palco){
   const legenda = document.createElement('div');
   legenda.className = 'hm-legenda';
   palco.append(legenda);
-  return { mundo, legenda, camadas, estEl, vw, W };
+  const cartaz = document.createElement('div');
+  cartaz.className = 'hm-cartaz';
+  palco.append(cartaz);
+  return { mundo, legenda, cartaz, camadas, estEl, itemEl, vw, W };
 }
 
 /* api: { Som, palco, avo(), ava(), fim() } */
@@ -109,7 +120,8 @@ export function tocaHistoria(h, api){
   };
   gira();
   /* primeiro viram-se de lado, só depois andam; ao parar, as pernas assentam e só depois se voltam para quem vê */
-  const pernas = on => { [api.avo(), api.ava()].forEach(r => { r.passoAmp = on ? 1.2 : 1; r.caminha(on, .85); }); };
+  let velAndar = .85;
+  const pernas = on => { [api.avo(), api.ava()].forEach(r => { r.passoAmp = on ? 1.2 : 1; r.caminha(on, velAndar); }); };
   const anda = async on => {
     if(on){ andando = true; await espera(1000); if(!parado) pernas(true); }
     else { pernas(false); await espera(650); andando = false; }
@@ -127,8 +139,23 @@ export function tocaHistoria(h, api){
     passo();
   });
 
+  /* mudanças de cena durante a história: aparecer/desaparecer coisas, mudar o gesto de um animal, noite e dia, cartaz */
+  const MODOS = ['parado', 'bob', 'anda', 'salta', 'feliz', 'tropeca', 'caido', 'coxo', 'coxo2', 'trota', 'galope', 'descansa', 'longe', 'chega', 'correndo', 'vaivem', 'pa', 'ga'];
+  function aplicaAcao(a){
+    if(!a) return;
+    (a.mostra || []).forEach(k => { const el = M.itemEl[k]; if(el){ el.classList.remove('oculto', 'some'); el.classList.add('surge'); } });
+    (a.esconde || []).forEach(k => { const el = M.itemEl[k]; if(el){ el.classList.remove('surge'); el.classList.add('some'); setTimeout(() => el.classList.add('oculto'), 650); } });
+    Object.entries(a.modo || {}).forEach(([k, m]) => { const el = M.itemEl[k]; if(el){ MODOS.forEach(x => el.classList.remove(x)); void el.offsetWidth; String(m).split(' ').forEach(c => el.classList.add(c)); } });
+    Object.entries(a.classe || {}).forEach(([k, m]) => { const el = M.itemEl[k]; if(el) String(m).split(' ').forEach(c => el.classList.add(c)); });
+    Object.entries(a.tira || {}).forEach(([k, m]) => { const el = M.itemEl[k]; if(el) String(m).split(' ').forEach(c => el.classList.remove(c)); });
+    if(a.ceu){ M.mundo.dataset.ceu = a.ceu; api.palco.dataset.ceu = a.ceu; const sol = M.mundo.querySelector('.hm-sol'); if(sol) sol.textContent = a.ceu === 'noite' ? '🌙' : '☀️'; }
+    if(a.treme){ api.palco.classList.add('hm-treme'); setTimeout(() => api.palco.classList.remove('hm-treme'), 700); }
+    if(a.cartaz){ M.cartaz.textContent = a.cartaz; M.cartaz.classList.add('on'); setTimeout(() => M.cartaz.classList.remove('on'), a.cartazMs || 2600); }
+  }
+
   async function fala(f, estacao){
     if(parado) return;
+    aplicaAcao(f.acao);
     const r = rig(f.v), outro = rig(f.v === 'f' ? 'm' : 'f');
     M.legenda.textContent = f.t; M.legenda.classList.add('on');
     if(!andando){ outro.faz('repouso'); r.faz(f.pose || 'repouso'); }
@@ -150,7 +177,8 @@ export function tocaHistoria(h, api){
     }
     r.fala(0); if(!andando) r.faz('repouso');
     M.legenda.classList.remove('on');
-    await espera(350);
+    aplicaAcao(f.depois);
+    await espera(f.pausa || 350);
   }
 
   (async () => {
@@ -159,10 +187,12 @@ export function tocaHistoria(h, api){
       if(parado) return;
       const e = h.mundo.estacoes.find(x => x.id === p.para);
       const alvo = e.x * M.vw;
+      aplicaAcao(p.antes);
       if(Math.abs(alvo - cam) > 2){
+        velAndar = p.vel || .85;
         await anda(true);
         const dist = Math.abs(alvo - cam) / M.vw;
-        const mov = vai(alvo, Math.max(5500, dist * 65));
+        const mov = vai(alvo, p.ms || Math.max(5500, dist * 65));
         const dito = (async () => { await espera(500); for(const f of (p.andando || [])) await fala(f, null); })();
         await Promise.all([mov, dito]);
         await anda(false);
@@ -179,6 +209,6 @@ export function tocaHistoria(h, api){
     parado = true; cancelAnimationFrame(raf); timers.forEach(clearTimeout); timers.clear();
     try{ api.Som.paraVoz(); }catch(e){}
     api.avo().fala(0); api.ava().fala(0); api.avo().caminha(false); api.ava().caminha(false); api.avo().passoAmp = 1; api.ava().passoAmp = 1; api.avo().opcoes.local = localAntes[0]; api.ava().opcoes.local = localAntes[1];
-    M.mundo.remove(); M.legenda.remove();
+    M.mundo.remove(); M.legenda.remove(); M.cartaz.remove(); delete api.palco.dataset.ceu;
   } };
 }
