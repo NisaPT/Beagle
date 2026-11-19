@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function logado() { return request.auth != null; }
+    function codigoValido(c) { return c.matches('^[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}-[A-HJKMNP-Z2-9]{4}$'); }
+    function inteiro(v, a, b) { return v is int && v >= a && v <= b; }
+
+    /* codigos/{código} → { uid, expira }
+       Serve só para o pai/mãe juntar o código de um amigo. Só se lê um documento de cada vez (nunca se lista). */
+    match /codigos/{codigo} {
+      allow get: if logado() && codigoValido(codigo);
+      allow list: if false;
+      allow create: if logado() && codigoValido(codigo)
+        && request.resource.data.keys().hasOnly(['uid', 'expira'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.expira is timestamp;
+      allow update: if logado() && resource.data.uid == request.auth.uid
+        && request.resource.data.keys().hasOnly(['uid', 'expira'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.expira is timestamp;
+      allow delete: if logado() && (resource == null || resource.data.uid == request.auth.uid);
+    }
+
+    /* perfis/{código} → o que um amigo autorizado vê: só nível e itens da quinta. Sem nomes nem texto livre. */
+    match /perfis/{codigo} {
+      function perfilValido() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['uid', 'nivel', 'itens', 'consent', 'expira', 't'])
+          && d.keys().hasAll(['uid', 'nivel', 'itens', 'consent', 'expira', 't'])
+          && d.uid == request.auth.uid
+          && inteiro(d.nivel, 1, 500)
+          && d.itens is map && d.itens.size() <= 60
+          && d.consent is int && d.consent >= 1
+          && d.expira is timestamp
+          && d.t is int;
+      }
+      /* lê quem é o dono OU quem o dono autorizou (documento ver/{código}_{uid do leitor}) */
+      allow get: if logado() && codigoValido(codigo) && (
+        resource.data.uid == request.auth.uid
+        || exists(/databases/$(database)/documents/ver/$(codigo + '_' + request.auth.uid)));
+      allow list: if false;
+      allow create: if logado() && codigoValido(codigo) && perfilValido()
+        && get(/databases/$(database)/documents/codigos/$(codigo)).data.uid == request.auth.uid;
+      allow update: if logado() && resource.data.uid == request.auth.uid && perfilValido();
+      allow delete: if logado() && (resource == null || resource.data.uid == request.auth.uid);
+    }
+
+    /* ver/{códigoDoDono}_{uidDoLeitor} → o dono autorizou aquele leitor a ver o seu perfil.
+       O dono cria; dono e leitor podem apagar (retirar a amizade). */
+    match /ver/{id} {
+      function verValido() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(['donoCodigo', 'donoUid', 'leitorUid', 'expira'])
+          && d.keys().hasAll(['donoCodigo', 'donoUid', 'leitorUid', 'expira'])
+          && codigoValido(d.donoCodigo)
+          && d.donoUid == request.auth.uid
+          && d.leitorUid is string && d.leitorUid.size() > 0 && d.leitorUid.size() <= 128
+          && id == d.donoCodigo + '_' + d.leitorUid
+          && d.expira is timestamp
+          && get(/databases/$(database)/documents/codigos/$(d.donoCodigo)).data.uid == request.auth.uid;
+      }
+      allow get: if logado() && (resource.data.donoUid == request.auth.uid || resource.data.leitorUid == request.auth.uid);
+      allow list: if false;
+      allow create: if logado() && verValido();
+      allow update: if logado() && resource.data.donoUid == request.auth.uid && verValido();
+      allow delete: if logado() && (resource == null
+        || resource.data.donoUid == request.auth.uid || resource.data.leitorUid == request.auth.uid);
+    }
+
+    /* tudo o resto (incluindo as coleções antigas ranking e seguidores): fechado */
+    match /{outro=**} {
+      allow read, write: if false;
+    }
+  }
+}

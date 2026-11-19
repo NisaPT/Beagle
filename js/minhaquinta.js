@@ -210,10 +210,11 @@ const CHAO = {
 const tamanhoBicho = id => ({ cavalo:.30, vaca:.30, porco:.26, ovelha:.26, tartaruga:.2, ra:.17, galo:.2, galinha:.19, coelho:.19, gato:.2, cao:.22, pato:.2 }[id] || .22);
 
 /* ------------------------------------------------------------ o ecrã */
-export function desenhaQuinta(raiz, itens, novo){
+export function desenhaQuinta(raiz, itens, novo, soVer = false){
   raiz.innerHTML = EDIFICIOS.map(e => {
     const tem = !!itens[e.id];
     if(!tem){
+      if(soVer) return '';                      /* quinta de um amigo: só se mostra o que ele tem */
       return `<button class="lote vazio" data-ed="${e.id}" aria-label="${e.nome}: ${e.preco} estrelas. Abrir a loja">
         <span class="lote-arte fantasma">${arteEdificio(e.id)}</span>
         <span class="placa"><span class="placa-nome">${e.nome}</span><span class="placa-preco">⭐ ${e.preco}</span></span>
@@ -227,9 +228,16 @@ export function desenhaQuinta(raiz, itens, novo){
     const animais = bichos.map((b, i) => {
       const [x, y] = pos[i % pos.length];
       const w = tamanhoBicho(b.id) * 100;
+      if(soVer) return `<span class="bicho" role="img" style="--x:${x}%;--y:${y}%;--w:${w}%;--d:${(2.4 + (i * 0.7) % 2).toFixed(1)}s;--a:${(i * -.8).toFixed(1)}s;--z:${Math.round(y)}" aria-label="${b.nome}">
+        <img src="${imgSrc(b.id)}" alt="" draggable="false"></span>`;
       return `<button class="bicho" data-b="${b.id}" style="--x:${x}%;--y:${y}%;--w:${w}%;--d:${(2.4 + (i * 0.7) % 2).toFixed(1)}s;--a:${(i * -.8).toFixed(1)}s;--z:${Math.round(y)}" aria-label="${b.nome}">
         <img src="${imgSrc(b.id)}" alt="" draggable="false"></button>`;
     }).join('');
+    if(soVer) return `<div class="lote" data-ed="${e.id}">
+      <div class="lote-arte" role="img" aria-label="${e.nome}" style="cursor:default">${arteEdificio(e.id)}</div>
+      ${animais}
+      <span class="lote-nome">${e.nome}</span>
+    </div>`;
     return `<div class="lote ${novo === e.id ? 'novo' : ''}" data-ed="${e.id}">
       <button class="lote-arte" data-edificio="${e.id}" aria-label="${e.nome}">${arteEdificio(e.id)}</button>
       ${animais}

@@ -1,6 +1,6 @@
 /* Service worker — Escola dos Avós Beagle
    Para publicar uma nova versão: aumentar VERSAO. */
-const VERSAO = 'eab-4.29.2';
+const VERSAO = 'eab-4.30.0';
 const FICHEIROS_TODOS = [
   './',
   './fonts/fredoka-latin-400-normal.woff2',
@@ -227,17 +227,27 @@ self.addEventListener('fetch', e => {
 
   /* páginas: rede primeiro, cache se estiver offline */
   if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req)
-        .then(r => { const c = r.clone(); caches.open(VERSAO).then(k => k.put('./index.html', c)); return r; })
-        .catch(() => caches.match('./index.html'))
-    );
+    /* só a página principal é guardada como index.html (antes, qualquer página, como a política de
+       privacidade, ficava no lugar da app); só respostas boas; e com limite de tempo para não ficar em branco */
+    const eRaiz = url.pathname === '/' || /\/index(\.html)?$/.test(url.pathname);
+    e.respondWith((async () => {
+      try {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 4000);
+        const r = await fetch(req, { signal: ctrl.signal });
+        clearTimeout(t);
+        if (r.ok && eRaiz) { const c = r.clone(); e.waitUntil(caches.open(VERSAO).then(k => k.put('./index.html', c))); }
+        return r;
+      } catch (_) {
+        return (!eRaiz && await caches.match(req, { ignoreSearch: true })) || await caches.match('./index.html');
+      }
+    })());
     return;
   }
 
   /* ficheiros pesados e versionados (vozes, modelos, imagens, bibliotecas): cache primeiro e SEM revalidar.
      A VERSAO nova volta a descarregá-los; assim não se reescrevem ~20 MB a cada arranque. */
-  if (/\/(js\/voz_[fm]\.js|modelos\/|media\/|lib\/|fonts\/|icons\/)/.test(url.pathname)) {
+  if (/\/(js\/voz_(extra_)?[fm]\.js|modelos\/|media\/|lib\/|fonts\/|icons\/)/.test(url.pathname)) {
     e.respondWith(
       caches.match(req, { ignoreSearch: true }).then(emCache => emCache || fetch(req).then(r => {
         if (r && r.ok) { const c = r.clone(); caches.open(VERSAO).then(k => k.put(req, c)); }

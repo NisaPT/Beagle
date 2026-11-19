@@ -1,35 +1,60 @@
 <!doctype html>
 <html lang="pt-PT"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Política de Privacidade — Escola dos Avós Beagle</title>
-<style>body{font-family:system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#2b2b2b}h1{font-size:1.5rem}h2{font-size:1.15rem;margin-top:1.6rem}</style></head>
+<style>body{font-family:system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;line-height:1.6;color:#2b2b2b}h1{font-size:1.5rem}h2{font-size:1.15rem;margin-top:1.6rem}table{border-collapse:collapse;width:100%;font-size:.95rem}td,th{border:1px solid #ccc;padding:.35rem .5rem;text-align:left;vertical-align:top}.rascunho{background:#fff3c4;border:2px solid #c98f1b;padding:.6rem .8rem;border-radius:.5rem}</style></head>
 <body>
 <h1>Política de Privacidade — Escola dos Avós Beagle</h1>
-<p><em>Rascunho para revisão. Antes de publicar na Google Play, preencha os campos [entre parênteses retos] e peça validação jurídica. Esta página tem de estar num endereço público (URL) indicado na Play Console.</em></p>
-<p>Última atualização: 16/11/2026</p>
+<p class="rascunho"><strong>Antes de publicar:</strong> preencha os campos [entre parênteses retos] (identificação do responsável e contacto), confirme a região do Firestore e peça validação jurídica. Retire esta caixa. Esta página tem de estar num endereço público (URL) indicado na Play Console.</p>
+<p>Última atualização: 19/11/2026 · Versão do consentimento: 1</p>
 
 <h2>1. Quem somos</h2>
-<p>Responsável: [nome do programador/entidade], [morada], contacto: [email de contacto].</p>
+<p>Responsável pelo tratamento: [nome do programador/entidade], NIF [número], [morada]. Contacto para questões de privacidade e para exercer direitos: [email de contacto].</p>
 
 <h2>2. A quem se destina</h2>
-<p>O jogo destina-se a crianças a partir dos 3 anos, sempre com os pais ou responsáveis por perto. A Área dos Pais está protegida por uma pergunta de cálculo que as crianças pequenas não conseguem resolver.</p>
+<p>O jogo destina-se a crianças a partir dos 3 anos, sempre com os pais ou responsáveis por perto. A Área dos Pais está protegida por um cálculo que as crianças pequenas não conseguem resolver e que bloqueia durante 1 minuto após 3 tentativas falhadas. <strong>Toda a partilha de dados com amigos tem de ser ativada por um pai, mãe ou responsável legal.</strong></p>
 
-<h2>3. Dados que recolhemos</h2>
-<p><strong>Por defeito, nenhum dado pessoal sai do aparelho.</strong> O jogo não tem anúncios, compras, chat nem ferramentas de análise ou rastreio. Não acede à localização, câmara, microfone, contactos nem a identificadores do aparelho ou de publicidade.</p>
-<p>Ficam guardados <strong>no próprio aparelho</strong>: a alcunha do perfil escolhida pelos pais, a idade selecionada, os níveis, estrelas e personagens, estatísticas simples de acertos por tipo de jogo, o tempo de utilização do dia e as preferências (voz, limite diário).</p>
-<p><strong>Partilha com amigos (opcional, só com autorização dos pais):</strong> se um pai, mãe ou responsável ligar esta função na Área dos Pais (protegida por pergunta de cálculo), o jogo cria uma identidade anónima (sem email, sem nome real) e publica um resumo mínimo: alcunha (máx. 14 caracteres, sem nome real), código do perfil, estrelas, nível, nível da quinta e personagens. Outros jogadores que conheçam o código podem ver este resumo. Não há mensagens nem texto livre entre crianças. O progresso completo nunca é enviado.</p>
+<h2>3. Dados que tratamos</h2>
+<p><strong>Por defeito, nenhum dado pessoal sai do aparelho.</strong> O jogo não tem anúncios, compras, chat, mensagens, fotografias, ferramentas de análise ou rastreio. Não acede à localização, câmara, microfone, contactos, nem a identificadores do aparelho ou de publicidade. Não envia texto para serviços de voz externos: as vozes estão gravadas no jogo ou são as do próprio aparelho.</p>
+<p><strong>Guardado apenas no aparelho:</strong> o nome ou alcunha escolhidos pelos pais, a idade selecionada, níveis, estrelas, quinta, estatísticas simples de acertos, tempo de utilização do dia e preferências.</p>
+<p><strong>Partilha com amigos (opcional, só com autorização dos pais).</strong> Se um adulto a ligar na Área dos Pais, tratamos:</p>
+<table>
+<tr><th>Dado</th><th>Para quê</th></tr>
+<tr><td>Código de família (12 caracteres aleatórios, ex.: ABCD-EFGH-JKMN)</td><td>Permitir que outro pai ou mãe junte este código e assim os amigos se vejam</td></tr>
+<tr><td>Identificador anónimo (Firebase Authentication, sem email nem nome)</td><td>Controlar quem pode ler e apagar cada documento</td></tr>
+<tr><td>Nível do jogo e itens da quinta (edifícios, animais, personagens: nomes de itens e quantidades)</td><td>Mostrar a quinta e o nível aos amigos autorizados</td></tr>
+<tr><td>Quem autorizou quem (código do dono + identificador do leitor)</td><td>Garantir que só amigos autorizados vêem o perfil</td></tr>
+<tr><td>Data da última atualização e versão do consentimento</td><td>Apagar dados inativos e provar o consentimento</td></tr>
+</table>
+<p><strong>Nunca</strong> publicamos nome, alcunha escrita, idade, fotografias, mensagens, localização ou contactos. O amigo aparece com um nome de animal calculado a partir do código (ex.: “Coelhinho 42”). O código e o identificador anónimo podem ser reencaminhados para uma criança, por isso tratamo-los como dados pessoais.</p>
 
-<h2>4. Para que usamos</h2>
-<p>Para o jogo funcionar: guardar o progresso, adaptar a dificuldade, cumprir o limite de tempo definido pelos pais e, se ligada, mostrar a quinta e o ranking aos amigos.</p>
+<h2>4. Porquê e com que base legal</h2>
+<p>Para disponibilizar a funcionalidade de amigos que os pais pediram. A base legal é o <strong>consentimento do titular das responsabilidades parentais</strong> (RGPD, art. 6.º, n.º 1, al. a) e art. 8.º; Lei n.º 58/2019, art. 16.º — em Portugal, abaixo dos 13 anos o consentimento é dado pelos pais). O consentimento é dado na Área dos Pais, depois de lerem o que é partilhado, e pode ser retirado a qualquer momento, com a mesma facilidade, em “Desligar e apagar o que foi partilhado”. Não fazemos decisões automáticas nem perfis comerciais.</p>
 
-<h2>5. Partilha com terceiros</h2>
-<p>Não vendemos nem partilhamos dados com terceiros. A partilha opcional usa serviços Google Firebase (autenticação anónima e base de dados Firestore, região UE) como subcontratante, apenas para guardar o resumo acima. [Confirmar e declarar na Play Console / Data Safety.]</p>
+<h2>5. Quem vê os dados</h2>
+<p>Apenas os amigos que <strong>ambos os pais</strong> tenham autorizado, cada um juntando o código do outro. Não existe lista pública, ranking, pesquisa nem forma de contactar ou falar com outros jogadores. Os pais podem remover um amigo a qualquer momento (a permissão é retirada nos dois sentidos).</p>
 
-<h2>6. Conservação e apagamento</h2>
-<p>Os dados existem no aparelho. Os pais podem apagar um perfil ou todos os dados em Área dos Pais → Privacidade e segurança. Se a partilha estiver ligada, "Desligar e apagar o que foi partilhado" remove da cloud o resumo publicado e a identidade anónima.</p>
+<h2>6. Subcontratantes e transferências</h2>
+<p>Usamos a Google (Firebase Authentication e Cloud Firestore) como subcontratante, apenas para guardar os dados da secção 3. Base de dados na região [UE — confirmar na consola do Firebase, ex.: eur3 / europe-west]. Quando existirem transferências para fora do Espaço Económico Europeu, assentam nas cláusulas contratuais-tipo e nas garantias previstas nos termos da Google. Não vendemos nem partilhamos dados com mais ninguém e não há publicidade.</p>
 
-<h2>7. Direitos (RGPD)</h2>
-<p>Como não recebemos os seus dados, não temos dados seus para aceder, corrigir ou apagar. Pode, em qualquer caso, contactar-nos em [email]. Pode apresentar reclamação à Comissão Nacional de Proteção de Dados (www.cnpd.pt).</p>
+<h2>7. Quanto tempo guardamos</h2>
+<ul>
+<li>Perfil publicado e código: <strong>180 dias</strong> sem utilização; depois são apagados automaticamente. Cada vez que a criança joga com a partilha ligada, o prazo recomeça.</li>
+<li>Autorizações entre amigos: caducam automaticamente ao fim de 400 dias se não forem renovadas, e são apagadas logo que um dos pais remove o amigo.</li>
+<li>Se retirar a partilha ou apagar um perfil, os dados são apagados de imediato. Se não houver internet nesse momento, o apagamento completa-se sozinho quando houver ligação.</li>
+</ul>
 
-<h2>8. Alterações</h2>
-<p>A partilha com amigos só é ativada com o consentimento expresso dos pais (em Portugal, abaixo dos 13 anos o consentimento é dos titulares das responsabilidades parentais). Alterações a esta política serão indicadas aqui.</p>
+<h2>8. Como apagar tudo</h2>
+<p>Área dos Pais → “Partilha com amigos” → <em>Desligar e apagar o que foi partilhado</em> (apaga tudo na cloud e a identidade anónima); ou “Apagar dados deste perfil”; ou “Apagar todos os dados deste aparelho”. Instruções em <a href="./apagar-dados.html">apagar-dados.html</a>. Também pode pedir-nos por email, indicando o código de família.</p>
+
+<h2>9. Direitos (RGPD)</h2>
+<p>Pode pedir acesso, retificação, apagamento, limitação, portabilidade e opor-se ao tratamento, através de [email de contacto]. Responderemos no prazo de 1 mês. Pode apresentar reclamação à Comissão Nacional de Proteção de Dados (www.cnpd.pt).</p>
+
+<h2>10. Segurança</h2>
+<p>A ligação à cloud é cifrada (HTTPS). As regras de acesso do Firestore impedem listar ou ler perfis de quem não foi autorizado, e só aceitam números e identificadores de itens conhecidos (sem texto livre). O jogo valida tudo o que recebe antes de o mostrar.</p>
+
+<h2>11. Crianças fora da UE</h2>
+<p>[Se o jogo for disponibilizado nos Estados Unidos ou noutros países com regras próprias para crianças (ex.: COPPA), esta secção tem de ser completada com o método de consentimento parental verificável aplicável. Por omissão, recomenda-se disponibilizar o jogo apenas em Portugal/Espaço Económico Europeu.]</p>
+
+<h2>12. Alterações</h2>
+<p>Se esta política mudar de forma relevante (por exemplo, novos dados), pediremos novamente o consentimento dos pais antes de a partilha continuar. A data no topo indica a última atualização.</p>
 </body></html>

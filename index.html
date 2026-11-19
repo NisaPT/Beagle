@@ -728,7 +728,7 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 
 
 
-/* ---- v4.15: ranking e nível da quinta ---- */
+/* ---- amigos: ver a quinta e o nível ---- */
 .mundo.ranking .selo{background:#FBE29A}
 .selo-emoji{font-size:2.1rem;line-height:1}
 .rk-abas{display:flex;gap:.5rem;width:min(100%,28rem)}
@@ -753,28 +753,28 @@ body[data-ecra="jogo"] .fala::after{left:-12px;bottom:auto;top:calc(50% - 9px);w
 /* ---- v4.14: o avô e a avó fazem companhia nos menus, num canto ---- */
 /* os ecrãs são filhos do body, por isso o #app sobe acima deles (sem apanhar toques) */
 body[data-ecra="inicio"] #app,body[data-ecra="nome"] #app,body[data-ecra="idade"] #app,
-body[data-ecra="mundos"] #app,body[data-ecra="historias"] #app,body[data-ecra="ranking"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
+body[data-ecra="mundos"] #app,body[data-ecra="historias"] #app,body[data-ecra="amigos"] #app,body[data-ecra="mapa"] #app{z-index:7;pointer-events:none}
 body[data-ecra="inicio"] .tabuleiro,body[data-ecra="nome"] .tabuleiro,body[data-ecra="idade"] .tabuleiro,
-body[data-ecra="mundos"] .tabuleiro,body[data-ecra="historias"] .tabuleiro,body[data-ecra="ranking"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
-body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage{pointer-events:auto}
+body[data-ecra="mundos"] .tabuleiro,body[data-ecra="historias"] .tabuleiro,body[data-ecra="amigos"] .tabuleiro,body[data-ecra="mapa"] .tabuleiro{display:none}
+body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="amigos"] .stage{pointer-events:auto}
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage,
-body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage,body[data-ecra="mapa"] .stage{
+body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="amigos"] .stage,body[data-ecra="mapa"] .stage{
   position:fixed;z-index:7;flex:none;overflow:visible;background:transparent;
   left:0;bottom:0;width:min(44vw,17rem);height:min(30vh,15rem);
 }
 body[data-ecra="inicio"] .stage,body[data-ecra="nome"] .stage,body[data-ecra="idade"] .stage{
   left:50%;transform:translateX(-50%);width:min(94vw,24rem);height:min(26vh,13rem);bottom:max(.4rem,env(safe-area-inset-bottom));
 }
-body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="ranking"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
+body[data-ecra="mundos"] .stage,body[data-ecra="historias"] .stage,body[data-ecra="amigos"] .stage{height:min(24vh,12rem);width:min(34vw,12rem);bottom:max(.4rem,env(safe-area-inset-bottom))}
 body[data-ecra="mapa"] .stage{height:min(17vh,9rem);width:min(24vw,8rem);left:auto;right:0;bottom:3.6rem;pointer-events:none}
 body[data-ecra="inicio"] .stage .cenario,body[data-ecra="nome"] .stage .cenario,body[data-ecra="idade"] .stage .cenario,
-body[data-ecra="mundos"] .stage .cenario,body[data-ecra="ranking"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
+body[data-ecra="mundos"] .stage .cenario,body[data-ecra="amigos"] .stage .cenario,body[data-ecra="mapa"] .stage .cenario,
 body[data-ecra="inicio"] .stage .fala,body[data-ecra="nome"] .stage .fala,body[data-ecra="idade"] .stage .fala,
-body[data-ecra="mundos"] .stage .fala,body[data-ecra="historias"] .stage .fala,body[data-ecra="ranking"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
+body[data-ecra="mundos"] .stage .fala,body[data-ecra="historias"] .stage .fala,body[data-ecra="amigos"] .stage .fala,body[data-ecra="mapa"] .stage .fala{display:none}
 body[data-ecra="inicio"] .stage::after,body[data-ecra="nome"] .stage::after,body[data-ecra="idade"] .stage::after,
-body[data-ecra="mundos"] .stage::after,body[data-ecra="historias"] .stage::after,body[data-ecra="ranking"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
+body[data-ecra="mundos"] .stage::after,body[data-ecra="historias"] .stage::after,body[data-ecra="amigos"] .stage::after,body[data-ecra="mapa"] .stage::after{display:none}
 body[data-ecra="inicio"] .ecra.on,body[data-ecra="nome"] .ecra.on,body[data-ecra="idade"] .ecra.on{padding-bottom:calc(min(26vh,13rem) + 1rem)}
-body[data-ecra="mundos"] .ecra.on,body[data-ecra="historias"] .ecra.on,body[data-ecra="ranking"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
+body[data-ecra="mundos"] .ecra.on,body[data-ecra="historias"] .ecra.on,body[data-ecra="amigos"] .ecra.on{padding-bottom:calc(min(24vh,12rem) + .6rem)}
 
 /* ---- v4.13: festa dos meninos Beagle ---- */
 .festa{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;background:rgba(24,61,53,.6);padding:1rem;animation:festa-fundo .25s ease-out}
@@ -873,7 +873,12 @@ body[data-ecra="mundos"] .ecra.on,body[data-ecra="historias"] .ecra.on,body[data
 .item-loja .comprar:disabled{opacity:.6;background:#fff;color:var(--azul-tinta);border:3px solid var(--barro-esc);box-shadow:none;cursor:default}
 
 /* ---- v4.8: zonas maiores, animais a comer ---- */
-#quinta-grelha .bicho{height:auto;overflow:visible}
+#quinta-grelha .bicho,#amigo-grelha .bicho{height:auto;overflow:visible}
+.am-amigo{width:100%;font:inherit;color:inherit;cursor:pointer;text-align:left;min-height:3.6rem}
+.am-seguro{width:min(100%,28rem);margin:.2rem auto .6rem}
+.am-cab{display:flex;align-items:center;gap:.8rem;justify-content:center;margin:.2rem 0 .4rem;text-align:left}
+.am-cab h1{margin:0;font-size:1.5rem}.am-cab p{margin:.1rem 0 0}
+#am-lista{margin-inline:auto}
 .lote:not(.vazio){grid-column:span 2;aspect-ratio:4/3;background:none}
 @media (min-width:640px){.lote:not(.vazio){grid-column:span 1;aspect-ratio:1/1}}
 .lote:not(.vazio)::before{content:"";position:absolute;inset:32% 0 0 0;border-radius:1.3rem;border:3px solid rgba(70,120,50,.45);
@@ -1209,14 +1214,18 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   <div class="mundos" id="lista-historias"></div>
 </section>
 
-<section class="ecra cobre" id="ecra-ranking">
-  <h1>🏆 Ranking</h1>
-  <div class="rk-abas">
-    <button class="aba on" data-rk="estrelas" type="button">⭐ Estrelas</button>
-    <button class="aba" data-rk="quinta" type="button">🏡 Quinta</button>
+<section class="ecra cobre" id="ecra-amigos">
+  <div id="am-vista-lista">
+    <h1>👫 Amigos</h1>
+    <p class="aviso am-seguro">🛡️ Só vemos as quintas de amigos que o pai e a mãe conhecem. Nunca digas o teu nome nem onde moras.</p>
+    <ul class="rk-lista" id="am-lista"></ul>
+    <p class="aviso" id="am-nota"></p>
   </div>
-  <ol class="rk-lista" id="rk-lista"></ol>
-  <p class="aviso" id="rk-nota"></p>
+  <div id="am-visita" hidden>
+    <div class="am-cab"><span id="am-avatar" aria-hidden="true"></span><div><h1 id="am-nome"></h1><p id="am-info"></p></div></div>
+    <p class="aviso" id="am-vazia" hidden>Este amigo ainda não tem edifícios na quinta.</p>
+    <div class="quinta-grelha" id="amigo-grelha"></div>
+  </div>
 </section>
 
 <section class="ecra" id="ecra-quinta">
@@ -1278,8 +1287,8 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
     <h2>Partilha com amigos (opcional)</h2>
     <p id="conta-estado">—</p>
     <div id="conta-fora" hidden>
-      <p>Se ligar, o jogo publica um resumo pequeno da criança — <strong>alcunha, estrelas, níveis e personagens</strong> — para que amigos com o código possam ver a quinta e o ranking. Sem email, sem conta, sem chat e sem nome real: use sempre uma alcunha. Pode desligar e apagar tudo a qualquer momento.</p>
-      <label class="campo-voz"><input type="checkbox" id="consentimento-pais"> Sou o pai, mãe ou responsável e autorizo esta partilha.</label>
+      <p>Se ligar, o jogo publica, para cada criança, apenas o <strong>código da família, o nível do jogo e os itens da quinta</strong> (edifícios e animais), para que amigos <strong>que também autorizar</strong> possam ver a quinta e o nível. Não há nome, fotografias, mensagens, chat, localização nem email: o amigo aparece com um nome de animal gerado (ex.: “Coelhinho 42”). Os dados são apagados após 180 dias sem uso, e pode desligar e apagar tudo a qualquer momento.</p>
+      <label class="campo-voz"><input type="checkbox" id="consentimento-pais"> Sou o pai, mãe ou responsável legal da criança e autorizo esta partilha, que li e compreendi (ver Política de Privacidade).</label>
       <button class="botao pequeno" id="btn-ativar-partilha" type="button">Ligar partilha com amigos</button>
     </div>
     <div id="conta-dentro" hidden>
@@ -1324,23 +1333,21 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
 
   <div class="painel">
     <h2>Amigos</h2>
-    <p>O seu código de família. Dê-o a outro pai ou mãe para que a criança veja o avatar do amigo no mapa.</p>
+    <p>O código de família. Para duas crianças se verem, <strong>cada um dos pais junta o código do outro</strong> — só então a quinta e o nível ficam visíveis (e só entre os dois).</p>
     <span class="codigo" id="meu-codigo">—</span>
     <form class="form-amigo" id="form-amigo">
-      <input id="campo-codigo" placeholder="ABCD-1234" autocomplete="off"
-             spellcheck="false" aria-label="Código do amigo" maxlength="9">
+      <input id="campo-codigo" placeholder="ABCD-EFGH-JKMN" autocomplete="off"
+             spellcheck="false" aria-label="Código do amigo" maxlength="14">
       <button type="submit">Juntar</button>
     </form>
     <p class="aviso-campo" id="aviso-amigo"></p>
     <div id="lista-amigos"></div>
-    <p class="aviso">Os amigos veem só a alcunha, as estrelas e o nível da quinta (nunca fotografias nem mensagens). Os dados vêm da cloud: para aparecerem, a conta dos pais tem de estar ligada nos dois aparelhos, com a versão mais recente do jogo.</p>
+    <p class="aviso">Os amigos veem só o nível do jogo e a quinta (edifícios e animais). Nunca veem nomes, fotografias ou mensagens, e não há forma de falar com eles. Pode remover um amigo a qualquer momento. A partilha tem de estar ligada nos dois aparelhos.</p>
   </div>
 
   <div class="painel">
     <h2>Voz</h2>
-    <p>Prioridade a vozes neurais online PT-PT (masculina e feminina). Configure aqui o endereço do gateway TTS do projeto. O gateway deve guardar as credenciais do fornecedor no servidor e devolver áudio; nunca coloque chaves API neste campo nem no JavaScript público. Sem gateway configurado, é usada a voz PT-PT do dispositivo, quando disponível.</p>
-    <label class="campo-voz" for="tts-endpoint">Endereço do serviço neural (opcional)</label>
-    <input id="tts-endpoint" type="url" placeholder="https://o-seu-servidor.pt/api/tts" autocomplete="off">
+    <p>As vozes dos avós estão gravadas no jogo e funcionam sem internet. Se preferir, pode usar uma voz PT-PT do aparelho. Nenhum texto sai do aparelho.</p>
     <div class="escolha-voz">
       <label><input type="radio" name="voz" value="embutida" checked><span>Vozes dos avós (gravadas)<small>a voz da Avó e do Avô, igual em todos os aparelhos</small></span></label>
       <label><input type="radio" name="voz" value="aparelho"><span>Voz PT-PT do dispositivo<small>seleção independente para o Avô e para a Avó</small></span></label>
@@ -1356,7 +1363,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   <div class="painel">
     <h2>Privacidade e segurança</h2>
     <p>Este jogo é feito para crianças e respeita a privacidade delas: <strong>não tem anúncios, compras, chat nem rastreio</strong>. Não pede nome real, localização, câmara, microfone ou contactos.</p>
-    <p>O progresso, os perfis e as estatísticas ficam apenas neste aparelho. Por defeito nada é enviado para a internet. Só se os pais ligarem a partilha com amigos é publicado um resumo mínimo (alcunha, estrelas, níveis, personagens), que pode ser apagado a qualquer momento.</p>
+    <p>O progresso, os perfis, o nome e as estatísticas ficam apenas neste aparelho. Por defeito nada é enviado para a internet. Só se os pais ligarem a partilha com amigos é publicado o código da família, o nível e os itens da quinta, que são apagados após 180 dias sem uso e que pode apagar a qualquer momento.</p>
     <p><a href="./privacidade.html" target="_blank" rel="noopener">Ler a Política de Privacidade completa</a></p>
     <button class="botao calma pequeno" id="btn-apagar-tudo" type="button">Apagar todos os dados deste aparelho</button>
     <p class="aviso">Pode apagar só um perfil com o botão acima. A opção “Apagar todos os dados” remove todos os perfis, progresso e cópias guardadas no aparelho.</p>
@@ -1373,7 +1380,7 @@ body[data-historia] .tabuleiro,body[data-historia] .cenario,body[data-historia] 
   document.getElementById('cara-avo').innerHTML = avatar('beagle', '#2E7D74', 70);
   document.getElementById('cara-ava').innerHTML = avatar('beagle', '#B189C9', 70);
 </script>
-<script type="module" src="./js/app.js?v=4.29.0"></script>
+<script type="module" src="./js/app.js?v=4.30.0"></script>
 <script>
 if('serviceWorker' in navigator && location.protocol!=='file:'){
   addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(r=>{

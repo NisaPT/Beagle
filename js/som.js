@@ -90,28 +90,10 @@ export const Som = {
   },
 
 
-  /* Gateway TTS do projeto. O navegador nunca recebe chaves do fornecedor.
-     O endpoint deve ser um backend próprio que devolve áudio (audio/mpeg ou audio/wav). */
+  /* Sem serviço de voz externo: nenhum texto sai do aparelho (privacidade das crianças).
+     Mantido só porque o resto do código pergunta por ele. */
   endpointNeural: '',
-  async falaNeural(texto, aoFim, geracao){
-    try{
-      const r=await fetch(this.endpointNeural,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({text: texto, language:'pt-PT', voice:this.personagem==='f'?'female':'male'}),
-        signal:AbortSignal.timeout(12000)});
-      if(!r.ok) return false;
-      const blob=await r.blob(); if(!blob.type.startsWith('audio/')) return false;
-      const url=URL.createObjectURL(blob), audio=new Audio(url);
-      this.audioNeural=audio;
-      await new Promise((resolve,reject)=>{
-        audio.onended=resolve; audio.onerror=reject;
-        if(geracao!==this.geracaoVoz){resolve();return;}
-        audio.play().catch(reject);
-      });
-      URL.revokeObjectURL(url);
-      if(geracao===this.geracaoVoz && aoFim) aoFim();
-      return true;
-    }catch(e){return false;}
-  },
+  async falaNeural(){ return false; },
 
   /* --------------------------------------------------- notas ---------- */
   nota(freq, quando, dur, tipo, vol, destino, freqFim){
